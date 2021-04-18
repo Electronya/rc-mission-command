@@ -1,0 +1,26 @@
+{
+    "axis": {
+        "steering": 0,
+        "Throttle": 1,
+        "break": 3
+    },
+    "buttons": {
+        "start": 10,
+        "select": 9,
+        "dpad_down": 5,
+        "dpad_left": 6,
+        "dpad_right": 7,
+        "dpad_up": 8,
+        "x": 1,
+        "square": 2,
+        "circle": 3,
+        "triangle": 4,
+        "paddle_left": 12,
+        "paddle_right": 11
+    },
+    "mapping": {
+        "look_left": "paddle_left",
+        "look_right": "paddle_right",
+        "reverse": "x"
+    }
+}
