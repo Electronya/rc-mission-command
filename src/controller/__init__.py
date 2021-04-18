@@ -15,21 +15,21 @@ class Controller:
 
     CONFIG_ROOT_DIR = './src/controller/configs/'
 
-    def __init__(self, id, name, dead_zone=0.15):
+    def __init__(self, id, name, ndigit=2):
         """
         Constructor.
 
         Params:
             id:         The ID of the controller from 0 to pygame.joystick.get_count().
             name:       The controller name.
-            dead_zone:  The size of dead zone for the analog stick. Default 0.15.
+            ndigit:     The digit number for the axis precision. Default: 2.
         """
         logging.debug(f"creating controller {name} with id: {id}")
         self._joystick = pygame.joystick.Joystick(id)
         self._joystick.init()
 
         self._id = id
-        self._dead_zone = dead_zone
+        self._ndigit = ndigit
 
         file_name = f"{name.lower().replace(' ', '_')}.json"
         config_file = os.path.join(self.CONFIG_ROOT_DIR, file_name)
@@ -122,6 +122,7 @@ class Controller:
         logging.debug(f"reading all axis positions of controller {self.get_name()}")
         axis_count = self._joystick.get_numaxes()
         axis_positions = [float(self._joystick.get_axis(i)) for i in range(axis_count)]
+        axis_positions = [round(pos, self._ndigit) for pos in axis_positions]
 
         logging.debug(f"axis positions: {axis_positions}")
 
