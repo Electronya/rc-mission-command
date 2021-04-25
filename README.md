@@ -3,7 +3,7 @@ RC Mission Commander Software
 
 ## Setup
 ```
-git clone https://github.com/Electronya/rc-mission-command.git
+git clone git@github.com:Electronya/rc-mission-commander.git
 cd rc-mission-commader
 python3 -m venv venv
 source env/bin/activate
