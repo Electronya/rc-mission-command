@@ -127,3 +127,14 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# VS code settings
+.vscode/
+
+# Broker config/data/log
+broker/config/*
+!broker/config/mosquitto.conf
+broker/data/*
+!broker/data/.gitkeep
+broker/log/*
+!broker/log/.gitkeep
