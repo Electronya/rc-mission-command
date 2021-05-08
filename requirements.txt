@@ -4,7 +4,5 @@ coverage==5.4
 rope==0.18.0
 
 # App dependencies
+inputs==0.5
 paho-mqtt==1.5.1
-pygame==2.0.1
-pygame_gui==0.5.7
-wheel==0.36.2
