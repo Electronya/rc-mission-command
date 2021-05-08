@@ -1,10 +1,10 @@
 import sys
 import logging
+
 import pygame
-import asyncio
-import websockets
 
 from controller import Controller
+from client import Client
 
 class App:
     """
@@ -27,6 +27,10 @@ class App:
         self._driving_wheel = Controller(0, controllers[0])
         logging.info('controller initialzed.')
 
+        logging.info('initializing mqtt client.')
+        self._client = Client('12345')
+        logging.info('mqtt client initialized.')
+
         logging.info('initializing application window')
         self._screen = pygame.display.set_mode((1920, 1080), pygame.RESIZABLE)
         self._clock = pygame.time.Clock()
@@ -39,6 +43,7 @@ class App:
         Quit the application.
         """
         logging.info('quitting the application')
+        self._client.disconnect()
         pygame.quit()
         sys.exit()
 
