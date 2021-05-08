@@ -1,27 +1,28 @@
 {
-    "axis": {
-        "steering": "ABS_X",
-        "Throttle": "ABS_Y",
-        "break": "ABS_RZ"
-    },
-    "buttons": {
-        "r1": "BTN_TOP2",
-        "r2": "BTN_BASE1",
-        "l1": "BTN_PINKIE",
-        "l2": "BTN_BASE2",
-        "select": "BTN_BASE3",
-        "start": "BTN_BASE4",
-        "paddle_right": "BTN_BASE5",
-        "paddle_left": "BTN_BASE6",
-        "dpad_up_down": "ABS_HAT0Y",
-        "dpad_left_right": "ABS_HAT0X",
-        "x": "BTN_TRIGGER",
-        "square": "BTN_THUMB",
-        "circle": "BTN_THUMB2",
-        "triangle": "BTN_TOP"
+    "events": {
+        "ABS_X": "steering",
+        "ABS_Y": "throttle",
+        "ABS_RZ": "break",
+        "BTN_BASE1": "r2",
+        "BTN_BASE2": "l2",
+        "BTN_BASE3": "select",
+        "BTN_BASE4": "start",
+        "BTN_BASE5": "paddle_right",
+        "BTN_BASE6": "paddle_left",
+        "BTN_TOP": "triangle",
+        "BTN_TOP2": "r1",
+        "BTN_THUMB": "square",
+        "BTN_THUMB2": "circle",
+        "BTN_PINKIE": "l1",
+        "BTN_TRIGGER": "x",
+        "ABS_HAT0X": "dpad_vert",
+        "ABS_HAT0Y": "dpad_horz"
     },
     "mapping": {
-        "look_left_right": "dpad_left_right",
-        "reverse": "x"
+        "steering": "steering",
+        "throttle": "throttle",
+        "break": "break",
+        "x": "reverse",
+        "dpad_horz": "look"
     }
 }
