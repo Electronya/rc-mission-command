@@ -64,6 +64,7 @@ class App(tk.Tk):
         self._logger.info('quitting the application')
         for controller in self._controllers:
             controller.quit()
+        pygame.quit()
         self._client.disconnect()
         self.destroy()
         sys.exit()

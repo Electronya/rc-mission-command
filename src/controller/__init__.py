@@ -78,37 +78,6 @@ class Controller:
         """
         return self._idx
 
-    def get_buttons(self):
-        """
-        Get all the buttons state.
-
-        Return:
-            A tuple containing all the buttons state. 1 is pressed, 0 is depressed.
-        """
-        self._logger.debug(f"reading all button state of controller {self.get_name()}")
-        button_count = self._joystick.get_numbuttons()
-        button_states = [int(self._joystick.get_button(i)) for i in range(button_count)]
-
-        self._logger.debug(f"button states: {button_states}")
-
-        return (button_states)
-
-    def get_axis(self):
-        """
-        Get all axis position.
-
-        Return:
-            A tuple containing all the axis positions. The positions are ranging from -1 to 1.
-        """
-        self._logger.debug(f"reading all axis positions of controller {self.get_name()}")
-        axis_count = self._joystick.get_numaxes()
-        axis_positions = [float(self._joystick.get_axis(i)) for i in range(axis_count)]
-        axis_positions = [round(pos, self._ndigit) for pos in axis_positions]
-
-        self._logger.debug(f"axis positions: {axis_positions}")
-
-        return (axis_positions)
-
     def quit(self):
         """
         Uninitialize the controller.
