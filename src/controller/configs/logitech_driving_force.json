@@ -28,7 +28,7 @@
         "steering": "steering",
         "throttle": "throttle",
         "break": "break",
-        "look": "dpad",
-        "reverse": "x"
+        "dpad": "look",
+        "x": "reverse"
     }
 }
