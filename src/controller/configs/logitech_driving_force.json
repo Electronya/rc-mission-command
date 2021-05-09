@@ -1,7 +1,7 @@
 {
     "axis": {
         "steering": 0,
-        "Throttle": 1,
+        "throttle": 1,
         "break": 3
     },
     "buttons": {
@@ -19,6 +19,9 @@
         "paddle_right": 11
     },
     "mapping": {
+        "steering": "steering",
+        "throttle": "throttle",
+        "break": "break",
         "look_left": "paddle_left",
         "look_right": "paddle_right",
         "reverse": "x"

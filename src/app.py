@@ -8,6 +8,7 @@ from controller import Controller
 from client import Client
 from ui import ControlFrame
 
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)s:%(levelname)s:%(message)s')
 class App(tk.Tk):
     """
     The application base class.
@@ -19,30 +20,23 @@ class App(tk.Tk):
         Constructor.
         """
         tk.Tk.__init__(self)
-        logging.basicConfig(level=logging.DEBUG)
-        logging.info('launcihing application...')
+        self._logger = logging.getLogger('APP')
+        self._logger.info('launcihing application...')
 
-        logging.info('initializing mqtt client.')
+        self._logger.info('initializing mqtt client.')
         self._client = Client('12345')
-        logging.info('mqtt client initialized.')
+        self._logger.info('mqtt client initialized.')
 
-        logging.info('initializing controller.')
+        self._logger.info('initializing controller.')
         controllers = Controller.list_connected()
-        logging.debug(f"controller list: {controllers}")
+        self._logger.debug(f"controller list: {controllers}")
         self._controllers = []
-        callbacks = [
-            {
-                'steering': self._update_steering,
-                'throttle': self._update_throttle,
-                'break': self._update_break,
-            },
-        ]
-        for idx in range(len(controllers)):
-            self._controllers.append(Controller(idx, controllers[idx], callbacks[idx]))
+        for ctrl_name in controllers.keys():
+            self._controllers.append(Controller(controllers[ctrl_name], ctrl_name, self))
         self._activeCtrl = self._controllers[0]
-        logging.info('controller initialzed.')
+        self._logger.info('controller initialzed.')
 
-        logging.info('initializong UI.')
+        self._logger.info('initializong UI.')
         self.attributes('-zoomed', True)
         style = ttk.Style()
         style.theme_use('clam')
@@ -51,25 +45,18 @@ class App(tk.Tk):
             'selectCtrl': self._activate_ctrl,
             'calibrateCtrl': self._calibrate_ctrl,
         }
-        self._controlFrame = ControlFrame(self, [controllers[0]], callbacks, text="Controls")
+        self._controlFrame = ControlFrame(self, list(controllers.keys()), callbacks, text="Controls")
         self._controlFrame.grid(row=0, column=0, padx=10, pady=10)
 
-        logging.info('application launched.')
-
-    def process_ctrl_event(self):
-        """
-        Process the controllers events.
-        """
-        for controller in self._controllers:
-            controller.process_events()
-
-        self.after(self.CTRL_FRAME_RATE, self.process_ctrl_event)
+        self._logger.info('application launched.')
 
     def quit(self):
         """
         Quit the application.
         """
-        logging.info('quitting the application')
+        self._logger.info('quitting the application')
+        for controller in self._controllers:
+            controller.quit()
         self._client.disconnect()
         self.destroy()
         sys.exit()
@@ -81,7 +68,7 @@ class App(tk.Tk):
         Params:
             ctrl_name:      The controller name to activate.
         """
-        logging.info(f"activating controller: {ctrl_name}")
+        self._logger.info(f"activating controller: {ctrl_name}")
         for controller in self._controllers:
             if ctrl_name == controller.get_name():
                 self._activeCtrl = controller
@@ -90,7 +77,7 @@ class App(tk.Tk):
         """
         Calibrate the active controller.
         """
-        logging.info(f"calibrating controller: {self._activeCtrl.get_name()}")
+        self._logger.info(f"calibrating controller: {self._activeCtrl.get_name()}")
 
     def _update_steering(self, modifier):
         """
@@ -122,5 +109,4 @@ class App(tk.Tk):
 if __name__ == '__main__':
     app = App()
     app.protocol("WM_DELETE_WINDOW", app.quit)
-    app.after(app.CTRL_FRAME_RATE * 100, app.process_ctrl_event)
     app.mainloop()

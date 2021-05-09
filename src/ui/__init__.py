@@ -20,8 +20,9 @@ class ControlFrame(tk.LabelFrame):
             callbacks:      A dictionary containing the callbacks.
         """
         tk.LabelFrame.__init__(self, parent, *args, **kwargs)
+        self._logger = logging.getLogger('CTRL_FRAME')
 
-        logging.debug('initializing control frame.')
+        self._logger.debug('initializing control frame.')
         self._parent = parent
         self._controllers = controllers
         self._callbacks = callbacks
@@ -80,12 +81,12 @@ class ControlFrame(tk.LabelFrame):
         """
         Select a controller.
         """
-        logging.debug(f"selecting controller: {selectedCtrl}")
+        self._logger.debug(f"selecting controller: {selectedCtrl}")
         self._callbacks['selectCtrl'](selectedCtrl)
 
     def _calibrate_ctrl(self):
         """
         Calibrate the selected controller.
         """
-        logging.debug(f"calibrating controller: {self._selectedCtrl.get()}")
+        self._logger.debug(f"calibrating controller: {self._selectedCtrl.get()}")
         self._callbacks['calibrateCtrl']()
