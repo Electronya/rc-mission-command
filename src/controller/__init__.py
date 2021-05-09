@@ -4,13 +4,12 @@ import os
 
 import pygame
 
-pygame.init()
 class Controller:
     """
     Class implementing the controller function.
     """
-
     CONFIG_ROOT_DIR = './src/controller/configs/'
+    CTRL_FRAME_RATE = 10
 
     def __init__(self, idx, name, app, ndigit=2):
         """
@@ -71,13 +70,13 @@ class Controller:
         """
         return self._joystick.get_name()
 
-    def get_id(self):
+    def get_idx(self):
         """
-        Get the joystick id
+        Get the joystick index
         Return:
-            The ID of the controller.
+            The index of the controller.
         """
-        return self._id
+        return self._idx
 
     def get_buttons(self):
         """

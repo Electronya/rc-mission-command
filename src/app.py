@@ -4,11 +4,16 @@ import logging
 import tkinter as tk
 import tkinter.ttk as ttk
 
+import pygame
+
 from controller import Controller
 from client import Client
 from ui import ControlFrame
 
+pygame.init()
+pygame.event.set_allowed([pygame.JOYAXISMOTION, pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP, pygame.JOYHATMOTION])
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)s:%(levelname)s:%(message)s')
+
 class App(tk.Tk):
     """
     The application base class.
@@ -48,6 +53,8 @@ class App(tk.Tk):
         self._controlFrame = ControlFrame(self, list(controllers.keys()), callbacks, text="Controls")
         self._controlFrame.grid(row=0, column=0, padx=10, pady=10)
 
+        self.after(Controller.CTRL_FRAME_RATE, self._process_pygame_events)
+
         self._logger.info('application launched.')
 
     def quit(self):
@@ -60,6 +67,23 @@ class App(tk.Tk):
         self._client.disconnect()
         self.destroy()
         sys.exit()
+
+    def _process_pygame_events(self):
+        """
+        Process the pygame events.
+        """
+        self._logger.debug('processing events')
+        for event in pygame.event.get():
+            if event.type == pygame.JOYAXISMOTION:
+                self._logger.debug(f"processing joystick {event.instance_id} axis {event.axis} with value {event.value}")
+            if event.type == pygame.JOYBUTTONDOWN:
+                self._logger.debug(f"processing joystick {event.instance_id} button {event.button} down")
+            if event.type == pygame.JOYBUTTONUP:
+                self._logger.debug(f"processing joystick {event.instance_id} button {event.button} up")
+            if event.type == pygame.JOYHATMOTION:
+                self._logger.debug(f"processing joystick {event.instance_id} hat {event.hat} with value {event.value}")
+
+        self.after(Controller.CTRL_FRAME_RATE, self._process_pygame_events)
 
     def _activate_ctrl(self, ctrl_name):
         """
