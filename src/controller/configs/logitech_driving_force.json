@@ -1,28 +1,34 @@
 {
-    "events": {
-        "ABS_X": "steering",
-        "ABS_Y": "throttle",
-        "ABS_RZ": "break",
-        "BTN_BASE1": "r2",
-        "BTN_BASE2": "l2",
-        "BTN_BASE3": "select",
-        "BTN_BASE4": "start",
-        "BTN_BASE5": "paddle_right",
-        "BTN_BASE6": "paddle_left",
-        "BTN_TOP": "triangle",
-        "BTN_TOP2": "r1",
-        "BTN_THUMB": "square",
-        "BTN_THUMB2": "circle",
-        "BTN_PINKIE": "l1",
-        "BTN_TRIGGER": "x",
-        "ABS_HAT0X": "dpad_vert",
-        "ABS_HAT0Y": "dpad_horz"
+    "type": "steering wheel",
+    "controls": {
+        "axis": [
+            "steering",
+            "throttle",
+            "break"
+        ],
+        "buttons": [
+            "x",
+            "square",
+            "circle",
+            "triangle",
+            "r1",
+            "l1",
+            "r2",
+            "l2",
+            "select",
+            "start",
+            "paddle_right",
+            "paddle_left"
+        ],
+        "hats": [
+            "dpad"
+        ]
     },
     "mapping": {
         "steering": "steering",
         "throttle": "throttle",
         "break": "break",
-        "x": "reverse",
-        "dpad_horz": "look"
+        "look": "dpad",
+        "reverse": "x"
     }
 }
