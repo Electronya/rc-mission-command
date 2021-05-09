@@ -78,6 +78,51 @@ class Controller:
         """
         return self._idx
 
+    def get_type(self):
+        """
+        Get the controller type.
+
+        Return:
+            The controller type.
+        """
+        return self._config['type']
+
+    def get_funct_map(self):
+        """
+        Get the controller function mapping.
+
+        Return:
+            A dictionary containing the map of the functions.
+        """
+        return self._config['mapping']
+
+    def get_axis_map(self):
+        """
+        Get the controller axis mapping.
+
+        Return:
+            The list containing the map of the axis.
+        """
+        return self._config['controls']['axis']
+
+    def get_buttons_map(self):
+        """
+        Get the controller buttons mapping.
+
+        Return:
+            The list containing the map of the buttons.
+        """
+        return self._config['controls']['buttons']
+
+    def get_hats_map(self):
+        """
+        Get the controller hats mapping.
+
+        Return:
+            The list containing the map of the hats.
+        """
+        return self._config['controls']['hats']
+
     def quit(self):
         """
         Uninitialize the controller.
