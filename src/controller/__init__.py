@@ -2,109 +2,117 @@ import json
 import logging
 import os
 
-import inputs
+import pygame
 
+pygame.init()
 class Controller:
     """
     Class implementing the controller function.
     """
+
     CONFIG_ROOT_DIR = './src/controller/configs/'
 
-    def __init__(self, idx, name, callbacks):
+    def __init__(self, id, name, ndigit=2):
         """
         Constructor.
-
         Params:
-            idx:        The index of the controller in the list of connected gamepads.
+            id:         The ID of the controller from 0 to pygame.joystick.get_count().
             name:       The controller name.
-            callacks:   The event callbacks.
+            ndigit:     The digit number for the axis precision. Default: 2.
         """
-        logging.debug(f"creating controller {name} with at index {idx}.")
-        self._gamepad = inputs.devices.gamepads[idx]
+        logging.debug(f"creating controller {name} with id: {id}")
+        self._joystick = pygame.joystick.Joystick(id)
+        self._joystick.init()
 
-        self._idx = idx
-        self._callbacks = callbacks
+        self._id = id
+        self._ndigit = ndigit
 
         file_name = f"{name.lower().replace(' ', '_')}.json"
         config_file = os.path.join(self.CONFIG_ROOT_DIR, file_name)
         with open(config_file) as raw_config:
             self._config = json.load(raw_config)
 
-        self._isCalibrated = False
-        self._updater = {
-            'steering': self._update_steering,
-        }
-
     @classmethod
     def list_connected(cls):
         """
-        List the connected controllers.
-
+        List the connected and supported controller.
         Return:
-            A Dictionary containing the identification of the controller (index: name).
+            A list containing the controller names. The index of the names correspond
+            to the controller ID.
         """
-        connected = []
-        for gamepad in inputs.devices.gamepads:
-            name = gamepad.__str__()
-            cut_idx = name.index(' ')
-            name = name[cut_idx+1:]
-            connected.append(name)
+        logging.debug('listing connected/supported controller')
+        connected_controllers = []
+        for id in range(pygame.joystick.get_count()):
+            controller_name = pygame.joystick.Joystick(id).get_name()
+            connected_controllers.append(controller_name)
 
-        logging.debug(f"connected controller: {connected}")
+        supported_controllers = [f.replace('.json', '') for f in os.listdir(cls.CONFIG_ROOT_DIR)]
+        conn_supp_controllers = filter(
+            lambda ctrl : any(ctrl.lower().replace(' ', '_') in ctrl_name for ctrl_name in supported_controllers),
+            connected_controllers)
+        conn_supp_controllers = tuple(conn_supp_controllers)
 
-        supported = [f.replace('.json', '') for f in os.listdir(cls.CONFIG_ROOT_DIR)]
-        logging.debug(f"supported controller: {supported}")
+        logging.debug(f"found the following controllers: {conn_supp_controllers}")
 
-        connected_supported = {}
-        for idx in range(len(connected)):
-            for supp in supported:
-                if supp == connected[idx].lower().replace(' ', '_'):
-                    connected_supported[idx] = connected[idx]
-
-        return connected_supported
+        return conn_supp_controllers
 
     def get_name(self):
         """
-        Get the controller name.
-
+        Get the joystick name.
         Return:
-            The controller name.
+            The name of the controller.
         """
-        name = self._gamepad.__str__()
-        cut_idx = name.index(' ')
-        return name[cut_idx+1:]
+        return self._joystick.get_name()
 
-    def is_Calibrate(self):
+    def get_id(self):
         """
-        Get the calibration state of the controller.
-
+        Get the joystick id
         Return:
-            True if the controller is calibrated, false otherwise.
+            The ID of the controller.
         """
-        return self._isCalibrated
+        return self._id
 
-    def process_events(self):
+    def get_buttons(self):
         """
-        Process the controller events.
+        Get all the buttons state.
+        Return:
+            A tuple containing all the buttons state. 1 is pressed, 0 is depressed.
         """
-        for event in self._gamepad.read():
-            if not event.code == 'SYN_REPORT' and not event.code == 'SYN_DROPPED' and not event.code == 'MSC_SCAN':
-                logging.debug(f"processing event: {event.code}")
-                updater_key = self._config['mapping'][self._config['events'][event.code]]
-                logging.debug(f"using updater: {updater_key}")
-                # self._updater[updater_key](event.state)
+        logging.debug(f"reading all button state of controller {self.get_name()}")
+        button_count = self._joystick.get_numbuttons()
+        button_states = [int(self._joystick.get_button(i)) for i in range(button_count)]
 
-    def _update_steering(self, state):
-        """
-        Update the steering state.
+        logging.debug(f"button states: {button_states}")
 
-        Params:
-            state:      The steering new state.
-        """
-        if self._isCalibrated:
-            if state > self._steeringCenter:
-                modifier = (state - self._steeringCenter) / self._steeringLeftRange
-            else:
-                modifier = (state - self._steeringCenter) / self._steeringRightRange
-            self._callbacks['steering'](modifier)
+        return (button_states)
 
+    def get_funct_mapping(self):
+        """
+        Get the buttons function mapping.
+        Return:
+            A dictionnary containing the controller buttons funtion mapping.
+        """
+        return self._config["mapping"]
+
+    def get_button_indexes(self):
+        """
+        Get the button indexes for the controller.
+        Return:
+            A dictionnary containing the controller button indexes mapping.
+        """
+        return self._config["buttons"]
+
+    def get_axis(self):
+        """
+        Get all axis position.
+        Return:
+            A tuple containing all the axis positions. The positions are ranging from -1 to 1.
+        """
+        logging.debug(f"reading all axis positions of controller {self.get_name()}")
+        axis_count = self._joystick.get_numaxes()
+        axis_positions = [float(self._joystick.get_axis(i)) for i in range(axis_count)]
+        axis_positions = [round(pos, self._ndigit) for pos in axis_positions]
+
+        logging.debug(f"axis positions: {axis_positions}")
+
+        return (axis_positions)
