@@ -9,6 +9,8 @@ class ControlFrame(tk.LabelFrame):
     The user interface control frame.
     """
     STERRING_ICON = './resources/icons/steering-wheel.png'
+    THROTTLE_BAR_LEN = 500
+    BREAK_BAR_LEN = 500
 
     def __init__(self, parent, controllers, callbacks, *args, **kwargs):
         """
@@ -39,43 +41,66 @@ class ControlFrame(tk.LabelFrame):
 
         # Controller information
         self._steeringAngle = 0
-        self._steeringImg = ImageTk.PhotoImage(Image.open(self.STERRING_ICON))
+        self._steeringImg = Image.open(self.STERRING_ICON)
+        self._steeringTkImg = ImageTk.PhotoImage(self._steeringImg)
         self._steeringIcon = tk.Canvas(self, width=100, height=100)
         self._steeringIcon.grid(row=1, column=0, rowspan=2, padx=10, pady=10)
-        self._steeringIcon.create_image(1, 1, anchor=tk.NW, image=self._steeringImg)
-        self._throttleBar = ttk.Progressbar(self, style='red.Horizontal.TProgressbar', orient=tk.HORIZONTAL, mode='determinate', length=500)
+        self._steeringIcon.create_image(1, 1, anchor=tk.NW, image=self._steeringTkImg)
+        self._throttleBar = ttk.Progressbar(self, style='grn.Horizontal.TProgressbar',
+            orient=tk.HORIZONTAL, mode='determinate', length=self.THROTTLE_BAR_LEN)
         self._throttleBar.grid(row=1, column=1, columnspan=2, padx=10, pady=10)
-        self._breakBar = ttk.Progressbar(self, style='red.Horizontal.TProgressbar', orient=tk.HORIZONTAL, mode='determinate', length=500)
+        self._breakBar = ttk.Progressbar(self, style='red.Horizontal.TProgressbar',
+            orient=tk.HORIZONTAL, mode='determinate', length=self.BREAK_BAR_LEN)
         self._breakBar.grid(row=2, column=1, columnspan=2, padx=10, pady=10)
 
-    def update_steering(self, modifier):
+    def get_updaters(self):
+        """
+        Get the updater functions.
+
+        Return:
+            A dictionary contraining the updater fucntions.
+        """
+        return {
+            "steering": self._update_steering,
+            "throttle": self._update_throttle,
+            "break": self._update_break,
+        }
+
+    def _update_steering(self, modifier):
         """
         Update the sterring icon with new angle.
 
         Params:
             modifier:      The steering modifier.
         """
-        self._steeringImg = self._steeringImg.rotate(self._steeringAngle * -1)
-        self._steeringAngle = 90 * modifier
-        self._steeringImg = self._steeringImg.rotate(self._steeringAngle)
+        self._logger.debug('updating steering state')
+        # TODO: check orientation for unit ??
+        modifier = round(modifier, 2) * -1
+        rotated_img = self._steeringImg.rotate(90 * modifier)
+        self._steeringTkImg = ImageTk.PhotoImage(rotated_img)
+        self._steeringIcon.create_image(1, 1, anchor=tk.NW, image=self._steeringTkImg)
 
-    def update_throttle(self, modifier):
+    def _update_throttle(self, modifier):
         """
         Update the throttle progressbar.
 
         Params:
             modifier:       The throttle modifier.
         """
-        self._throttleBar['value'] = modifier * 100
+        self._logger.debug('updating throttle state')
+        modifier = round(modifier, 3)
+        self._throttleBar['value'] = modifier * self.THROTTLE_BAR_LEN
 
-    def update_break(self, modifier):
+    def _update_break(self, modifier):
         """
-        Uppdate the break progressbar.
+        Update the break progressbar.
 
         Params:
             modifier:       The break modifier.
         """
-        self._breakBar['value'] = modifier * 100
+        self._logger.debug('updating break state.')
+        modifier = round(modifier, 3)
+        self._breakBar['value'] = modifier * self.BREAK_BAR_LEN
 
     def _select_ctrl(self, selectedCtrl):
         """

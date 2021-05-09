@@ -25,6 +25,7 @@ class App(tk.Tk):
         Constructor.
         """
         tk.Tk.__init__(self)
+        self.title('RC Mission Commander')
         self._logger = logging.getLogger('APP')
         self._logger.info('launcihing application...')
 
@@ -45,7 +46,8 @@ class App(tk.Tk):
         self.attributes('-zoomed', True)
         style = ttk.Style()
         style.theme_use('clam')
-        style.configure("red.Horizontal.TProgressbar", foreground='red')
+        style.configure("red.Horizontal.TProgressbar", foreground='red', background='red')
+        style.configure("grn.Horizontal.TProgressbar", foreground='green', background='green')
         callbacks = {
             'selectCtrl': self._activate_ctrl,
             'calibrateCtrl': self._calibrate_ctrl,
@@ -77,6 +79,10 @@ class App(tk.Tk):
         for event in pygame.event.get():
             if event.type == pygame.JOYAXISMOTION:
                 self._logger.debug(f"processing joystick {event.instance_id} axis {event.axis} with value {event.value}")
+                updaters = self._controlFrame.get_updaters()
+                functions = self._controllers[event.instance_id].get_funct_map()
+                axis = self._controllers[event.instance_id].get_axis_map()
+                updaters[functions[axis[event.axis]]](event.value)
             if event.type == pygame.JOYBUTTONDOWN:
                 self._logger.debug(f"processing joystick {event.instance_id} button {event.button} down")
             if event.type == pygame.JOYBUTTONUP:
@@ -103,33 +109,6 @@ class App(tk.Tk):
         Calibrate the active controller.
         """
         self._logger.info(f"calibrating controller: {self._activeCtrl.get_name()}")
-
-    def _update_steering(self, modifier):
-        """
-        Update the steering.
-
-        Params:
-            modifier:       The steering modifier.
-        """
-        self._controlFrame.update_steering(modifier)
-
-    def _update_throttle(self, modifier):
-        """
-        Update the throttle.
-
-        Params:
-            modifier:       The throttle modifier.
-        """
-        self._controlFrame.update_throttle(modifier)
-
-    def _update_break(self, modifier):
-        """
-        Update the break.
-
-        Params:
-            modifier:       The break modifier.
-        """
-        self._controlFrame.update_break(modifier)
 
 if __name__ == '__main__':
     app = App()
