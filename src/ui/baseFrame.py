@@ -17,16 +17,9 @@ class BaseFrame(tk.Frame):
         """
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self._logger = logging.getLogger('BASE_FRM')
+        self._parent = parent
         self._ctrlrList = controllers
 
         self._logger.debug("building the controller frame")
         self._ctrlrFrame = ControllerFrame(self, self._ctrlrList, text='Controller')
         self._ctrlrFrame.grid(row=0, column=0, padx=10, pady=10)
-
-    def get_updaters(self):
-        """
-        Get the UI updaters.
-        """
-        updaters = {'controller': self._ctrlrFrame.get_updaters()}
-
-        return updaters

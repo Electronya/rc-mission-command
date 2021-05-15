@@ -51,7 +51,6 @@ class App(tk.Tk):
 
         self._baseFrame = BaseFrame(self, self._controllers)
         self._baseFrame.pack(fill=tk.BOTH, expand=True)
-        self._uiUpdaters = self._baseFrame.get_updaters()
         self._logger.info('UI initialized.')
 
         self.after(Controller.CTRL_FRAME_RATE, self._process_pygame_events)
@@ -93,9 +92,12 @@ class App(tk.Tk):
                 self._logger.debug(f"processing joystick {event.instance_id} axis {event.axis} with value {event.value}")
                 functions = self._controllers['list'][event.instance_id].get_funct_map()
                 axis = self._controllers['list'][event.instance_id].get_axis_map()
-                self._uiUpdaters['controller'][functions[axis[event.axis]]](event.value)
+                self._logger.debug(f"generating event <<{functions[axis[event.axis]]}-axis>>")
+                self.event_generate(f"<<{functions[axis[event.axis]]}-axis>>")
             if event.type == pygame.JOYBUTTONDOWN:
                 self._logger.debug(f"processing joystick {event.instance_id} button {event.button} down")
+                buttons = self._controllers['list'][event.instance_id].get_buttons_map()
+                self.event_generate(f"<<{buttons[event.button]}-button>>")
             if event.type == pygame.JOYBUTTONUP:
                 self._logger.debug(f"processing joystick {event.instance_id} button {event.button} up")
             if event.type == pygame.JOYHATMOTION:

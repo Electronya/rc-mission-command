@@ -35,6 +35,16 @@ class Controller:
         with open(config_file) as raw_config:
             self._config = json.load(raw_config)
 
+        self._isCalibrated = False
+        self._calibrationSeq = [
+            self._save_steering_left,
+            self._save_steering_right,
+            self._save_throttle_off,
+            self._save_throttle_full,
+            self._save_break_off,
+            self._save_break_full
+        ]
+
     @classmethod
     def list_connected(cls):
         """
@@ -61,6 +71,48 @@ class Controller:
 
         return connected_supported
 
+    def _save_steering_left(self):
+        """
+        Save the left position of the steering.
+        """
+        self._steeringLeft = self._joystick.get_axis([self.get_axis_map().index('steering')])
+        self._logger.debug(f"saving steering left position as {self._steeringLeft}")
+
+    def _save_steering_right(self):
+        """
+        Save the right position of the steering.
+        """
+        self._steeringRight = self._joystick.get_axis([self.get_axis_map().index('steering')])
+        self._logger.debug(f"saving steering left position as {self._steeringRight}")
+
+    def _save_throttle_off(self):
+        """
+        Save the throttle off position.
+        """
+        self._throttleOff = self._joystick.get_axis([self.get_axis_map().index('throttle')])
+        self._logger.debug(f"saving throttle off position as {self._throttleOff}")
+
+    def _save_throttle_full(self):
+        """
+        Save the throttle full position.
+        """
+        self._throttleFull = self._joystick.get_axis([self.get_axis_map().index('throttle')])
+        self._logger.debug(f"saving throttle full position as {self._throttleFull}")
+
+    def _save_break_off(self):
+        """
+        Save the break off position.
+        """
+        self._breakOff = self._joystick.get_axis([self.get_axis_map().index('break')])
+        self._logger.debug(f"saving break off position as {self._breakOff}")
+
+    def _save_break_full(self):
+        """
+        Save the break full position.
+        """
+        self._breakFull = self._joystick.get_axis([self.get_axis_map().index('break')])
+        self._logger.debug(f"saving break full position as {self._breakFull}")
+
     def get_name(self):
         """
         Get the joystick name.
@@ -86,6 +138,24 @@ class Controller:
             The controller type.
         """
         return self._config['type']
+
+    def is_calibrated(self):
+        """
+        Get the controller calibartion state.
+
+        Return:
+            True if the controller is calibrated, False otherwise.
+        """
+        return self._isCalibrated
+
+    def get_axis(self, axis):
+        """
+        Get the current axis position.
+
+        Params:
+            axis:       The axis index.
+        """
+        return self._joystick.get_axis(axis)
 
     def get_funct_map(self):
         """
@@ -122,6 +192,16 @@ class Controller:
             The list containing the map of the hats.
         """
         return self._config['controls']['hats']
+
+    def calibrate(self, seq):
+        """
+        Calibrate the controller.
+
+        Params:
+            seq         The calibration sequence.
+        """
+        self._logger.info('calibration seq: {seq}.')
+        self._calibrationSeq[seq]()
 
     def quit(self):
         """

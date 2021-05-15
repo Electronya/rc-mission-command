@@ -25,9 +25,19 @@ class ControllerFrame(tk.LabelFrame):
 
         self._logger.debug('initializing control frame.')
         self._parent = parent
+        self._root = self._parent.nametowidget(self._parent.winfo_parent())
         self._controllers = controllers
 
-        # Controller selection
+        self._logger.debug('initializing controller selection/calibration')
+        self._init_ctrlr_selection()
+
+        self._logger.debug('initializing controller feedback')
+        self._init_ctrlr_feedback()
+
+    def _init_ctrlr_selection(self):
+        """
+        Initializing controller selection.
+        """
         self._selectedCtrl = tk.StringVar(self._parent)
         self._selectedCtrl.set(self._controllers['list'][0].get_name())
         self._ctrlSelectLabel = tk.Label(self, text='Controller:')
@@ -40,7 +50,11 @@ class ControllerFrame(tk.LabelFrame):
         self._ctrlCalibButton = tk.Button(self, text='Calibrate', command=self._calibrate_ctrl)
         self._ctrlCalibButton.grid(row=0, column=2, padx=10, pady=10)
 
-        # Controller information
+    def _init_ctrlr_feedback(self):
+        """
+        Initializing the controller feedback.
+        """
+        feedbackState = tk.DISABLED
         self._steeringAngle = 0
         self._steeringImg = Image.open(self.STERRING_ICON)
         self._steeringTkImg = ImageTk.PhotoImage(self._steeringImg)
@@ -54,29 +68,11 @@ class ControllerFrame(tk.LabelFrame):
             orient=tk.HORIZONTAL, mode='determinate', length=self.BREAK_BAR_LEN)
         self._breakBar.grid(row=2, column=1, columnspan=2, padx=10, pady=10)
 
-    def get_updaters(self):
-        """
-        Get the updater functions.
+        self._root.bind('<<steering-axis>>', self._update_steering)
+        self._root.bind('<<throttle-axis>>', self._update_throttle)
+        self._root.bind('<<break-axis>>', self._update_break)
 
-        Return:
-            A dictionary contraining the updater fucntions.
-        """
-        return {
-            "steering": self._update_steering,
-            "throttle": self._update_throttle,
-            "break": self._update_break,
-        }
-
-    def get_selected_ctrl(self):
-        """
-        Get the selected controller name.
-
-        Return:
-            The name of the selected controller.
-        """
-        return self._selectedCtrl.get()
-
-    def _update_steering(self, modifier):
+    def _update_steering(self, event):
         """
         Update the sterring icon with new angle.
 
@@ -84,13 +80,15 @@ class ControllerFrame(tk.LabelFrame):
             modifier:      The steering modifier.
         """
         self._logger.debug('updating steering state')
+        axis = self._controllers['active'].get_axis_map()
+        modifier = self._controllers['active'].get_axis(axis.index('steering'))
         # TODO: check orientation for unit ??
         modifier = round(modifier, 2) * -1
         rotated_img = self._steeringImg.rotate(90 * modifier)
         self._steeringTkImg = ImageTk.PhotoImage(rotated_img)
         self._steeringIcon.create_image(1, 1, anchor=tk.NW, image=self._steeringTkImg)
 
-    def _update_throttle(self, modifier):
+    def _update_throttle(self, event):
         """
         Update the throttle progressbar.
 
@@ -98,10 +96,12 @@ class ControllerFrame(tk.LabelFrame):
             modifier:       The throttle modifier.
         """
         self._logger.debug('updating throttle state')
+        axis = self._controllers['active'].get_axis_map()
+        modifier = self._controllers['active'].get_axis(axis.index('throttle'))
         modifier = round(modifier, 3)
-        self._throttleBar['value'] = modifier * self.THROTTLE_BAR_LEN
+        self._throttleBar['value'] = modifier * self._throttleBar['maximum']
 
-    def _update_break(self, modifier):
+    def _update_break(self, event):
         """
         Update the break progressbar.
 
@@ -109,8 +109,10 @@ class ControllerFrame(tk.LabelFrame):
             modifier:       The break modifier.
         """
         self._logger.debug('updating break state.')
+        axis = self._controllers['active'].get_axis_map()
+        modifier = self._controllers['active'].get_axis(axis.index('break'))
         modifier = round(modifier, 3)
-        self._breakBar['value'] = modifier * self.BREAK_BAR_LEN
+        self._breakBar['value'] = modifier * self._breakBar['maximum']
 
     def _select_ctrl(self, selectedCtrl):
         """
@@ -126,3 +128,11 @@ class ControllerFrame(tk.LabelFrame):
         Calibrate the selected controller.
         """
         self._logger.debug(f"calibrating controller: {self._controllers['active'].get_name()}")
+        self._calibSeq = 0
+        self._root.bind('<<x-button>>', self._record_calibration)
+
+    def _record_calibration(self, event):
+        """
+        Record calibration value.
+        """
+        self._logger.info('saving calibration value.')
