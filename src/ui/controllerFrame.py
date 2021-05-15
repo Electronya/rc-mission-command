@@ -4,6 +4,8 @@ import tkinter.ttk as ttk
 
 from PIL import ImageTk,Image
 
+from .calibrationMsgBox import CalibrationMsgBox
+
 class ControllerFrame(tk.LabelFrame):
     """
     The user interface controller frame.
@@ -130,6 +132,7 @@ class ControllerFrame(tk.LabelFrame):
         self._logger.debug(f"calibrating controller: {self._controllers['active'].get_name()}")
         self._calibSeq = 0
         self._root.bind('<<x-button>>', self._record_calibration)
+        self._calibMsgBox = CalibrationMsgBox(self._root)
 
     def _record_calibration(self, event):
         """
@@ -138,3 +141,4 @@ class ControllerFrame(tk.LabelFrame):
         self._logger.info('saving calibration value.')
         self._controllers['active'].calibrate(self._calibSeq)
         self._calibSeq += 1
+        self._calibMsgBox.update_msg()
