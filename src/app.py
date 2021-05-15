@@ -2,17 +2,18 @@ import sys
 import logging
 
 import tkinter as tk
+import tkinter.messagebox as msgBox
 import tkinter.ttk as ttk
 
 import pygame
 
 from controller import Controller
 from client import Client
-from ui import ControlFrame
+from ui.baseFrame import BaseFrame
 
 pygame.init()
 pygame.event.set_allowed([pygame.JOYAXISMOTION, pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP, pygame.JOYHATMOTION])
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(name)s:%(levelname)s:%(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
 
 class App(tk.Tk):
     """
@@ -20,9 +21,12 @@ class App(tk.Tk):
     """
     CTRL_FRAME_RATE = 10
 
-    def __init__(self):
+    def __init__(self, ctrlsNameList):
         """
         Constructor.
+
+        Params:
+            ctrlrNameList       The list of connected controller names.
         """
         tk.Tk.__init__(self)
         self.title('RC Mission Commander')
@@ -34,26 +38,21 @@ class App(tk.Tk):
         self._logger.info('mqtt client initialized.')
 
         self._logger.info('initializing controller.')
-        controllers = Controller.list_connected()
-        self._logger.debug(f"controller list: {controllers}")
-        self._controllers = []
-        for ctrl_name in controllers.keys():
-            self._controllers.append(Controller(controllers[ctrl_name], ctrl_name, self))
-        self._activeCtrl = self._controllers[0]
+        self._init_controllers(ctrlsNameList)
         self._logger.info('controller initialzed.')
 
-        self._logger.info('initializong UI.')
+        self._logger.info('initializing UI.')
         self.attributes('-zoomed', True)
+
         style = ttk.Style()
         style.theme_use('clam')
         style.configure("red.Horizontal.TProgressbar", foreground='red', background='red')
         style.configure("grn.Horizontal.TProgressbar", foreground='green', background='green')
-        callbacks = {
-            'selectCtrl': self._activate_ctrl,
-            'calibrateCtrl': self._calibrate_ctrl,
-        }
-        self._controlFrame = ControlFrame(self, list(controllers.keys()), callbacks, text="Controls")
-        self._controlFrame.grid(row=0, column=0, padx=10, pady=10)
+
+        self._baseFrame = BaseFrame(self, self._controllers)
+        self._baseFrame.pack(fill=tk.BOTH, expand=True)
+        self._uiUpdaters = self._baseFrame.get_updaters()
+        self._logger.info('UI initialized.')
 
         self.after(Controller.CTRL_FRAME_RATE, self._process_pygame_events)
 
@@ -64,12 +63,25 @@ class App(tk.Tk):
         Quit the application.
         """
         self._logger.info('quitting the application')
-        for controller in self._controllers:
+        for controller in self._controllers['list']:
             controller.quit()
         pygame.quit()
         self._client.disconnect()
         self.destroy()
         sys.exit()
+
+    def _init_controllers(self, ctrlrNameList):
+        """
+        Initialize the controllers.
+
+        Params:
+            ctrlrNameList       The list of connected controller names.
+        """
+        self._controllers = {}
+        controllers = []
+        for ctrl_name in ctrlrNameList.keys():
+            controllers.append(Controller(ctrlrNameList[ctrl_name], ctrl_name, self))
+        self._controllers = {'active': controllers[0], 'list': controllers}
 
     def _process_pygame_events(self):
         """
@@ -79,10 +91,9 @@ class App(tk.Tk):
         for event in pygame.event.get():
             if event.type == pygame.JOYAXISMOTION:
                 self._logger.debug(f"processing joystick {event.instance_id} axis {event.axis} with value {event.value}")
-                updaters = self._controlFrame.get_updaters()
-                functions = self._controllers[event.instance_id].get_funct_map()
-                axis = self._controllers[event.instance_id].get_axis_map()
-                updaters[functions[axis[event.axis]]](event.value)
+                functions = self._controllers['list'][event.instance_id].get_funct_map()
+                axis = self._controllers['list'][event.instance_id].get_axis_map()
+                self._uiUpdaters['controller'][functions[axis[event.axis]]](event.value)
             if event.type == pygame.JOYBUTTONDOWN:
                 self._logger.debug(f"processing joystick {event.instance_id} button {event.button} down")
             if event.type == pygame.JOYBUTTONUP:
@@ -92,25 +103,19 @@ class App(tk.Tk):
 
         self.after(Controller.CTRL_FRAME_RATE, self._process_pygame_events)
 
-    def _activate_ctrl(self, ctrl_name):
-        """
-        Activate a controller.
+def list_connected_controllers():
+    """
+    List the connected controllers.
+    """
+    controllerNames = Controller.list_connected()
+    logging.debug(f"controller list: {controllerNames}")
+    if len(controllerNames):
+        return controllerNames
 
-        Params:
-            ctrl_name:      The controller name to activate.
-        """
-        self._logger.info(f"activating controller: {ctrl_name}")
-        for controller in self._controllers:
-            if ctrl_name == controller.get_name():
-                self._activeCtrl = controller
-
-    def _calibrate_ctrl(self):
-        """
-        Calibrate the active controller.
-        """
-        self._logger.info(f"calibrating controller: {self._activeCtrl.get_name()}")
+    msgBox.showerror('No controller connected!!', 'Please connect a supported controller before restarting the application.')
 
 if __name__ == '__main__':
-    app = App()
+    connectedCtrlrs = list_connected_controllers()
+    app = App(connectedCtrlrs)
     app.protocol("WM_DELETE_WINDOW", app.quit)
     app.mainloop()
