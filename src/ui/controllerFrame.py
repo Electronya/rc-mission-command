@@ -136,3 +136,5 @@ class ControllerFrame(tk.LabelFrame):
         Record calibration value.
         """
         self._logger.info('saving calibration value.')
+        self._controllers['active'].calibrate(self._calibSeq)
+        self._calibSeq += 1

@@ -86,14 +86,14 @@ class App(tk.Tk):
         """
         Process the pygame events.
         """
-        self._logger.debug('processing events')
         for event in pygame.event.get():
             if event.type == pygame.JOYAXISMOTION:
                 self._logger.debug(f"processing joystick {event.instance_id} axis {event.axis} with value {event.value}")
-                functions = self._controllers['list'][event.instance_id].get_funct_map()
-                axis = self._controllers['list'][event.instance_id].get_axis_map()
-                self._logger.debug(f"generating event <<{functions[axis[event.axis]]}-axis>>")
-                self.event_generate(f"<<{functions[axis[event.axis]]}-axis>>")
+                if self._controllers['list'][event.instance_id].is_calibrated():
+                    functions = self._controllers['list'][event.instance_id].get_funct_map()
+                    axis = self._controllers['list'][event.instance_id].get_axis_map()
+                    self._logger.debug(f"generating event <<{functions[axis[event.axis]]}-axis>>")
+                    self.event_generate(f"<<{functions[axis[event.axis]]}-axis>>")
             if event.type == pygame.JOYBUTTONDOWN:
                 self._logger.debug(f"processing joystick {event.instance_id} button {event.button} down")
                 buttons = self._controllers['list'][event.instance_id].get_buttons_map()

@@ -45,6 +45,12 @@ class Controller:
             self._save_break_full
         ]
 
+        self._axisGetters = [
+            self._get_steering_modifier,
+            self._get_throttle_modifier,
+            self._get_break_modifier
+        ]
+
     @classmethod
     def list_connected(cls):
         """
@@ -75,43 +81,86 @@ class Controller:
         """
         Save the left position of the steering.
         """
-        self._steeringLeft = self._joystick.get_axis([self.get_axis_map().index('steering')])
+        self._steeringLeft = abs(round(self._joystick.get_axis(self.get_axis_map().index('steering')), 2))
         self._logger.debug(f"saving steering left position as {self._steeringLeft}")
 
     def _save_steering_right(self):
         """
         Save the right position of the steering.
         """
-        self._steeringRight = self._joystick.get_axis([self.get_axis_map().index('steering')])
+        self._steeringRight = round(self._joystick.get_axis(self.get_axis_map().index('steering')), 2)
         self._logger.debug(f"saving steering left position as {self._steeringRight}")
 
     def _save_throttle_off(self):
         """
         Save the throttle off position.
         """
-        self._throttleOff = self._joystick.get_axis([self.get_axis_map().index('throttle')])
+        self._throttleOff = round(self._joystick.get_axis(self.get_axis_map().index('throttle')), 2)
         self._logger.debug(f"saving throttle off position as {self._throttleOff}")
 
     def _save_throttle_full(self):
         """
         Save the throttle full position.
         """
-        self._throttleFull = self._joystick.get_axis([self.get_axis_map().index('throttle')])
+        self._throttleFull = round(self._joystick.get_axis(self.get_axis_map().index('throttle')), 2)
         self._logger.debug(f"saving throttle full position as {self._throttleFull}")
 
     def _save_break_off(self):
         """
         Save the break off position.
         """
-        self._breakOff = self._joystick.get_axis([self.get_axis_map().index('break')])
+        self._breakOff = round(self._joystick.get_axis(self.get_axis_map().index('break')), 2)
         self._logger.debug(f"saving break off position as {self._breakOff}")
 
     def _save_break_full(self):
         """
         Save the break full position.
         """
-        self._breakFull = self._joystick.get_axis([self.get_axis_map().index('break')])
+        self._breakFull = round(self._joystick.get_axis(self.get_axis_map().index('break')), 2)
         self._logger.debug(f"saving break full position as {self._breakFull}")
+
+    def _get_steering_modifier(self):
+        """
+        Get the steering modifier.
+
+        Return:
+            The steering modifier.
+        """
+        steeringPos = self._joystick.get_axis(self._config['controls']['axis'].index('steering'))
+        modifier = 0
+        if steeringPos < 0:
+            modifier = round(steeringPos / self._steeringLeft, 2)
+        else:
+            modifier = round(steeringPos / self._steeringRight, 2)
+
+        self._logger.debug(f"steering modifier: {modifier}")
+        return modifier
+
+    def _get_throttle_modifier(self):
+        """
+        Get the throttle modifier.
+
+        Return:
+            The throttle modifier.
+        """
+        throttlePos = self._joystick.get_axis(self._config['controls']['axis'].index('throttle'))
+        modifier = round((self._throttleFull - throttlePos) / (self._throttleFull - self._throttleOff), 2)
+        modifier = 1 - modifier
+        self._logger.debug(f"throttle modifier: {modifier}")
+        return modifier
+
+    def _get_break_modifier(self):
+        """
+        Get the break modifier.
+
+        Return:
+            The break modifier.
+        """
+        breakPos = self._joystick.get_axis(self._config['controls']['axis'].index('break'))
+        modifier = round((self._breakFull - breakPos) / (self._breakFull - self._breakOff), 2)
+        modifier = 1 - modifier
+        self._logger.debug(f"break modifier: {modifier}")
+        return modifier
 
     def get_name(self):
         """
@@ -155,7 +204,7 @@ class Controller:
         Params:
             axis:       The axis index.
         """
-        return self._joystick.get_axis(axis)
+        return self._axisGetters[axis]()
 
     def get_funct_map(self):
         """
@@ -200,8 +249,10 @@ class Controller:
         Params:
             seq         The calibration sequence.
         """
-        self._logger.info('calibration seq: {seq}.')
+        self._logger.info(f"calibration seq: {seq}.")
         self._calibrationSeq[seq]()
+        if seq == (len(self._calibrationSeq) - 1):
+            self._isCalibrated = True
 
     def quit(self):
         """
