@@ -247,7 +247,7 @@ class Controller:
         Calibrate the controller.
 
         Params:
-            seq         The calibration sequence.
+            seq:        The calibration sequence.
         """
         self._logger.info(f"calibration seq: {seq}.")
         self._calibrationSeq[seq]()

@@ -12,8 +12,8 @@ class BaseFrame(tk.Frame):
         Constructor.
 
         Params:
-            parent              The parent of the frame.
-            controllers         The connected controllers.
+            parent:             The parent of the frame.
+            controllers:        The connected controllers.
         """
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self._logger = logging.getLogger('BASE_FRM')

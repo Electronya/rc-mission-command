@@ -74,7 +74,7 @@ class App(tk.Tk):
         Initialize the controllers.
 
         Params:
-            ctrlrNameList       The list of connected controller names.
+            ctrlrNameList:      The list of connected controller names.
         """
         self._controllers = {}
         controllers = []

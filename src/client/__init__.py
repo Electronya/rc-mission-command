@@ -61,7 +61,7 @@ class Client(mqtt.Client):
 
         Params:
             client:         The mqtt client.
-            usrData         Private user data if set.
+            usrData:        Private user data if set.
             msg:            The message recived.
         """
         receivedMsg = msg.payload.decode('utf-8')
@@ -74,7 +74,7 @@ class Client(mqtt.Client):
 
         Params:
             client:         The mqtt client.
-            usrData         Private user data if set.
+            usrData:        Private user data if set.
             mid:            The message ID.
         """
         logging.debug(f"message published: mid {mid}")
@@ -85,7 +85,7 @@ class Client(mqtt.Client):
 
         Params:
             client:         The mqtt client.
-            usrData         Private user data if set.
+            usrData:        Private user data if set.
             mid:            The message ID.
             granted_qos:    The granted quality of service.
         """
