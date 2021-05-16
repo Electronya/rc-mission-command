@@ -31,6 +31,9 @@ class App(tk.Tk):
             ctrlrNameList       The list of connected controller names.
         """
         tk.Tk.__init__(self)
+
+        self._units = {'active': None, 'list': []}
+
         self.title('RC Mission Commander')
         self._logger = logging.getLogger('APP')
         self._logger.info('launcihing application...')
@@ -51,13 +54,11 @@ class App(tk.Tk):
         style.configure("red.Horizontal.TProgressbar", foreground='red', background='red')
         style.configure("grn.Horizontal.TProgressbar", foreground='green', background='green')
 
-        self._baseFrame = BaseFrame(self, self._controllers)
+        self._baseFrame = BaseFrame(self, self._controllers, self._units)
         self._baseFrame.pack(fill=tk.BOTH, expand=True)
         self._logger.info('UI initialized.')
 
         self.after(Controller.CTRL_FRAME_RATE, self._process_pygame_events)
-
-        self._units = []
 
         self._logger.info('application launched.')
 
@@ -117,7 +118,8 @@ class App(tk.Tk):
             unitId:             The new unit ID.
         """
         self._logger.info(f"new unit connected: {unitId}")
-        self._units.append(Unit(unitId))
+        self._units['list'].append(Unit(unitId))
+        self.event_generate('<<update-unit>>')
 
     def remove_unit(self, unitId):
         """
@@ -126,11 +128,11 @@ class App(tk.Tk):
         Params:
             unitId:             The unit ID to remove.
         """
-        if hasattr(self, '_units') and len(self._units):
-            self._logger.info(f"removing unit: {unitId}")
-            for unit in self._units:
-                if unitId == unit.get_id():
-                    self._units.remove(unit)
+        self._logger.info(f"removing unit: {unitId}")
+        for unit in self._units['list']:
+            if unitId == unit.get_id():
+                self._units['list'].remove(unit)
+        self.event_generate('<<update-unit>>')
 
 def list_connected_controllers():
     """

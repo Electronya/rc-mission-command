@@ -19,7 +19,7 @@ class ControllerFrame(tk.LabelFrame):
         Contructor.
 
         Params:
-            parent:         The Application main frame parent.
+            parent:         The parent of the frame.
             controllers:    The list of controllers.
         """
         tk.LabelFrame.__init__(self, parent, *args, **kwargs)
@@ -77,9 +77,6 @@ class ControllerFrame(tk.LabelFrame):
     def _update_steering(self, event):
         """
         Update the sterring icon with new angle.
-
-        Params:
-            modifier:      The steering modifier.
         """
         self._logger.debug('updating steering state')
         axis = self._controllers['active'].get_axis_map()
@@ -93,9 +90,6 @@ class ControllerFrame(tk.LabelFrame):
     def _update_throttle(self, event):
         """
         Update the throttle progressbar.
-
-        Params:
-            modifier:       The throttle modifier.
         """
         self._logger.debug('updating throttle state')
         axis = self._controllers['active'].get_axis_map()
@@ -106,9 +100,6 @@ class ControllerFrame(tk.LabelFrame):
     def _update_break(self, event):
         """
         Update the break progressbar.
-
-        Params:
-            modifier:       The break modifier.
         """
         self._logger.debug('updating break state.')
         axis = self._controllers['active'].get_axis_map()
