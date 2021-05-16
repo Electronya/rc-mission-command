@@ -2,6 +2,7 @@ import sys
 import logging
 
 import tkinter as tk
+from tkinter.constants import SEL
 import tkinter.messagebox as msgBox
 import tkinter.ttk as ttk
 
@@ -10,6 +11,7 @@ import pygame
 from controller import Controller
 from client import Client
 from ui.baseFrame import BaseFrame
+from unit import Unit
 
 pygame.init()
 pygame.event.set_allowed([pygame.JOYAXISMOTION, pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP, pygame.JOYHATMOTION])
@@ -34,7 +36,7 @@ class App(tk.Tk):
         self._logger.info('launcihing application...')
 
         self._logger.info('initializing mqtt client.')
-        self._client = Client('12345')
+        self._client = Client(self, '12345')
         self._logger.info('mqtt client initialized.')
 
         self._logger.info('initializing controller.')
@@ -54,6 +56,8 @@ class App(tk.Tk):
         self._logger.info('UI initialized.')
 
         self.after(Controller.CTRL_FRAME_RATE, self._process_pygame_events)
+
+        self._units = []
 
         self._logger.info('application launched.')
 
@@ -104,6 +108,29 @@ class App(tk.Tk):
                 self._logger.debug(f"processing joystick {event.instance_id} hat {event.hat} with value {event.value}")
 
         self.after(Controller.CTRL_FRAME_RATE, self._process_pygame_events)
+
+    def add_unit(self, unitId):
+        """
+        Add a new unit.
+
+        Params:
+            unitId:             The new unit ID.
+        """
+        self._logger.info(f"new unit connected: {unitId}")
+        self._units.append(Unit(unitId))
+
+    def remove_unit(self, unitId):
+        """
+        Remove a unit.
+
+        Params:
+            unitId:             The unit ID to remove.
+        """
+        if hasattr(self, '_units') and len(self._units):
+            self._logger.info(f"removing unit: {unitId}")
+            for unit in self._units:
+                if unitId == unit.get_id():
+                    self._units.remove(unit)
 
 def list_connected_controllers():
     """
