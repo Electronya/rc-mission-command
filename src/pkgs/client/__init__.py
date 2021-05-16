@@ -2,7 +2,7 @@ import logging
 
 import paho.mqtt.client as mqtt
 
-from .messages.unitCxnMsg import UnitConnectionState
+from ..messages.unitCxnMsg import UnitConnectionState
 
 class Client(mqtt.Client):
     """
@@ -77,7 +77,7 @@ class Client(mqtt.Client):
         self._logger.debug(f"message payload: {receivedMsg}")
 
         if self._stateMsg.TOPIC_ROOT in topic:
-            stateMsg = UnitConnectionState()
+            stateMsg = UnitConnectionState(unit=None)
             stateMsg.set_from_json(receivedMsg)
             if stateMsg.get_unit() != self.CLIENT_ID and stateMsg.is_online():
                 self._logger.debug(f"new unit: {stateMsg.get_unit()}")

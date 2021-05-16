@@ -8,10 +8,10 @@ import tkinter.ttk as ttk
 
 import pygame
 
-from controller import Controller
-from client import Client
+from pkgs.controller import Controller
+from pkgs.client import Client
 from ui.baseFrame import BaseFrame
-from unit import Unit
+from pkgs.unit import Unit
 
 pygame.init()
 pygame.event.set_allowed([pygame.JOYAXISMOTION, pygame.JOYBUTTONDOWN, pygame.JOYBUTTONUP, pygame.JOYHATMOTION])
@@ -118,7 +118,7 @@ class App(tk.Tk):
             unitId:             The new unit ID.
         """
         self._logger.info(f"new unit connected: {unitId}")
-        self._units['list'].append(Unit(unitId))
+        self._units['list'].append(Unit(unitId, self._client))
         self.event_generate('<<update-unit>>')
 
     def remove_unit(self, unitId):
