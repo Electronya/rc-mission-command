@@ -33,8 +33,6 @@ class Client(mqtt.Client):
         self.connect('127.0.0.1', 1883)
         self.loop_start()
 
-        self.subscribe(f"{UnitConnectionState.TOPIC_ROOT}/#", qos=1)
-
     def on_connect(self, client, usrData, flags, rc):
         """
         On connect event callback.
@@ -49,6 +47,8 @@ class Client(mqtt.Client):
         payload = {UnitConnectionState.STATE_KEY: UnitConnectionState.ONLINE_STATE}
         self._stateMsg.set_payload(payload)
         self.publish(self._stateMsg.get_topic(), self._stateMsg.to_json(), qos=self._stateMsg.get_qos(), retain=True)
+
+        self.subscribe(f"{UnitConnectionState.TOPIC_ROOT}/#", qos=1)
 
     def on_disconnect(self, client, usrData, rc):
         """
