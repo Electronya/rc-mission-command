@@ -1,6 +1,7 @@
 import logging
 import tkinter as tk
 
+
 class UnitFrame(tk.LabelFrame):
     """
     The unit frame.
@@ -29,7 +30,8 @@ class UnitFrame(tk.LabelFrame):
         self._unitIdsVar = tk.StringVar(value=self._unitIds)
 
         self._unitListbox = tk.Listbox(self, height=44, width=45,
-            listvariable=self._unitIdsVar, selectmode='browse')
+                                       listvariable=self._unitIdsVar,
+                                       selectmode='browse')
         self._unitListbox.grid(row=0, column=0, padx=10, pady=10)
         self._unitListbox.bind('<<ListboxSelect>>', self._select_unit)
 
@@ -63,6 +65,6 @@ class UnitFrame(tk.LabelFrame):
         selectedUnit = self._unitListbox.get(tk.ACTIVE)
         self._generate_unit_id_list()
         self._unitIdsVar.set(self._unitIds)
-        if not selectedUnit in self._unitIds:
+        if selectedUnit not in self._unitIds:
             self._units['active'] = None
             self._logger.debug(f"active unit: {self._units['active']}")

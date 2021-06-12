@@ -2,9 +2,10 @@ import logging
 import tkinter as tk
 import tkinter.ttk as ttk
 
-from PIL import ImageTk,Image
+from PIL import ImageTk, Image
 
 from .calibrationMsgBox import CalibrationMsgBox
+
 
 class ControllerFrame(tk.LabelFrame):
     """
@@ -47,27 +48,37 @@ class ControllerFrame(tk.LabelFrame):
         ctrlNames = []
         for controller in self._controllers['list']:
             ctrlNames.append(controller.get_name())
-        self._ctrlSelectMenu = tk.OptionMenu(self, self._selectedCtrl, *ctrlNames, command=self._select_ctrl)
+        self._ctrlSelectMenu = tk.OptionMenu(self, self._selectedCtrl,
+                                             *ctrlNames,
+                                             command=self._select_ctrl)
         self._ctrlSelectMenu.grid(row=0, column=1, padx=10, pady=10)
-        self._ctrlCalibButton = tk.Button(self, text='Calibrate', command=self._calibrate_ctrl)
+        self._ctrlCalibButton = tk.Button(self, text='Calibrate',
+                                          command=self._calibrate_ctrl)
         self._ctrlCalibButton.grid(row=0, column=2, padx=10, pady=10)
 
     def _init_ctrlr_feedback(self):
         """
         Initializing the controller feedback.
         """
-        feedbackState = tk.DISABLED
         self._steeringAngle = 0
         self._steeringImg = Image.open(self.STERRING_ICON)
         self._steeringTkImg = ImageTk.PhotoImage(self._steeringImg)
         self._steeringIcon = tk.Canvas(self, width=100, height=100)
         self._steeringIcon.grid(row=1, column=0, rowspan=2, padx=10, pady=10)
-        self._steeringIcon.create_image(1, 1, anchor=tk.NW, image=self._steeringTkImg)
-        self._throttleBar = ttk.Progressbar(self, style='grn.Horizontal.TProgressbar',
-            orient=tk.HORIZONTAL, mode='determinate', length=self.THROTTLE_BAR_LEN)
+        self._steeringIcon.create_image(1, 1, anchor=tk.NW,
+                                        image=self._steeringTkImg)
+        self._throttleBar = ttk.Progressbar(self,
+                                            style='grn.Horizontal'
+                                            '.TProgressbar',
+                                            orient=tk.HORIZONTAL,
+                                            mode='determinate',
+                                            length=self.THROTTLE_BAR_LEN)
         self._throttleBar.grid(row=1, column=1, columnspan=2, padx=10, pady=10)
-        self._breakBar = ttk.Progressbar(self, style='red.Horizontal.TProgressbar',
-            orient=tk.HORIZONTAL, mode='determinate', length=self.BREAK_BAR_LEN)
+        self._breakBar = ttk.Progressbar(self,
+                                         style='red.Horizontal.TProgressbar',
+                                         orient=tk.HORIZONTAL,
+                                         mode='determinate',
+                                         length=self.BREAK_BAR_LEN)
         self._breakBar.grid(row=2, column=1, columnspan=2, padx=10, pady=10)
 
         self._root.bind('<<steering-axis>>', self._update_steering)
@@ -85,7 +96,8 @@ class ControllerFrame(tk.LabelFrame):
         modifier = round(modifier, 2) * -1
         rotated_img = self._steeringImg.rotate(90 * modifier)
         self._steeringTkImg = ImageTk.PhotoImage(rotated_img)
-        self._steeringIcon.create_image(1, 1, anchor=tk.NW, image=self._steeringTkImg)
+        self._steeringIcon.create_image(1, 1, anchor=tk.NW,
+                                        image=self._steeringTkImg)
 
     def _update_throttle(self, event):
         """
@@ -120,7 +132,8 @@ class ControllerFrame(tk.LabelFrame):
         """
         Calibrate the selected controller.
         """
-        self._logger.debug(f"calibrating controller: {self._controllers['active'].get_name()}")
+        self._logger.debug(f"calibrating controller: "
+                           f"{self._controllers['active'].get_name()}")
         self._calibSeq = 0
         self._root.bind('<<x-button>>', self._record_calibration)
         self._calibMsgBox = CalibrationMsgBox(self._root)

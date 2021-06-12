@@ -2,6 +2,7 @@ import logging
 
 from ..messages.unitSteeringMsg import UnitSteeringMessage
 
+
 class Unit:
     """
     The unit class.
@@ -31,7 +32,7 @@ class Unit:
         """
         self._steeringMsg.update_modifier(modifier)
         self._client.publish(self._steeringMsg.get_topic(),
-            payload=self._steeringMsg.to_json())
+                             payload=self._steeringMsg.to_json())
 
     def get_id(self):
         """
