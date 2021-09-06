@@ -1,6 +1,6 @@
 import logging
 
-from ..messages.unitSteeringMsg import UnitSteeringMessage
+from ..messages.unitSteeringMsg import UnitSteeringMsg
 
 
 class Unit:
@@ -21,7 +21,7 @@ class Unit:
         self._id = id
         self._client = client
 
-        self._steeringMsg = UnitSteeringMessage(self._id)
+        self._steeringMsg = UnitSteeringMsg(self._id)
 
     def _update_steering(self, modifier):
         """
