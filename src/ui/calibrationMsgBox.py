@@ -19,9 +19,9 @@ class CalibrationMsgBox():
         Contructor.
 
         Params:
-            root        The application root.
-            msg         The message box initial message.
-            buttons     The buttons to display.
+            root:       The application root.
+            msg:        The message box initial message.
+            buttons:    The buttons to display.
         """
         self._msgIdx = 0
         self._logger = logging.getLogger('CALIB_MSG')

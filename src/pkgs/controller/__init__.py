@@ -8,7 +8,7 @@ class Controller:
     """
     Class implementing the controller function.
     """
-    CONFIG_ROOT_DIR = './src/controller/configs/'
+    CONFIG_ROOT_DIR = './src/pkgs/controller/configs/'
     CTRL_FRAME_RATE = 10
 
     def __init__(self, idx, name, app, ndigit=2):
@@ -247,7 +247,7 @@ class Controller:
         Calibrate the controller.
 
         Params:
-            seq         The calibration sequence.
+            seq:        The calibration sequence.
         """
         self._logger.info(f"calibration seq: {seq}.")
         self._calibrationSeq[seq]()
