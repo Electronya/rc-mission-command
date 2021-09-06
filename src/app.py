@@ -1,5 +1,4 @@
 import sys
-import logging
 
 import tkinter as tk
 import tkinter.messagebox as msgBox
@@ -7,6 +6,7 @@ import tkinter.ttk as ttk
 
 import pygame
 
+from logger import initLogger
 from pkgs.controller import Controller
 from pkgs.client import Client
 from ui.baseFrame import BaseFrame
@@ -15,8 +15,7 @@ from pkgs.unit import Unit
 pygame.init()
 pygame.event.set_allowed([pygame.JOYAXISMOTION, pygame.JOYBUTTONDOWN,
                           pygame.JOYBUTTONUP, pygame.JOYHATMOTION])
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s:%(name)s:%(message)s')
+appLogger = initLogger()
 
 
 class App(tk.Tk):
@@ -37,7 +36,7 @@ class App(tk.Tk):
         self._units = {'active': None, 'list': []}
 
         self.title('RC Mission Commander')
-        self._logger = logging.getLogger('APP')
+        self._logger = appLogger.getLogger('APP')
         self._logger.info('launcihing application...')
 
         self._logger.info('initializing mqtt client.')
@@ -167,7 +166,7 @@ def list_connected_controllers():
     List the connected controllers.
     """
     controllerNames = Controller.list_connected()
-    logging.debug(f"controller list: {controllerNames}")
+    appLogger.debug(f"controller list: {controllerNames}")
     if len(controllerNames):
         return controllerNames
 
