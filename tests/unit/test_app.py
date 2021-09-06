@@ -6,6 +6,8 @@ import os
 import sys
 
 sys.path.append(os.path.abspath('./src'))
+mockedPygame = Mock()
+sys.modules['pygame'] = mockedPygame
 
 import app      # noqa: E402
 
