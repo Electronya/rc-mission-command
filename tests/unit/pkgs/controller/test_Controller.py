@@ -154,7 +154,7 @@ class TestController(TestCase):
         self.testJoysticks[0].get_axis.return_value = expectedAxisValue
         self.testCtrlr._saveSteeringLeft()
         self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)
-        self.assertEqual(self.testCtrlr._steeringLeftRange,
+        self.assertEqual(self.testCtrlr._steeringLeft,
                          abs(expectedAxisValue))
 
     def test_saveSteeringRight(self):
@@ -166,5 +166,53 @@ class TestController(TestCase):
         self.testJoysticks[0].get_axis.return_value = expectedAxisValue
         self.testCtrlr._saveSteeringRight()
         self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)
-        self.assertEqual(self.testCtrlr._steeringRightRange,
+        self.assertEqual(self.testCtrlr._steeringRight,
+                         abs(expectedAxisValue))
+
+    def test_saveThrottleOff(self):
+        """
+        The _saveThrottleOff must save the fully off throttle axis.
+        """
+        expectedAxisIdx = self.testCtrlr.get_axis_map().index('throttle')
+        expectedAxisValue = -0.27
+        self.testJoysticks[0].get_axis.return_value = expectedAxisValue
+        self.testCtrlr._saveThrottleOff()
+        self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)
+        self.assertEqual(self.testCtrlr._throttleOff,
+                         abs(expectedAxisValue))
+
+    def test_saveThrottleFull(self):
+        """
+        The _saveThrottleFull must save the fully on throttle axis.
+        """
+        expectedAxisIdx = self.testCtrlr.get_axis_map().index('throttle')
+        expectedAxisValue = -0.78
+        self.testJoysticks[0].get_axis.return_value = expectedAxisValue
+        self.testCtrlr._saveThrottleFull()
+        self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)
+        self.assertEqual(self.testCtrlr._throttleFull,
+                         abs(expectedAxisValue))
+
+    def test_saveBrakeOff(self):
+        """
+        The _saveBrakeOff must save the fully off brake axis.
+        """
+        expectedAxisIdx = self.testCtrlr.get_axis_map().index('brake')
+        expectedAxisValue = -0.10
+        self.testJoysticks[0].get_axis.return_value = expectedAxisValue
+        self.testCtrlr._saveBrakeOff()
+        self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)
+        self.assertEqual(self.testCtrlr._brakeOff,
+                         abs(expectedAxisValue))
+
+    def test_saveBrakeFull(self):
+        """
+        The _saveBrakeFull must save the fully on brake axis.
+        """
+        expectedAxisIdx = self.testCtrlr.get_axis_map().index('brake')
+        expectedAxisValue = -0.86
+        self.testJoysticks[0].get_axis.return_value = expectedAxisValue
+        self.testCtrlr._saveBrakeFull()
+        self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)
+        self.assertEqual(self.testCtrlr._brakeFull,
                          abs(expectedAxisValue))

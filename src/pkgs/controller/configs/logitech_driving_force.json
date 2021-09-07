@@ -4,7 +4,7 @@
         "axis": [
             "steering",
             "throttle",
-            "break"
+            "brake"
         ],
         "buttons": [
             "x",
@@ -27,7 +27,7 @@
     "mapping": {
         "steering": "steering",
         "throttle": "throttle",
-        "break": "break",
+        "brake": "brake",
         "dpad": "look",
         "x": "reverse"
     }
