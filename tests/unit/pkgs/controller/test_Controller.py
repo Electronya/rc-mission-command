@@ -156,3 +156,15 @@ class TestController(TestCase):
         self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)
         self.assertEqual(self.testCtrlr._steeringLeftRange,
                          abs(expectedAxisValue))
+
+    def test_saveSteeringRight(self):
+        """
+        The _saveSteeringRight must save the fully right steering axis.
+        """
+        expectedAxisIdx = self.testCtrlr.get_axis_map().index('steering')
+        expectedAxisValue = -0.43
+        self.testJoysticks[0].get_axis.return_value = expectedAxisValue
+        self.testCtrlr._saveSteeringRight()
+        self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)
+        self.assertEqual(self.testCtrlr._steeringRightRange,
+                         abs(expectedAxisValue))

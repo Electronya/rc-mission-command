@@ -112,8 +112,11 @@ class Controller:
         """
         Save the right position of the steering.
         """
-        self._steeringRight = round(self._joystick.get_axis(self.get_axis_map().index('steering')), 2)
-        self._logger.debug(f"saving steering left position as {self._steeringRight}")
+        fullRightSteering = \
+            self._joystick.get_axis(self.get_axis_map().index('steering'))
+        self._steeringRightRange = abs(fullRightSteering)
+        self._logger.debug(f"saving steering left position as "
+                           f"{self._steeringRightRange}")
 
     def _saveThrottleOff(self):
         """
