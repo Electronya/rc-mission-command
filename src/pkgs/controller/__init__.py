@@ -293,9 +293,9 @@ class Controller:
         if self._calibSeqNumber == self.CAL_SEQ:
             self._isCalibrated = True
 
-    def quit(self):
+    def quit(self) -> None:
         """
         Uninitialize the controller.
         """
-        self._logger.info(f"unitializing controller")
+        self._logger.info('unitializing controller')
         self._joystick.quit()

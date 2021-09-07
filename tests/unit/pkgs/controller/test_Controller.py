@@ -452,3 +452,10 @@ class TestController(TestCase):
             self.testCtrlr.calibrate()
             mockedSave.assert_called_once()
             self.assertEqual(self.testCtrlr._calibSeqNumber, expectedNewSeq)
+
+    def test_quit(self):
+        """
+        The quit method must call the quit method of its joystick.
+        """
+        self.testCtrlr.quit()
+        self.testJoysticks[0].quit.assert_called_once()
