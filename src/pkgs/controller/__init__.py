@@ -10,6 +10,16 @@ class Controller:
     """
     CONFIG_ROOT_DIR = './src/pkgs/controller/configs/'
     CTRL_FRAME_RATE = 10
+    TYPE_KEY = 'type'
+    CTRLS_KEY = 'controls'
+    AXES_KEY = 'axes'
+    BTNS_KEY = 'buttons'
+    HATS_KEY = 'hats'
+    FUNC_KEY = 'functions'
+    STRG_KEY = 'steering'
+    THRTL_KEY = 'throttle'
+    BRK_KEY = 'brake'
+    RVS_KEY = 'reverse'
 
     def __init__(self, logger: object, idx: int,
                  name: str, ndigit: int = 2) -> None:
@@ -42,11 +52,6 @@ class Controller:
             self._saveThrottleFull,
             self._saveBrakeOff,
             self._saveBrakeFull
-        ]
-        self._axisGetters = [
-            self._getSteeringModifier,
-            self._getThrottleModifier,
-            self._getBrakeModifier
         ]
 
     @classmethod
@@ -103,7 +108,7 @@ class Controller:
         Save the left position of the steering.
         """
         fullLeftSteering = \
-            self._joystick.get_axis(self.get_axis_map().index('steering'))
+            self._joystick.get_axis(self._getAxesMap().index(self.STRG_KEY))
         self._steeringLeft = abs(fullLeftSteering)
         self._logger.debug(f"saving steering left position as "
                            f"{self._steeringLeft}")
@@ -113,7 +118,7 @@ class Controller:
         Save the right position of the steering.
         """
         fullRightSteering = \
-            self._joystick.get_axis(self.get_axis_map().index('steering'))
+            self._joystick.get_axis(self._getAxesMap().index(self.STRG_KEY))
         self._steeringRight = abs(fullRightSteering)
         self._logger.debug(f"saving steering left position as "
                            f"{self._steeringRight}")
@@ -123,7 +128,7 @@ class Controller:
         Save the throttle off position.
         """
         throttleOff = \
-            self._joystick.get_axis(self.get_axis_map().index('throttle'))
+            self._joystick.get_axis(self._getAxesMap().index(self.THRTL_KEY))
         self._throttleOff = abs(throttleOff)
         self._logger.debug(f"saving throttle off position as "
                            f"{self._throttleOff}")
@@ -133,7 +138,7 @@ class Controller:
         Save the throttle full position.
         """
         throttleFull = \
-            self._joystick.get_axis(self.get_axis_map().index('throttle'))
+            self._joystick.get_axis(self._getAxesMap().index(self.THRTL_KEY))
         self._throttleFull = abs(throttleFull)
         self._logger.debug(f"saving throttle full position as "
                            f"{self._throttleFull}")
@@ -143,7 +148,7 @@ class Controller:
         Save the break off position.
         """
         brakeOff = \
-            self._joystick.get_axis(self.get_axis_map().index('brake'))
+            self._joystick.get_axis(self._getAxesMap().index(self.BRK_KEY))
         self._brakeOff = abs(brakeOff)
         self._logger.debug(f"saving break off position as {self._brakeOff}")
 
@@ -152,52 +157,45 @@ class Controller:
         Save the break full position.
         """
         brakeFull = \
-            self._joystick.get_axis(self.get_axis_map().index('brake'))
+            self._joystick.get_axis(self._getAxesMap().index(self.BRK_KEY))
         self._brakeFull = abs(brakeFull)
         self._logger.debug(f"saving break full position as {self._brakeFull}")
 
-    def _getSteeringModifier(self):
+    def _getAxesMap(self):
         """
-        Get the steering modifier.
+        Get the controller axis mapping.
 
         Return:
-            The steering modifier.
+            The list containing the map of the axis.
         """
-        steeringPos = self._joystick.get_axis(self._config['controls']['axis'].index('steering'))
-        modifier = 0
-        if steeringPos < 0:
-            modifier = round(steeringPos / self._steeringLeft, 2)
-        else:
-            modifier = round(steeringPos / self._steeringRight, 2)
+        return self._config[self.CTRLS_KEY][self.AXES_KEY]
 
-        self._logger.debug(f"steering modifier: {modifier}")
-        return modifier
-
-    def _getThrottleModifier(self):
+    def _getButtonsMap(self):
         """
-        Get the throttle modifier.
+        Get the controller buttons mapping.
 
         Return:
-            The throttle modifier.
+            The list containing the map of the buttons.
         """
-        throttlePos = self._joystick.get_axis(self._config['controls']['axis'].index('throttle'))
-        modifier = round((self._throttleFull - throttlePos) / (self._throttleFull - self._throttleOff), 2)
-        modifier = 1 - modifier
-        self._logger.debug(f"throttle modifier: {modifier}")
-        return modifier
+        return self._config[self.CTRLS_KEY][self.BTNS_KEY]
 
-    def _getBrakeModifier(self):
+    def _getHatsMap(self):
         """
-        Get the break modifier.
+        Get the controller hats mapping.
 
         Return:
-            The break modifier.
+            The list containing the map of the hats.
         """
-        breakPos = self._joystick.get_axis(self._config['controls']['axis'].index('brake'))
-        modifier = round((self._brakeFull - breakPos) / (self._brakeFull - self._brakeOff), 2)
-        modifier = 1 - modifier
-        self._logger.debug(f"break modifier: {modifier}")
-        return modifier
+        return self._config[self.CTRLS_KEY][self.HATS_KEY]
+
+    def _getFuncMap(self):
+        """
+        Get the controller function mapping.
+
+        Return:
+            A dictionary containing the map of the functions.
+        """
+        return self._config[self.FUNC_KEY]
 
     def get_name(self):
         """
@@ -234,50 +232,49 @@ class Controller:
         """
         return self._isCalibrated
 
-    def get_axis(self, axis):
+    def getSteeringModifier(self):
         """
-        Get the current axis position.
-
-        Params:
-            axis:       The axis index.
-        """
-        return self._axisGetters[axis]()
-
-    def get_funct_map(self):
-        """
-        Get the controller function mapping.
+        Get the steering modifier.
 
         Return:
-            A dictionary containing the map of the functions.
+            The steering modifier.
         """
-        return self._config['mapping']
+        axisName = self._getFuncMap()[self.STRG_KEY]
+        steeringPos = \
+            self._joystick.get_axis(self._getAxesMap().index(axisName))
+        modifier = 0
+        if steeringPos < 0:
+            modifier = round(steeringPos / self._steeringLeft, self._ndigit)
+        else:
+            modifier = round(steeringPos / self._steeringRight, self._ndigit)
+        self._logger.debug(f"steering modifier: {modifier}")
+        return modifier
 
-    def get_axis_map(self):
+    def _getThrottleModifier(self):
         """
-        Get the controller axis mapping.
-
-        Return:
-            The list containing the map of the axis.
-        """
-        return self._config['controls']['axis']
-
-    def get_buttons_map(self):
-        """
-        Get the controller buttons mapping.
-
-        Return:
-            The list containing the map of the buttons.
-        """
-        return self._config['controls']['buttons']
-
-    def get_hats_map(self):
-        """
-        Get the controller hats mapping.
+        Get the throttle modifier.
 
         Return:
-            The list containing the map of the hats.
+            The throttle modifier.
         """
-        return self._config['controls']['hats']
+        throttlePos = self._joystick.get_axis(self._config[self.CTRLS_KEY][self.AXES_KEY].index(self.THRTL_KEY))
+        modifier = round((self._throttleFull - throttlePos) / (self._throttleFull - self._throttleOff), 2)
+        modifier = 1 - modifier
+        self._logger.debug(f"throttle modifier: {modifier}")
+        return modifier
+
+    def _getBrakeModifier(self):
+        """
+        Get the break modifier.
+
+        Return:
+            The break modifier.
+        """
+        breakPos = self._joystick.get_axis(self._config[self.CTRLS_KEY][self.AXES_KEY].index(self.BRK_KEY))
+        modifier = round((self._brakeFull - breakPos) / (self._brakeFull - self._brakeOff), 2)
+        modifier = 1 - modifier
+        self._logger.debug(f"break modifier: {modifier}")
+        return modifier
 
     def calibrate(self, seq):
         """

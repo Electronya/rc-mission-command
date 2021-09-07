@@ -32,6 +32,58 @@ class TestController(TestCase):
                 patch('pkgs.controller.joystick.Joystick') as mockedJoystick:
             mockedJoystick.return_value = self.testJoysticks[0]
             self.testCtrlr = Controller(self.testLogger, 0, self.testNames[0])
+        self._setSteeringValues()
+        self._setThrottleValues()
+
+    def _setSteeringValues(self):
+        """
+        Set the test controller steering axis test values.
+        """
+        self.testCtrlr._steeringLeft = 1
+        self.testCtrlr._steeringRight = 1
+        self.steeringAxisValues = [-1, -0.5, 0, 0.25, 1]
+        self.expectedSteeringMod = []
+        for value in self.steeringAxisValues:
+            if value < 0:
+                modifier = round(value / self.testCtrlr._steeringLeft,
+                                 self.testCtrlr._ndigit)
+                self.expectedSteeringMod.append(modifier)
+            else:
+                modifier = round(value / self.testCtrlr._steeringRight,
+                                 self.testCtrlr._ndigit)
+                self.expectedSteeringMod.append(modifier)
+
+    def _setThrottleValues(self):
+        """
+        Set the test controller throttle/brake axis test values.
+        """
+        self.testCtrlr._throttleOff = 1
+        self.testCtrlr._throttleFull = 0
+        self.testCtrlr._brakeOff = 1
+        self.testCtrlr._brakeFull = 0
+        self.throttleAxisValues = [0, 0.4, 1, 1, 1]
+        self.brakeAxisValues = [1, 1, 1, 0.3, 0]
+        self.expectedthrottleMod = []
+        for idx in range(len(self.throttleAxisValues)):
+            if self.throttleAxisValues[idx] >= self.testCtrlr._throttleFull \
+                    and self.brakeAxisValues[idx] == self.testCtrlr._brakeOff:
+                value = self.testCtrlr._throttleOff \
+                    - self.throttleAxisValues[idx]
+                throttleRange = self.testCtrlr._throttleFull \
+                    - self.testCtrlr._throttleOff
+                modifier = round(value / throttleRange, self.testCtrlr._ndigit)
+                self.expectedthrottleMod.append(modifier)
+            elif self.throttleAxisValues[idx] == self.testCtrlr._throttleOff \
+                    and self.brakeAxisValues[idx] >= self.testCtrlr._brakeFull:
+                value = self.testCtrlr._brakeOff \
+                    - self.brakeAxisValues[idx]
+                brakeRange = self.testCtrlr._brakeFull \
+                    - self.testCtrlr._brakeOff
+                modifier = -1 * round(value / brakeRange,
+                                      self.testCtrlr._ndigit)
+                self.expectedthrottleMod.append(modifier)
+            else:
+                self.expectedthrottleMod.append(0)
 
     def test_constructorInitJoystick(self):
         """
@@ -149,7 +201,7 @@ class TestController(TestCase):
         """
         The _saveSteeringLeft must save the fully left steering axis.
         """
-        expectedAxisIdx = self.testCtrlr.get_axis_map().index('steering')
+        expectedAxisIdx = self.testCtrlr._getAxesMap().index('steering')
         expectedAxisValue = -0.97
         self.testJoysticks[0].get_axis.return_value = expectedAxisValue
         self.testCtrlr._saveSteeringLeft()
@@ -161,7 +213,7 @@ class TestController(TestCase):
         """
         The _saveSteeringRight must save the fully right steering axis.
         """
-        expectedAxisIdx = self.testCtrlr.get_axis_map().index('steering')
+        expectedAxisIdx = self.testCtrlr._getAxesMap().index('steering')
         expectedAxisValue = -0.43
         self.testJoysticks[0].get_axis.return_value = expectedAxisValue
         self.testCtrlr._saveSteeringRight()
@@ -173,7 +225,7 @@ class TestController(TestCase):
         """
         The _saveThrottleOff must save the fully off throttle axis.
         """
-        expectedAxisIdx = self.testCtrlr.get_axis_map().index('throttle')
+        expectedAxisIdx = self.testCtrlr._getAxesMap().index('throttle')
         expectedAxisValue = -0.27
         self.testJoysticks[0].get_axis.return_value = expectedAxisValue
         self.testCtrlr._saveThrottleOff()
@@ -185,7 +237,7 @@ class TestController(TestCase):
         """
         The _saveThrottleFull must save the fully on throttle axis.
         """
-        expectedAxisIdx = self.testCtrlr.get_axis_map().index('throttle')
+        expectedAxisIdx = self.testCtrlr._getAxesMap().index('throttle')
         expectedAxisValue = -0.78
         self.testJoysticks[0].get_axis.return_value = expectedAxisValue
         self.testCtrlr._saveThrottleFull()
@@ -197,7 +249,7 @@ class TestController(TestCase):
         """
         The _saveBrakeOff must save the fully off brake axis.
         """
-        expectedAxisIdx = self.testCtrlr.get_axis_map().index('brake')
+        expectedAxisIdx = self.testCtrlr._getAxesMap().index('brake')
         expectedAxisValue = -0.10
         self.testJoysticks[0].get_axis.return_value = expectedAxisValue
         self.testCtrlr._saveBrakeOff()
@@ -209,10 +261,54 @@ class TestController(TestCase):
         """
         The _saveBrakeFull must save the fully on brake axis.
         """
-        expectedAxisIdx = self.testCtrlr.get_axis_map().index('brake')
+        expectedAxisIdx = self.testCtrlr._getAxesMap().index('brake')
         expectedAxisValue = -0.86
         self.testJoysticks[0].get_axis.return_value = expectedAxisValue
         self.testCtrlr._saveBrakeFull()
         self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)
         self.assertEqual(self.testCtrlr._brakeFull,
                          abs(expectedAxisValue))
+
+    def test_getAxesMap(self):
+        """
+        The _getAxesMap method must return the controller axes mapping.
+        """
+        testResult = self.testCtrlr._getAxesMap()
+        self.assertEqual(testResult,
+                         self.testCtrlr._config[Controller.CTRLS_KEY][Controller.AXES_KEY])    # noqa: E501
+
+    def test_getButtonsMap(self):
+        """
+        The _getButtonsMap method must return the controller buttons mapping.
+        """
+        testResult = self.testCtrlr._getButtonsMap()
+        self.assertEqual(testResult,
+                         self.testCtrlr._config[Controller.CTRLS_KEY][Controller.BTNS_KEY])    # noqa: E501
+
+    def test_getHatsMap(self):
+        """
+        The _getHatsMap method must return the controller hats mapping.
+        """
+        testResult = self.testCtrlr._getHatsMap()
+        self.assertEqual(testResult,
+                         self.testCtrlr._config[Controller.CTRLS_KEY][Controller.HATS_KEY])    # noqa: E501
+
+    def test_getFuncMap(self):
+        """
+        The _getFuncMap method must return the controller functions mapping.
+        """
+        testResult = self.testCtrlr._getFuncMap()
+        self.assertEqual(testResult,
+                         self.testCtrlr._config[Controller.FUNC_KEY])
+
+    def test_getSterringModifier(self):
+        """
+        The getSterringModifier must return the sterring modifer.
+        """
+        expectedAxisIdx = self.testCtrlr._getAxesMap().index('steering')
+        for idx, value in enumerate(self.steeringAxisValues):
+            self.testJoysticks[0].get_axis.return_value = value
+            testResult = self.testCtrlr.getSteeringModifier()
+            self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)     # noqa: E501
+            self.testJoysticks[0].get_axis.reset_mock()
+            self.assertEqual(testResult, self.expectedSteeringMod[idx])
