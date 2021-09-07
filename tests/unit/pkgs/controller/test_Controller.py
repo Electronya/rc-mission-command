@@ -59,31 +59,28 @@ class TestController(TestCase):
         """
         self.testCtrlr._throttleOff = 1
         self.testCtrlr._throttleFull = 0
+        self.throttleAxisValues = [1, 0.835, 0.245, 0]
+        self.expectedThrottleMod = []
+        for value in self.throttleAxisValues:
+            tmpVal = self.testCtrlr._throttleOff - value
+            throttleRange = self.testCtrlr._throttleOff \
+                - self.testCtrlr._throttleFull
+            modifier = round(tmpVal / throttleRange, self.testCtrlr._ndigit)
+            self.expectedThrottleMod.append(modifier)
+
+    def _setBrakeValues(self):
+        """
+        Set the test controller brake test values.
+        """
         self.testCtrlr._brakeOff = 1
         self.testCtrlr._brakeFull = 0
-        self.throttleAxisValues = [0, 0.4, 1, 1, 1]
-        self.brakeAxisValues = [1, 1, 1, 0.3, 0]
-        self.expectedthrottleMod = []
-        for idx in range(len(self.throttleAxisValues)):
-            if self.throttleAxisValues[idx] >= self.testCtrlr._throttleFull \
-                    and self.brakeAxisValues[idx] == self.testCtrlr._brakeOff:
-                value = self.testCtrlr._throttleOff \
-                    - self.throttleAxisValues[idx]
-                throttleRange = self.testCtrlr._throttleFull \
-                    - self.testCtrlr._throttleOff
-                modifier = round(value / throttleRange, self.testCtrlr._ndigit)
-                self.expectedthrottleMod.append(modifier)
-            elif self.throttleAxisValues[idx] == self.testCtrlr._throttleOff \
-                    and self.brakeAxisValues[idx] >= self.testCtrlr._brakeFull:
-                value = self.testCtrlr._brakeOff \
-                    - self.brakeAxisValues[idx]
-                brakeRange = self.testCtrlr._brakeFull \
-                    - self.testCtrlr._brakeOff
-                modifier = -1 * round(value / brakeRange,
-                                      self.testCtrlr._ndigit)
-                self.expectedthrottleMod.append(modifier)
-            else:
-                self.expectedthrottleMod.append(0)
+        self.brakeAxisValues = [1.000, 0.727, 0.352, 0.000]
+        self.expectedBrakeMod = []
+        for value in self.brakeAxisValues:
+            tmpVal = self.testCtrlr._brakeOff - value
+            brakeRange = self.testCtrlr._brakeOff - self.testCtrlr._brakeFull
+            modifier = round(tmpVal / brakeRange, self.testCtrlr._ndigit)
+            self.expectedBrakeMod.append(modifier)
 
     def test_constructorInitJoystick(self):
         """
@@ -325,14 +322,40 @@ class TestController(TestCase):
         self.assertEqual(testResult,
                          self.testCtrlr._config[Controller.TYPE_KEY])
 
+    def test_isCalibrated(self):
+        """
+        The isCalibrated method must return the calibration
+        status of the controller.
+        """
+        testResult = self.testCtrlr.isCalibrated()
+        self.assertFalse(testResult)
+        self.testCtrlr._isCalibrated = True
+        testResult = self.testCtrlr.isCalibrated()
+        self.assertTrue(testResult)
+
     def test_getSterringModifier(self):
         """
         The getSterringModifier must return the sterring modifer.
         """
-        expectedAxisIdx = self.testCtrlr._getAxesMap().index('steering')
+        expectedAxisIdx = self.testCtrlr._getAxesMap().index(Controller.STRG_KEY)       # noqa: E501
         for idx, value in enumerate(self.steeringAxisValues):
             self.testJoysticks[0].get_axis.return_value = value
             testResult = self.testCtrlr.getSteeringModifier()
             self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)     # noqa: E501
             self.testJoysticks[0].get_axis.reset_mock()
             self.assertEqual(testResult, self.expectedSteeringMod[idx])
+
+    def test_getThrottleModifier(self):
+        """
+        The getThrottleModifier must return the throttle modifier.
+        """
+        expectedAxisIdx = self.testCtrlr._getAxesMap().index(Controller.THRTL_KEY)      # noqa: E501
+        for idx, value in enumerate(self.throttleAxisValues):
+            self.testJoysticks[0].get_axis.return_value = value
+            testResult = self.testCtrlr.getThrottleModifier()
+            print(idx)
+            print(self.expectedThrottleMod[idx])
+            print(testResult)
+            self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)     # noqa: E501
+            self.testJoysticks[0].get_axis.reset_mock()
+            self.assertEqual(testResult, self.expectedThrottleMod[idx])

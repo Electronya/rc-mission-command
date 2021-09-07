@@ -223,7 +223,7 @@ class Controller:
         """
         return self._config[self.TYPE_KEY]
 
-    def is_calibrated(self):
+    def isCalibrated(self):
         """
         Get the controller calibartion state.
 
@@ -250,16 +250,19 @@ class Controller:
         self._logger.debug(f"steering modifier: {modifier}")
         return modifier
 
-    def _getThrottleModifier(self):
+    def getThrottleModifier(self):
         """
         Get the throttle modifier.
 
         Return:
             The throttle modifier.
         """
-        throttlePos = self._joystick.get_axis(self._config[self.CTRLS_KEY][self.AXES_KEY].index(self.THRTL_KEY))
-        modifier = round((self._throttleFull - throttlePos) / (self._throttleFull - self._throttleOff), 2)
-        modifier = 1 - modifier
+        axisName = self._getFuncMap()[self.THRTL_KEY]
+        throttlePos = \
+            self._joystick.get_axis(self._getAxesMap().index(axisName))
+        tmpVal = self._throttleOff - throttlePos
+        throttleRange = self._throttleOff - self._throttleFull
+        modifier = round(tmpVal / throttleRange, self._ndigit)
         self._logger.debug(f"throttle modifier: {modifier}")
         return modifier
 
