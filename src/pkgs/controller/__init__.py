@@ -113,7 +113,7 @@ class Controller:
         self._logger.debug(f"saving steering left position as "
                            f"{self._steeringLeft}")
 
-    def _saveSteeringRight(self):
+    def _saveSteeringRight(self) -> None:
         """
         Save the right position of the steering.
         """
@@ -123,7 +123,7 @@ class Controller:
         self._logger.debug(f"saving steering left position as "
                            f"{self._steeringRight}")
 
-    def _saveThrottleOff(self):
+    def _saveThrottleOff(self) -> None:
         """
         Save the throttle off position.
         """
@@ -133,7 +133,7 @@ class Controller:
         self._logger.debug(f"saving throttle off position as "
                            f"{self._throttleOff}")
 
-    def _saveThrottleFull(self):
+    def _saveThrottleFull(self) -> None:
         """
         Save the throttle full position.
         """
@@ -143,7 +143,7 @@ class Controller:
         self._logger.debug(f"saving throttle full position as "
                            f"{self._throttleFull}")
 
-    def _saveBrakeOff(self):
+    def _saveBrakeOff(self) -> None:
         """
         Save the break off position.
         """
@@ -152,7 +152,7 @@ class Controller:
         self._brakeOff = abs(brakeOff)
         self._logger.debug(f"saving break off position as {self._brakeOff}")
 
-    def _saveBrakeFull(self):
+    def _saveBrakeFull(self) -> None:
         """
         Save the break full position.
         """
@@ -161,7 +161,7 @@ class Controller:
         self._brakeFull = abs(brakeFull)
         self._logger.debug(f"saving break full position as {self._brakeFull}")
 
-    def _getAxesMap(self):
+    def _getAxesMap(self) -> list:
         """
         Get the controller axis mapping.
 
@@ -170,7 +170,7 @@ class Controller:
         """
         return self._config[self.CTRLS_KEY][self.AXES_KEY]
 
-    def _getButtonsMap(self):
+    def _getButtonsMap(self) -> list:
         """
         Get the controller buttons mapping.
 
@@ -179,7 +179,7 @@ class Controller:
         """
         return self._config[self.CTRLS_KEY][self.BTNS_KEY]
 
-    def _getHatsMap(self):
+    def _getHatsMap(self) -> list:
         """
         Get the controller hats mapping.
 
@@ -188,7 +188,7 @@ class Controller:
         """
         return self._config[self.CTRLS_KEY][self.HATS_KEY]
 
-    def _getFuncMap(self):
+    def _getFuncMap(self) -> dict:
         """
         Get the controller function mapping.
 
@@ -197,7 +197,7 @@ class Controller:
         """
         return self._config[self.FUNC_KEY]
 
-    def getName(self):
+    def getName(self) -> str:
         """
         Get the joystick name.
 
@@ -206,7 +206,7 @@ class Controller:
         """
         return self._joystick.get_name()
 
-    def getIdx(self):
+    def getIdx(self) -> int:
         """
         Get the joystick index
         Return:
@@ -214,7 +214,7 @@ class Controller:
         """
         return self._idx
 
-    def getType(self):
+    def getType(self) -> str:
         """
         Get the controller type.
 
@@ -223,7 +223,7 @@ class Controller:
         """
         return self._config[self.TYPE_KEY]
 
-    def isCalibrated(self):
+    def isCalibrated(self) -> bool:
         """
         Get the controller calibartion state.
 
@@ -232,7 +232,7 @@ class Controller:
         """
         return self._isCalibrated
 
-    def getSteeringModifier(self):
+    def getSteeringModifier(self) -> float:
         """
         Get the steering modifier.
 
@@ -250,7 +250,7 @@ class Controller:
         self._logger.debug(f"steering modifier: {modifier}")
         return modifier
 
-    def getThrottleModifier(self):
+    def getThrottleModifier(self) -> float:
         """
         Get the throttle modifier.
 
@@ -266,16 +266,19 @@ class Controller:
         self._logger.debug(f"throttle modifier: {modifier}")
         return modifier
 
-    def _getBrakeModifier(self):
+    def getBrakeModifier(self) -> float:
         """
         Get the break modifier.
 
         Return:
             The break modifier.
         """
-        breakPos = self._joystick.get_axis(self._config[self.CTRLS_KEY][self.AXES_KEY].index(self.BRK_KEY))
-        modifier = round((self._brakeFull - breakPos) / (self._brakeFull - self._brakeOff), 2)
-        modifier = 1 - modifier
+        axisName = self._getFuncMap()[self.BRK_KEY]
+        brakePos = \
+            self._joystick.get_axis(self._getAxesMap().index(axisName))
+        tmpVal = self._brakeOff - brakePos
+        brakeRange = self._brakeOff - self._brakeFull
+        modifier = round(tmpVal / brakeRange, self._ndigit)
         self._logger.debug(f"break modifier: {modifier}")
         return modifier
 
