@@ -20,6 +20,7 @@ class Controller:
     THRTL_KEY = 'throttle'
     BRK_KEY = 'brake'
     RVS_KEY = 'reverse'
+    CAL_SEQ = 6
 
     def __init__(self, logger: object, idx: int,
                  name: str, ndigit: int = 2) -> None:
@@ -37,7 +38,7 @@ class Controller:
         self._idx = idx
         self._ndigit = ndigit
         self._isCalibrated = False
-        self._calibrationSeq = 0
+        self._calibSeqNumber = 0
         self._logger.info(f"creating controller {name}")
         self._joystick = joystick.Joystick(idx)
         self._joystick.init()
@@ -45,14 +46,6 @@ class Controller:
         configFilePath = os.path.join(self.CONFIG_ROOT_DIR, filename)
         with open(configFilePath) as configFile:
             self._config = json.load(configFile)
-        self._calibrationSeq = [
-            self._saveSteeringLeft,
-            self._saveSteeringRight,
-            self._saveThrottleOff,
-            self._saveThrottleFull,
-            self._saveBrakeOff,
-            self._saveBrakeFull
-        ]
 
     @classmethod
     def _listConnected(cls) -> tuple:
@@ -282,16 +275,22 @@ class Controller:
         self._logger.debug(f"break modifier: {modifier}")
         return modifier
 
-    def calibrate(self, seq):
+    def calibrate(self) -> None:
         """
         Calibrate the controller.
-
-        Params:
-            seq:        The calibration sequence.
         """
-        self._logger.info(f"calibration seq: {seq}.")
-        self._calibrationSeq[seq]()
-        if seq == (len(self._calibrationSeq) - 1):
+        calibrationSeq = [
+            self._saveSteeringLeft,
+            self._saveSteeringRight,
+            self._saveThrottleOff,
+            self._saveThrottleFull,
+            self._saveBrakeOff,
+            self._saveBrakeFull
+        ]
+        self._logger.info(f"calibration seq: {self._calibSeqNumber}.")
+        calibrationSeq[self._calibSeqNumber]()
+        self._calibSeqNumber += 1
+        if self._calibSeqNumber == self.CAL_SEQ:
             self._isCalibrated = True
 
     def quit(self):

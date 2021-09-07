@@ -369,3 +369,86 @@ class TestController(TestCase):
             self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)     # noqa: E501
             self.testJoysticks[0].get_axis.reset_mock()
             self.assertEqual(testResult, self.expectedBrakeMod[idx])
+
+    def test_calibrateSaveStrgLeft(self):
+        """
+        The calibrate method must save the steering left calibration
+        value when the calibration sequence is 0 and advance to the
+        next sequence.
+        """
+        expectedNewSeq = self.testCtrlr._calibSeqNumber + 1
+        with patch.object(self.testCtrlr, '_saveSteeringLeft') \
+                as mockedSave:
+            self.testCtrlr.calibrate()
+            mockedSave.assert_called_once()
+            self.assertEqual(self.testCtrlr._calibSeqNumber, expectedNewSeq)
+
+    def test_calibrateSaveStrgRight(self):
+        """
+        The calibrate method must save the steering right calibration
+        value when the calibration sequence is 1 and advance to the
+        next sequence.
+        """
+        self.testCtrlr._calibSeqNumber = 1
+        expectedNewSeq = self.testCtrlr._calibSeqNumber + 1
+        with patch.object(self.testCtrlr, '_saveSteeringRight') \
+                as mockedSave:
+            self.testCtrlr.calibrate()
+            mockedSave.assert_called_once()
+            self.assertEqual(self.testCtrlr._calibSeqNumber, expectedNewSeq)
+
+    def test_calibrateSaveThrtlOff(self):
+        """
+        The calibrate method must save the throttle off calibration
+        value when the calibration sequence is 2 and advance to the
+        next sequence.
+        """
+        self.testCtrlr._calibSeqNumber = 2
+        expectedNewSeq = self.testCtrlr._calibSeqNumber + 1
+        with patch.object(self.testCtrlr, '_saveThrottleOff') \
+                as mockedSave:
+            self.testCtrlr.calibrate()
+            mockedSave.assert_called_once()
+            self.assertEqual(self.testCtrlr._calibSeqNumber, expectedNewSeq)
+
+    def test_calibrateSaveThrtlFull(self):
+        """
+        The calibrate method must save the throttle full calibration
+        value when the calibration sequence is 3 and advance to the
+        next sequence.
+        """
+        self.testCtrlr._calibSeqNumber = 3
+        expectedNewSeq = self.testCtrlr._calibSeqNumber + 1
+        with patch.object(self.testCtrlr, '_saveThrottleFull') \
+                as mockedSave:
+            self.testCtrlr.calibrate()
+            mockedSave.assert_called_once()
+            self.assertEqual(self.testCtrlr._calibSeqNumber, expectedNewSeq)
+
+    def test_calibrateSaveBrkOff(self):
+        """
+        The calibrate method must save the brake off calibration
+        value when the calibration sequence is 4 and advance to the
+        next sequence.
+        """
+        self.testCtrlr._calibSeqNumber = 4
+        expectedNewSeq = self.testCtrlr._calibSeqNumber + 1
+        with patch.object(self.testCtrlr, '_saveBrakeOff') \
+                as mockedSave:
+            self.testCtrlr.calibrate()
+            mockedSave.assert_called_once()
+            self.assertEqual(self.testCtrlr._calibSeqNumber, expectedNewSeq)
+
+    def test_calibrateSaveBrkFull(self):
+        """
+        The calibrate method must save the brake full calibration
+        value when the calibration sequence is 5 and advance to the
+        next sequence.
+        """
+        self.testCtrlr._calibSeqNumber = 5
+        expectedNewSeq = self.testCtrlr._calibSeqNumber + 1
+        with patch.object(self.testCtrlr, '_saveBrakeFull') \
+                as mockedSave:
+            self.testCtrlr.calibrate()
+            mockedSave.assert_called_once()
+            self.assertEqual(self.testCtrlr._calibSeqNumber, expectedNewSeq)
