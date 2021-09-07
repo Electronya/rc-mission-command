@@ -165,7 +165,7 @@ def list_connected_controllers():
     """
     List the connected controllers.
     """
-    controllerNames = Controller.list_connected()
+    controllerNames = Controller.listController()
     appLogger.debug(f"controller list: {controllerNames}")
     if len(controllerNames):
         return controllerNames

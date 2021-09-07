@@ -1,10 +1,10 @@
 {
     "type": "steering wheel",
     "controls": {
-        "axis": [
+        "axes": [
             "steering",
             "throttle",
-            "break"
+            "brake"
         ],
         "buttons": [
             "x",
@@ -24,11 +24,10 @@
             "dpad"
         ]
     },
-    "mapping": {
+    "functions": {
         "steering": "steering",
         "throttle": "throttle",
-        "break": "break",
-        "dpad": "look",
-        "x": "reverse"
+        "brake": "brake",
+        "reverse": "x"
     }
 }

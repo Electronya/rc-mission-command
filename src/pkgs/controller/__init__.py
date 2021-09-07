@@ -1,8 +1,8 @@
 import json
-import logging
 import os
 
-import pygame
+from pygame import joystick
+
 
 class Controller:
     """
@@ -10,49 +10,78 @@ class Controller:
     """
     CONFIG_ROOT_DIR = './src/pkgs/controller/configs/'
     CTRL_FRAME_RATE = 10
+    TYPE_KEY = 'type'
+    CTRLS_KEY = 'controls'
+    AXES_KEY = 'axes'
+    BTNS_KEY = 'buttons'
+    HATS_KEY = 'hats'
+    FUNC_KEY = 'functions'
+    STRG_KEY = 'steering'
+    THRTL_KEY = 'throttle'
+    BRK_KEY = 'brake'
+    RVS_KEY = 'reverse'
+    CAL_SEQ = 6
 
-    def __init__(self, idx, name, app, ndigit=2):
+    def __init__(self, logger: object, idx: int,
+                 name: str, ndigit: int = 2) -> None:
         """
         Constructor.
 
         Params:
-            idx:        The index of the controller from 0 to pygame.joystick.get_count().
+            logger:     The application logger.
+            idx:        The index of the controller from 0 to
+                        pygame.joystick.get_count().
             name:       The controller name.
-            app:        The app instances for generating events.
             ndigit:     The digit number for the axis precision. Default: 2.
         """
-        self._logger = logging.getLogger(f"CTRL_{idx}")
-        self._logger.debug(f"creating controller {name}")
-        self._joystick = pygame.joystick.Joystick(idx)
-        self._joystick.init()
-
+        self._logger = logger.getLogger(f"CTRL_{idx}")
         self._idx = idx
         self._ndigit = ndigit
-        self._app = app
-
-        file_name = f"{name.lower().replace(' ', '_')}.json"
-        config_file = os.path.join(self.CONFIG_ROOT_DIR, file_name)
-        with open(config_file) as raw_config:
-            self._config = json.load(raw_config)
-
         self._isCalibrated = False
-        self._calibrationSeq = [
-            self._save_steering_left,
-            self._save_steering_right,
-            self._save_throttle_off,
-            self._save_throttle_full,
-            self._save_break_off,
-            self._save_break_full
-        ]
-
-        self._axisGetters = [
-            self._get_steering_modifier,
-            self._get_throttle_modifier,
-            self._get_break_modifier
-        ]
+        self._calibSeqNumber = 0
+        self._logger.info(f"creating controller {name}")
+        self._joystick = joystick.Joystick(idx)
+        self._joystick.init()
+        filename = f"{name.lower().replace(' ', '_')}.json"
+        configFilePath = os.path.join(self.CONFIG_ROOT_DIR, filename)
+        with open(configFilePath) as configFile:
+            self._config = json.load(configFile)
 
     @classmethod
-    def list_connected(cls):
+    def _listConnected(cls) -> tuple:
+        """
+        List the connected controller.
+
+        Params:
+            logger:     The logger.
+
+        Returns:
+            The list of connected controller.
+        """
+        connected = []
+        for ctrlrId in range(joystick.get_count()):
+            ctrlrName = joystick.Joystick(ctrlrId).get_name()
+            connected.append(ctrlrName)
+        return tuple(connected)
+
+    @classmethod
+    def _filterUnsupported(cls, connected: tuple, supported: tuple) -> dict:
+        """
+        Filter the unsupported controller.
+
+        Params:
+            connected:  The list of connected controller.
+            supported:  The list of supported controller.
+        """
+        connected_supported = {}
+        for idx in range(len(connected)):
+            if any(connected[idx].lower().replace(' ', '_')
+                   in ctrl_name for ctrl_name in supported):
+                connected_supported[connected[idx]] = idx
+        return connected_supported
+
+    @classmethod
+    def listController(cls) -> dict:
         """
         List the connected and supported controller.
 
@@ -60,109 +89,108 @@ class Controller:
             A Dictionary listing the connected and supported controller.
             The keys is the controller name and the value is its index.
         """
-        logger = logging.getLogger('CTRL_CLS')
-        logger.debug('listing connected/supported controller')
-        connected = []
-        for id in range(pygame.joystick.get_count()):
-            controller_name = pygame.joystick.Joystick(id).get_name()
-            connected.append(controller_name)
-
-        supported = [f.replace('.json', '') for f in os.listdir(cls.CONFIG_ROOT_DIR)]
-        connected_supported = {}
-        for idx in range(len(connected)):
-            if any(connected[idx].lower().replace(' ', '_') in ctrl_name for ctrl_name in supported):
-                connected_supported[connected[idx]] = idx
-
-        logger.debug(f"found the following controllers: {connected_supported}")
-
+        connected = cls._listConnected()
+        supported = (f.replace('.json', '')
+                     for f in os.listdir(cls.CONFIG_ROOT_DIR))
+        connected_supported = cls._filterUnsupported(connected,
+                                                     tuple(supported))
         return connected_supported
 
-    def _save_steering_left(self):
+    def _saveSteeringLeft(self) -> None:
         """
         Save the left position of the steering.
         """
-        self._steeringLeft = abs(round(self._joystick.get_axis(self.get_axis_map().index('steering')), 2))
-        self._logger.debug(f"saving steering left position as {self._steeringLeft}")
+        fullLeftSteering = \
+            self._joystick.get_axis(self._getAxesMap().index(self.STRG_KEY))
+        self._steeringLeft = abs(fullLeftSteering)
+        self._logger.debug(f"saving steering left position as "
+                           f"{self._steeringLeft}")
 
-    def _save_steering_right(self):
+    def _saveSteeringRight(self) -> None:
         """
         Save the right position of the steering.
         """
-        self._steeringRight = round(self._joystick.get_axis(self.get_axis_map().index('steering')), 2)
-        self._logger.debug(f"saving steering left position as {self._steeringRight}")
+        fullRightSteering = \
+            self._joystick.get_axis(self._getAxesMap().index(self.STRG_KEY))
+        self._steeringRight = abs(fullRightSteering)
+        self._logger.debug(f"saving steering left position as "
+                           f"{self._steeringRight}")
 
-    def _save_throttle_off(self):
+    def _saveThrottleOff(self) -> None:
         """
         Save the throttle off position.
         """
-        self._throttleOff = round(self._joystick.get_axis(self.get_axis_map().index('throttle')), 2)
-        self._logger.debug(f"saving throttle off position as {self._throttleOff}")
+        throttleOff = \
+            self._joystick.get_axis(self._getAxesMap().index(self.THRTL_KEY))
+        self._throttleOff = abs(throttleOff)
+        self._logger.debug(f"saving throttle off position as "
+                           f"{self._throttleOff}")
 
-    def _save_throttle_full(self):
+    def _saveThrottleFull(self) -> None:
         """
         Save the throttle full position.
         """
-        self._throttleFull = round(self._joystick.get_axis(self.get_axis_map().index('throttle')), 2)
-        self._logger.debug(f"saving throttle full position as {self._throttleFull}")
+        throttleFull = \
+            self._joystick.get_axis(self._getAxesMap().index(self.THRTL_KEY))
+        self._throttleFull = abs(throttleFull)
+        self._logger.debug(f"saving throttle full position as "
+                           f"{self._throttleFull}")
 
-    def _save_break_off(self):
+    def _saveBrakeOff(self) -> None:
         """
         Save the break off position.
         """
-        self._breakOff = round(self._joystick.get_axis(self.get_axis_map().index('break')), 2)
-        self._logger.debug(f"saving break off position as {self._breakOff}")
+        brakeOff = \
+            self._joystick.get_axis(self._getAxesMap().index(self.BRK_KEY))
+        self._brakeOff = abs(brakeOff)
+        self._logger.debug(f"saving break off position as {self._brakeOff}")
 
-    def _save_break_full(self):
+    def _saveBrakeFull(self) -> None:
         """
         Save the break full position.
         """
-        self._breakFull = round(self._joystick.get_axis(self.get_axis_map().index('break')), 2)
-        self._logger.debug(f"saving break full position as {self._breakFull}")
+        brakeFull = \
+            self._joystick.get_axis(self._getAxesMap().index(self.BRK_KEY))
+        self._brakeFull = abs(brakeFull)
+        self._logger.debug(f"saving break full position as {self._brakeFull}")
 
-    def _get_steering_modifier(self):
+    def _getAxesMap(self) -> list:
         """
-        Get the steering modifier.
+        Get the controller axis mapping.
 
         Return:
-            The steering modifier.
+            The list containing the map of the axis.
         """
-        steeringPos = self._joystick.get_axis(self._config['controls']['axis'].index('steering'))
-        modifier = 0
-        if steeringPos < 0:
-            modifier = round(steeringPos / self._steeringLeft, 2)
-        else:
-            modifier = round(steeringPos / self._steeringRight, 2)
+        return self._config[self.CTRLS_KEY][self.AXES_KEY]
 
-        self._logger.debug(f"steering modifier: {modifier}")
-        return modifier
-
-    def _get_throttle_modifier(self):
+    def _getButtonsMap(self) -> list:
         """
-        Get the throttle modifier.
+        Get the controller buttons mapping.
 
         Return:
-            The throttle modifier.
+            The list containing the map of the buttons.
         """
-        throttlePos = self._joystick.get_axis(self._config['controls']['axis'].index('throttle'))
-        modifier = round((self._throttleFull - throttlePos) / (self._throttleFull - self._throttleOff), 2)
-        modifier = 1 - modifier
-        self._logger.debug(f"throttle modifier: {modifier}")
-        return modifier
+        return self._config[self.CTRLS_KEY][self.BTNS_KEY]
 
-    def _get_break_modifier(self):
+    def _getHatsMap(self) -> list:
         """
-        Get the break modifier.
+        Get the controller hats mapping.
 
         Return:
-            The break modifier.
+            The list containing the map of the hats.
         """
-        breakPos = self._joystick.get_axis(self._config['controls']['axis'].index('break'))
-        modifier = round((self._breakFull - breakPos) / (self._breakFull - self._breakOff), 2)
-        modifier = 1 - modifier
-        self._logger.debug(f"break modifier: {modifier}")
-        return modifier
+        return self._config[self.CTRLS_KEY][self.HATS_KEY]
 
-    def get_name(self):
+    def _getFuncMap(self) -> dict:
+        """
+        Get the controller function mapping.
+
+        Return:
+            A dictionary containing the map of the functions.
+        """
+        return self._config[self.FUNC_KEY]
+
+    def getName(self) -> str:
         """
         Get the joystick name.
 
@@ -171,7 +199,7 @@ class Controller:
         """
         return self._joystick.get_name()
 
-    def get_idx(self):
+    def getIdx(self) -> int:
         """
         Get the joystick index
         Return:
@@ -179,16 +207,16 @@ class Controller:
         """
         return self._idx
 
-    def get_type(self):
+    def getType(self) -> str:
         """
         Get the controller type.
 
         Return:
             The controller type.
         """
-        return self._config['type']
+        return self._config[self.TYPE_KEY]
 
-    def is_calibrated(self):
+    def isCalibrated(self) -> bool:
         """
         Get the controller calibartion state.
 
@@ -197,66 +225,77 @@ class Controller:
         """
         return self._isCalibrated
 
-    def get_axis(self, axis):
+    def getSteeringModifier(self) -> float:
         """
-        Get the current axis position.
-
-        Params:
-            axis:       The axis index.
-        """
-        return self._axisGetters[axis]()
-
-    def get_funct_map(self):
-        """
-        Get the controller function mapping.
+        Get the steering modifier.
 
         Return:
-            A dictionary containing the map of the functions.
+            The steering modifier.
         """
-        return self._config['mapping']
+        axisName = self._getFuncMap()[self.STRG_KEY]
+        steeringPos = \
+            self._joystick.get_axis(self._getAxesMap().index(axisName))
+        modifier = 0
+        if steeringPos < 0:
+            modifier = round(steeringPos / self._steeringLeft, self._ndigit)
+        else:
+            modifier = round(steeringPos / self._steeringRight, self._ndigit)
+        self._logger.debug(f"steering modifier: {modifier}")
+        return modifier
 
-    def get_axis_map(self):
+    def getThrottleModifier(self) -> float:
         """
-        Get the controller axis mapping.
-
-        Return:
-            The list containing the map of the axis.
-        """
-        return self._config['controls']['axis']
-
-    def get_buttons_map(self):
-        """
-        Get the controller buttons mapping.
-
-        Return:
-            The list containing the map of the buttons.
-        """
-        return self._config['controls']['buttons']
-
-    def get_hats_map(self):
-        """
-        Get the controller hats mapping.
+        Get the throttle modifier.
 
         Return:
-            The list containing the map of the hats.
+            The throttle modifier.
         """
-        return self._config['controls']['hats']
+        axisName = self._getFuncMap()[self.THRTL_KEY]
+        throttlePos = \
+            self._joystick.get_axis(self._getAxesMap().index(axisName))
+        tmpVal = self._throttleOff - throttlePos
+        throttleRange = self._throttleOff - self._throttleFull
+        modifier = round(tmpVal / throttleRange, self._ndigit)
+        self._logger.debug(f"throttle modifier: {modifier}")
+        return modifier
 
-    def calibrate(self, seq):
+    def getBrakeModifier(self) -> float:
+        """
+        Get the break modifier.
+
+        Return:
+            The break modifier.
+        """
+        axisName = self._getFuncMap()[self.BRK_KEY]
+        brakePos = \
+            self._joystick.get_axis(self._getAxesMap().index(axisName))
+        tmpVal = self._brakeOff - brakePos
+        brakeRange = self._brakeOff - self._brakeFull
+        modifier = round(tmpVal / brakeRange, self._ndigit)
+        self._logger.debug(f"break modifier: {modifier}")
+        return modifier
+
+    def calibrate(self) -> None:
         """
         Calibrate the controller.
-
-        Params:
-            seq:        The calibration sequence.
         """
-        self._logger.info(f"calibration seq: {seq}.")
-        self._calibrationSeq[seq]()
-        if seq == (len(self._calibrationSeq) - 1):
+        calibrationSeq = [
+            self._saveSteeringLeft,
+            self._saveSteeringRight,
+            self._saveThrottleOff,
+            self._saveThrottleFull,
+            self._saveBrakeOff,
+            self._saveBrakeFull
+        ]
+        self._logger.info(f"calibration seq: {self._calibSeqNumber}.")
+        calibrationSeq[self._calibSeqNumber]()
+        self._calibSeqNumber += 1
+        if self._calibSeqNumber == self.CAL_SEQ:
             self._isCalibrated = True
 
-    def quit(self):
+    def quit(self) -> None:
         """
         Uninitialize the controller.
         """
-        self._logger.info(f"unitializing controller")
+        self._logger.info('unitializing controller')
         self._joystick.quit()
