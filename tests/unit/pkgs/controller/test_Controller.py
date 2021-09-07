@@ -28,11 +28,16 @@ class TestController(TestCase):
         with open('src/pkgs/controller/configs/logitech_driving_force.json') \
                 as configFile:
             self.testConfig = configFile.read()
+        with patch('builtins.open', mock_open(read_data=self.testConfig)), \
+                patch('pkgs.controller.joystick.Joystick') as mockedJoystick:
+            mockedJoystick.return_value = self.testJoysticks[0]
+            self.testCtrlr = Controller(self.testLogger, 0, self.testNames[0])
 
     def test_constructorInitJoystick(self):
         """
         The constructor must initialize the pygame joystick.
         """
+        self.testJoysticks[0].reset_mock()
         with patch('builtins.open', mock_open(read_data=self.testConfig)), \
                 patch('pkgs.controller.joystick.Joystick') as mockedJoystick:
             mockedJoystick.return_value = self.testJoysticks[0]
@@ -63,7 +68,7 @@ class TestController(TestCase):
         with patch('pkgs.controller.joystick') as mockJoystickMod:
             mockJoystickMod.get_count.return_value = len(self.testNames)
             mockJoystickMod.Joystick.side_effect = self.testJoysticks
-            testResult = Controller._listConnected(self.testLogger)
+            testResult = Controller._listConnected()
             self.assertEqual(testResult, self.testNames)
 
     def test_filterUnsupported(self):
@@ -139,3 +144,15 @@ class TestController(TestCase):
             mockedFilterUnsupported.return_value = expectedList
             testResult = Controller.listController()
             self.assertEqual(testResult, expectedList)
+
+    def test_saveSteeringLeft(self):
+        """
+        The _saveSteeringLeft must save the fully left steering axis.
+        """
+        expectedAxisIdx = self.testCtrlr.get_axis_map().index('steering')
+        expectedAxisValue = -0.97
+        self.testJoysticks[0].get_axis.return_value = expectedAxisValue
+        self.testCtrlr._saveSteeringLeft()
+        self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)
+        self.assertEqual(self.testCtrlr._steeringLeftRange,
+                         abs(expectedAxisValue))

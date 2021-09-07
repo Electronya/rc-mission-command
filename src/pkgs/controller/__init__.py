@@ -27,29 +27,30 @@ class Controller:
         self._idx = idx
         self._ndigit = ndigit
         self._isCalibrated = False
+        self._calibrationSeq = 0
         self._logger.info(f"creating controller {name}")
         self._joystick = joystick.Joystick(idx)
         self._joystick.init()
-        file_name = f"{name.lower().replace(' ', '_')}.json"
-        config_file = os.path.join(self.CONFIG_ROOT_DIR, file_name)
-        with open(config_file) as raw_config:
-            self._config = json.load(raw_config)
+        filename = f"{name.lower().replace(' ', '_')}.json"
+        configFilePath = os.path.join(self.CONFIG_ROOT_DIR, filename)
+        with open(configFilePath) as configFile:
+            self._config = json.load(configFile)
         self._calibrationSeq = [
-            self._save_steering_left,
-            self._save_steering_right,
-            self._save_throttle_off,
-            self._save_throttle_full,
-            self._save_break_off,
-            self._save_break_full
+            self._saveSteeringLeft,
+            self._saveSteeringRight,
+            self._saveThrottleOff,
+            self._saveThrottleFull,
+            self._saveBrakeOff,
+            self._saveBrakeFull
         ]
         self._axisGetters = [
-            self._get_steering_modifier,
-            self._get_throttle_modifier,
-            self._get_break_modifier
+            self._getSteeringModifier,
+            self._getThrottleModifier,
+            self._getBrakeModifier
         ]
 
     @classmethod
-    def _listConnected(cls, logger: object) -> tuple:
+    def _listConnected(cls) -> tuple:
         """
         List the connected controller.
 
@@ -97,49 +98,52 @@ class Controller:
                                                      tuple(supported))
         return connected_supported
 
-    def _save_steering_left(self):
+    def _saveSteeringLeft(self) -> None:
         """
         Save the left position of the steering.
         """
-        self._steeringLeft = abs(round(self._joystick.get_axis(self.get_axis_map().index('steering')), 2))
-        self._logger.debug(f"saving steering left position as {self._steeringLeft}")
+        fullLeftSteering = \
+            self._joystick.get_axis(self.get_axis_map().index('steering'))
+        self._steeringLeftRange = abs(fullLeftSteering)
+        self._logger.debug(f"saving steering left position as "
+                           f"{self._steeringLeftRange}")
 
-    def _save_steering_right(self):
+    def _saveSteeringRight(self):
         """
         Save the right position of the steering.
         """
         self._steeringRight = round(self._joystick.get_axis(self.get_axis_map().index('steering')), 2)
         self._logger.debug(f"saving steering left position as {self._steeringRight}")
 
-    def _save_throttle_off(self):
+    def _saveThrottleOff(self):
         """
         Save the throttle off position.
         """
         self._throttleOff = round(self._joystick.get_axis(self.get_axis_map().index('throttle')), 2)
         self._logger.debug(f"saving throttle off position as {self._throttleOff}")
 
-    def _save_throttle_full(self):
+    def _saveThrottleFull(self):
         """
         Save the throttle full position.
         """
         self._throttleFull = round(self._joystick.get_axis(self.get_axis_map().index('throttle')), 2)
         self._logger.debug(f"saving throttle full position as {self._throttleFull}")
 
-    def _save_break_off(self):
+    def _saveBrakeOff(self):
         """
         Save the break off position.
         """
         self._breakOff = round(self._joystick.get_axis(self.get_axis_map().index('break')), 2)
         self._logger.debug(f"saving break off position as {self._breakOff}")
 
-    def _save_break_full(self):
+    def _saveBrakeFull(self):
         """
         Save the break full position.
         """
         self._breakFull = round(self._joystick.get_axis(self.get_axis_map().index('break')), 2)
         self._logger.debug(f"saving break full position as {self._breakFull}")
 
-    def _get_steering_modifier(self):
+    def _getSteeringModifier(self):
         """
         Get the steering modifier.
 
@@ -149,14 +153,14 @@ class Controller:
         steeringPos = self._joystick.get_axis(self._config['controls']['axis'].index('steering'))
         modifier = 0
         if steeringPos < 0:
-            modifier = round(steeringPos / self._steeringLeft, 2)
+            modifier = round(steeringPos / self._steeringLeftRange, 2)
         else:
             modifier = round(steeringPos / self._steeringRight, 2)
 
         self._logger.debug(f"steering modifier: {modifier}")
         return modifier
 
-    def _get_throttle_modifier(self):
+    def _getThrottleModifier(self):
         """
         Get the throttle modifier.
 
@@ -169,7 +173,7 @@ class Controller:
         self._logger.debug(f"throttle modifier: {modifier}")
         return modifier
 
-    def _get_break_modifier(self):
+    def _getBrakeModifier(self):
         """
         Get the break modifier.
 
