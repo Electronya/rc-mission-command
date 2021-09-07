@@ -1,8 +1,8 @@
 import json
-import logging
 import os
 
-import pygame
+from pygame import joystick
+
 
 class Controller:
     """
@@ -11,31 +11,29 @@ class Controller:
     CONFIG_ROOT_DIR = './src/pkgs/controller/configs/'
     CTRL_FRAME_RATE = 10
 
-    def __init__(self, idx, name, app, ndigit=2):
+    def __init__(self, logger: object, idx: int,
+                 name: str, ndigit: int = 2) -> None:
         """
         Constructor.
 
         Params:
-            idx:        The index of the controller from 0 to pygame.joystick.get_count().
+            logger:     The application logger.
+            idx:        The index of the controller from 0 to
+                        pygame.joystick.get_count().
             name:       The controller name.
-            app:        The app instances for generating events.
             ndigit:     The digit number for the axis precision. Default: 2.
         """
-        self._logger = logging.getLogger(f"CTRL_{idx}")
-        self._logger.debug(f"creating controller {name}")
-        self._joystick = pygame.joystick.Joystick(idx)
-        self._joystick.init()
-
+        self._logger = logger.getLogger(f"CTRL_{idx}")
         self._idx = idx
         self._ndigit = ndigit
-        self._app = app
-
+        self._isCalibrated = False
+        self._logger.info(f"creating controller {name}")
+        self._joystick = joystick.Joystick(idx)
+        self._joystick.init()
         file_name = f"{name.lower().replace(' ', '_')}.json"
         config_file = os.path.join(self.CONFIG_ROOT_DIR, file_name)
         with open(config_file) as raw_config:
             self._config = json.load(raw_config)
-
-        self._isCalibrated = False
         self._calibrationSeq = [
             self._save_steering_left,
             self._save_steering_right,
@@ -44,7 +42,6 @@ class Controller:
             self._save_break_off,
             self._save_break_full
         ]
-
         self._axisGetters = [
             self._get_steering_modifier,
             self._get_throttle_modifier,
@@ -52,7 +49,40 @@ class Controller:
         ]
 
     @classmethod
-    def list_connected(cls):
+    def _listConnected(cls, logger: object) -> tuple:
+        """
+        List the connected controller.
+
+        Params:
+            logger:     The logger.
+
+        Returns:
+            The list of connected controller.
+        """
+        connected = []
+        for ctrlrId in range(joystick.get_count()):
+            ctrlrName = joystick.Joystick(ctrlrId).get_name()
+            connected.append(ctrlrName)
+        return tuple(connected)
+
+    @classmethod
+    def _filterUnsupported(cls, connected: tuple, supported: tuple) -> dict:
+        """
+        Filter the unsupported controller.
+
+        Params:
+            connected:  The list of connected controller.
+            supported:  The list of supported controller.
+        """
+        connected_supported = {}
+        for idx in range(len(connected)):
+            if any(connected[idx].lower().replace(' ', '_')
+                   in ctrl_name for ctrl_name in supported):
+                connected_supported[connected[idx]] = idx
+        return connected_supported
+
+    @classmethod
+    def listController(cls) -> dict:
         """
         List the connected and supported controller.
 
@@ -60,21 +90,11 @@ class Controller:
             A Dictionary listing the connected and supported controller.
             The keys is the controller name and the value is its index.
         """
-        logger = logging.getLogger('CTRL_CLS')
-        logger.debug('listing connected/supported controller')
-        connected = []
-        for id in range(pygame.joystick.get_count()):
-            controller_name = pygame.joystick.Joystick(id).get_name()
-            connected.append(controller_name)
-
-        supported = [f.replace('.json', '') for f in os.listdir(cls.CONFIG_ROOT_DIR)]
-        connected_supported = {}
-        for idx in range(len(connected)):
-            if any(connected[idx].lower().replace(' ', '_') in ctrl_name for ctrl_name in supported):
-                connected_supported[connected[idx]] = idx
-
-        logger.debug(f"found the following controllers: {connected_supported}")
-
+        connected = cls._listConnected()
+        supported = (f.replace('.json', '')
+                     for f in os.listdir(cls.CONFIG_ROOT_DIR))
+        connected_supported = cls._filterUnsupported(connected,
+                                                     tuple(supported))
         return connected_supported
 
     def _save_steering_left(self):
