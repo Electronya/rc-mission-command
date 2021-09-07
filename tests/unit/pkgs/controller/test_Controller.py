@@ -301,6 +301,30 @@ class TestController(TestCase):
         self.assertEqual(testResult,
                          self.testCtrlr._config[Controller.FUNC_KEY])
 
+    def test_getName(self):
+        """
+        The getName method must return the controller name.
+        """
+        expectedName = 'test joystick'
+        self.testJoysticks[0].get_name.return_value = expectedName
+        testResult = self.testCtrlr.getName()
+        self.assertEqual(testResult, expectedName)
+
+    def test_getIdx(self):
+        """
+        The getIdx method must return the controller index.
+        """
+        testResult = self.testCtrlr.getIdx()
+        self.assertEqual(testResult, self.testIdxes[0])
+
+    def test_getType(self):
+        """
+        The getType method must return the controller type.
+        """
+        testResult = self.testCtrlr.getType()
+        self.assertEqual(testResult,
+                         self.testCtrlr._config[Controller.TYPE_KEY])
+
     def test_getSterringModifier(self):
         """
         The getSterringModifier must return the sterring modifer.

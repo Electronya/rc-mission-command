@@ -197,7 +197,7 @@ class Controller:
         """
         return self._config[self.FUNC_KEY]
 
-    def get_name(self):
+    def getName(self):
         """
         Get the joystick name.
 
@@ -206,7 +206,7 @@ class Controller:
         """
         return self._joystick.get_name()
 
-    def get_idx(self):
+    def getIdx(self):
         """
         Get the joystick index
         Return:
@@ -214,14 +214,14 @@ class Controller:
         """
         return self._idx
 
-    def get_type(self):
+    def getType(self):
         """
         Get the controller type.
 
         Return:
             The controller type.
         """
-        return self._config['type']
+        return self._config[self.TYPE_KEY]
 
     def is_calibrated(self):
         """
