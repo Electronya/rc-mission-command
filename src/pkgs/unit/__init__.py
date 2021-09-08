@@ -10,17 +10,36 @@ class Unit:
         Constructor.
 
         Params:
-            appLogger:      The application logger.
-            client:         The MQTT client.
-            id:             The unit ID.
+            appLogger:  The application logger.
+            client:     The MQTT client.
+            id:         The unit ID.
         """
         self._logger = appLogger.getLogger(f"UNIT-{id.upper()}")
         self._logger.info(f"creating unit with ID: {id}")
         self._id = id
         self._client = client
-        self._steeringMsg = UnitWhldCmdMsg(self._id)
+        self._cmdMsg = UnitWhldCmdMsg(self._id)
 
-    def getId(self):
+    def _combineThrtlBrake(self, thrtlModifier: float,
+                           brakeModifier: float) -> None:
+        """
+        Combine the throttle and brake modifier in a single one.
+
+        Params:
+            thrtlModifier:  The throttle modifier.
+            brakeModifier:  The brake modifier.
+
+        Return:
+            The combined modifier.
+        """
+        modifier = 0.0
+        if thrtlModifier > 0 and brakeModifier == 0:
+            modifier = thrtlModifier
+        if brakeModifier > 0 and thrtlModifier == 0:
+            modifier = -1 * brakeModifier
+        return modifier
+
+    def getId(self) -> str:
         """
         Get the unit ID.
 
@@ -29,13 +48,22 @@ class Unit:
         """
         return self._id
 
-    def _update_steering(self, modifier):
+    def updateSteeringCmd(self, modifier: float) -> None:
         """
-        Update the unit steering.
+        Update the unit steering command.
 
         Params:
-            modifier:       The unit steering modifier.
+            modifier:   The unit steering modifier.
         """
-        self._steeringMsg.update_modifier(modifier)
-        self._client.publish(self._steeringMsg.get_topic(),
-                             payload=self._steeringMsg.to_json())
+        self._cmdMsg.setSteering(modifier)
+
+    def updateThrottleCmd(self, thrtlModifer: float,
+                          brakeModifier: float) -> None:
+        """
+        Update the unit throttle command.
+
+        Params:
+            thrtlModifier:  The unit throttle modifier.
+            brakeModifier:  The unit brake modifier.
+        """
+        pass
