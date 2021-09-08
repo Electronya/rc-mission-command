@@ -1,27 +1,24 @@
-import logging
-
-from ..messages.unitSteeringMsg import UnitSteeringMsg
+from ..messages.unitWhldCmdMsg import UnitWhldCmdMsg
 
 
 class Unit:
     """
     The unit class.
     """
-    def __init__(self, id, client):
+    def __init__(self, appLogger: object, client: object, id: str) -> None:
         """
         Constructor.
 
         Params:
-            id:             The unit ID.
+            appLogger:      The application logger.
             client:         The MQTT client.
+            id:             The unit ID.
         """
-        self._logger = logging.getLogger(f"UNIT_{id.upper()}")
+        self._logger = appLogger.getLogger(f"UNIT-{id.upper()}")
         self._logger.info(f"creating unit with ID: {id}")
-
         self._id = id
         self._client = client
-
-        self._steeringMsg = UnitSteeringMsg(self._id)
+        self._steeringMsg = UnitWhldCmdMsg(self._id)
 
     def _update_steering(self, modifier):
         """
