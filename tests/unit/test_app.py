@@ -1,4 +1,5 @@
 import json
+import tkinter as tk
 from unittest import TestCase
 from unittest.mock import Mock, call, patch
 
@@ -9,7 +10,7 @@ sys.path.append(os.path.abspath('./src'))
 mockedPygame = Mock()
 sys.modules['pygame'] = mockedPygame
 
-from app import App, NoAvailableCtrlr     # noqa: E402
+from app import App, NoAvailableCtrlr   # noqa: E402
 
 
 class TestApp(TestCase):
@@ -34,6 +35,8 @@ class TestApp(TestCase):
             mockedInitLog.return_value = self.testLogger
             self.testApp = App()
             self.testApp._logger = Mock()
+            self.testApp._controllers = {'active': self.testCtrlrs[0],
+                                         'list': self.testCtrlrs}
 
     @patch('app.tk.Tk.__init__')
     def test_constructorInitTk(self, mockedTkInit):
@@ -236,3 +239,60 @@ class TestApp(TestCase):
             self.testApp._initControllers(self.testLogger)
             self.assertEqual(self.testApp._controllers['active'],
                              self.testCtrlrs[0])
+
+    def test_setUsrInterfaceStyle(self):
+        """
+        The _initUsrInterface method must set th UI style.
+        """
+        mockedStyle = Mock()
+        expectedConfCalls = [call("red.Horizontal.TProgressbar",
+                                  foreground='red', background='red'),
+                             call("grn.Horizontal.TProgressbar",
+                                  foreground='green', background='green')]
+        with patch('app.ttk.Style') as mockedTkStyle:
+            mockedTkStyle.return_value = mockedStyle
+            self.testApp._setUsrInterfaceStyle()
+            mockedStyle.theme_use.assert_called_once_with('clam')
+            mockedStyle.configure.assert_has_calls(expectedConfCalls)
+
+    def test_initUsrInterfaceTitleAttr(self):
+        """
+        The _initUsrInterface method must set the application windows title
+        and attributes.
+        """
+        with patch.object(self.testApp, 'title') as mockedTitle, \
+                patch.object(self.testApp, 'attributes') as mockedAttributes, \
+                patch.object(self.testApp, '_setUsrInterfaceStyle'), \
+                patch('app.BaseFrame'):
+            self.testApp._initUsrInterface()
+            mockedTitle.assert_called_once_with(App.WINDOW_TITLE)
+            mockedAttributes.assert_called_once_with('-zoomed', True)
+
+    def test_initUsrInterfaceStyle(self):
+        """
+        The _initUsrInterface method must set the application style.
+        """
+        with patch.object(self.testApp, 'title'), \
+                patch.object(self.testApp, 'attributes'), \
+                patch.object(self.testApp, '_setUsrInterfaceStyle') \
+                as mockedSetUsrIfaceStyle, \
+                patch('app.BaseFrame'):
+            self.testApp._initUsrInterface()
+            mockedSetUsrIfaceStyle.assert_called_once()
+
+    def test_initUsrInterfaceBaseFame(self):
+        """
+        The _initUsrInterface method must initialize and display the base fame.
+        """
+        mockedBaseFrame = Mock()
+        with patch.object(self.testApp, 'title'), \
+                patch.object(self.testApp, 'attributes'), \
+                patch.object(self.testApp, '_setUsrInterfaceStyle'), \
+                patch('app.BaseFrame') as mockedBaseFrmcls:
+            mockedBaseFrmcls.return_value = mockedBaseFrame
+            self.testApp._initUsrInterface()
+            mockedBaseFrmcls.assert_called_once_with(self.testApp,
+                                                     self.testApp._controllers,   # noqa: E501
+                                                     self.testApp._units)
+            mockedBaseFrame.pack.assert_called_once_with(fill=tk.BOTH,
+                                                         expand=True)

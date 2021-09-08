@@ -35,34 +35,13 @@ class App(tk.Tk):
         Constructor.
         """
         tk.Tk.__init__(self)
+        self._units = {'active': None, 'list': []}
         appLogger = self._initLogger()
         self._initPygame()
         self._initMqttClient(appLogger)
         self._initControllers(appLogger)
         self._initUsrInterface()
         self.after(Controller.CTRL_FRAME_RATE, self._process_pygame_events)
-        # self._units = {'active': None, 'list': []}
-        # self.title('RC Mission Commander')
-
-        # self._logger.info('initializing controller...')
-        # self._init_controllers(ctrlsNameList)
-        # self._logger.info('controller initialzed.')
-
-        # self._logger.info('initializing UI.')
-        # self.attributes('-zoomed', True)
-
-        # style = ttk.Style()
-        # style.theme_use('clam')
-        # style.configure("red.Horizontal.TProgressbar",
-        #                 foreground='red', background='red')
-        # style.configure("grn.Horizontal.TProgressbar",
-        #                 foreground='green', background='green')
-
-        # self._baseFrame = BaseFrame(self, self._controllers, self._units)
-        # self._baseFrame.pack(fill=tk.BOTH, expand=True)
-        # self._logger.info('UI initialized.')
-
-        # self._logger.info('application launched.')
 
     def _initLogger(self) -> object:
         """
@@ -117,6 +96,7 @@ class App(tk.Tk):
         Params:
             appLogger:  The application logger.
         """
+        self._logger.info('initializing controller...')
         ctrlrList = self._listControllers()
         self._controllers = {}
         controllers = []
@@ -125,12 +105,31 @@ class App(tk.Tk):
                                           ctrlrList[ctrl_name],
                                           ctrl_name))
         self._controllers = {'active': controllers[0], 'list': controllers}
+        self._logger.info('controller initialzed')
+
+    def _setUsrInterfaceStyle(self):
+        """
+        Set the user interface style.
+        """
+        style = ttk.Style()
+        style.theme_use('clam')
+        style.configure('red.Horizontal.TProgressbar',
+                        foreground='red', background='red')
+        style.configure('grn.Horizontal.TProgressbar',
+                        foreground='green', background='green')
 
     def _initUsrInterface(self) -> None:
         """
         Initialize the user interface.
         """
-        pass
+        self._logger.info('initializing UI...')
+        self.title('RC Mission Commander')
+        self.attributes('-zoomed', True)
+        self._setUsrInterfaceStyle()
+        self._baseFrame = BaseFrame(self, self._controllers, self._units)
+        self._baseFrame.pack(fill=tk.BOTH, expand=True)
+        self._logger.info('UI initialized')
+        self._logger.info('application launched')
 
     def _process_pygame_events(self):
         """
