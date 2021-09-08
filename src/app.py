@@ -28,7 +28,6 @@ class App(tk.Tk):
         """
         tk.Tk.__init__(self)
         appLogger = self._initLogger()
-        self._logger.info('launcihing application...')
         self._initPygame()
         self._initMqttClient()
         self._initControllers(appLogger)
@@ -37,11 +36,6 @@ class App(tk.Tk):
         # self._units = {'active': None, 'list': []}
         # self.title('RC Mission Commander')
 
-        # self._logger.info('initializing pygame...')
-        # pygame.init()
-        # pygame.event.set_allowed([pygame.JOYAXISMOTION, pygame.JOYBUTTONDOWN,
-        #                           pygame.JOYBUTTONUP, pygame.JOYHATMOTION])
-        # self._logger.info('pygame initialized')
         # self._logger.info('initializing mqtt client...')
         # client.init(appLogger, self.CLIENT_ID, self.CLIENT_PASSWD)
         # self._logger.info('mqtt client initialized')
@@ -74,13 +68,18 @@ class App(tk.Tk):
         """
         appLogger = initLogger()
         self._logger = appLogger.getLogger('APP')
+        self._logger.info('launcihing application...')
         return appLogger
 
     def _initPygame(self) -> None:
         """
         Initialize the pygame pakage.
         """
-        pass
+        self._logger.info('initializing pygame...')
+        pygame.init()
+        pygame.event.set_allowed([pygame.JOYAXISMOTION, pygame.JOYBUTTONDOWN,
+                                  pygame.JOYBUTTONUP, pygame.JOYHATMOTION])
+        self._logger.info('pygame initialized')
 
     def _initMqttClient(self) -> None:
         """

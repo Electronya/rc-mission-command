@@ -29,6 +29,7 @@ class TestApp(TestCase):
                 patch.object(App, 'after'):
             mockedInitLog.return_value = self.testLogger
             self.testApp = App()
+            self.testApp._logger = Mock()
 
     @patch('app.tk.Tk.__init__')
     def test_constructorInitTk(self, mockedTkInit):
@@ -135,3 +136,16 @@ class TestApp(TestCase):
             mockedInitLogger.assert_called_once()
             self.testLogger.getLogger.assert_called_once_with('APP')
             self.assertEqual(testResult, self.testLogger)
+
+    def test_initPygame(self):
+        """
+        The _initPygame method must initialize the pygame pakage
+        and set the allowed event.
+        """
+        expectedEvents = [mockedPygame.JOYAXISMOTION,
+                          mockedPygame.JOYBUTTONDOWN,
+                          mockedPygame.JOYBUTTONUP,
+                          mockedPygame.JOYHATMOTION]
+        self.testApp._initPygame()
+        mockedPygame.init.assert_called_once()
+        mockedPygame.event.set_allowed.assert_called_once_with(expectedEvents)
