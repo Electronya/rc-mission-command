@@ -9,7 +9,7 @@ sys.path.append(os.path.abspath('./src'))
 mockedPygame = Mock()
 sys.modules['pygame'] = mockedPygame
 
-from app import App     # noqa: E402
+from app import App, NoAvailableCtrlr     # noqa: E402
 
 
 class TestApp(TestCase):
@@ -168,3 +168,26 @@ class TestApp(TestCase):
             mockedClient.init.assert_called_once_with(mockedAppLogger,
                                                       App.CLIENT_ID,
                                                       App.CLIENT_PASSWD)
+
+    def test_listControllersNoAvailable(self):
+        """
+        The _listControllers method must raise a NoAvailableCtrlr exception
+        if no controller have been found.
+        """
+        with patch('app.Controller.listControllers') as mockedListCtrlrs, \
+                self.assertRaises(NoAvailableCtrlr) as context:
+            mockedListCtrlrs.return_value = ()
+            self.testApp._listControllers()
+            self.assertTrue(isinstance(context.exception, NoAvailableCtrlr))
+
+    def test_listControllers(self):
+        """
+        The _listControllers method must return the list of all
+        available controllers.
+        """
+        expectedctrlrs = ('test controller 1', 'test controller 2',
+                          'test controller 3', 'test controller 4')
+        with patch('app.Controller.listControllers') as mockedListCtrlrs:
+            mockedListCtrlrs.return_value = expectedctrlrs
+            testResult = self.testApp._listControllers()
+            self.assertEqual(testResult, expectedctrlrs)

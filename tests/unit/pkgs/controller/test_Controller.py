@@ -147,7 +147,7 @@ class TestController(TestCase):
                 as mockedListConnected, \
                 patch.object(Controller, '_filterUnsupported'), \
                 patch('pkgs.controller.os.listdir'):
-            Controller.listController()
+            Controller.listControllers()
             mockedListConnected.assert_called_once()
 
     def test_listControllerSupported(self):
@@ -157,7 +157,7 @@ class TestController(TestCase):
         with patch.object(Controller, '_listConnected'), \
                 patch.object(Controller, '_filterUnsupported'), \
                 patch('pkgs.controller.os.listdir') as mockedListDir:
-            Controller.listController()
+            Controller.listControllers()
             mockedListDir.assert_called_once_with(Controller.CONFIG_ROOT_DIR)
 
     def test_listControllerFilterUnsupported(self):
@@ -175,7 +175,7 @@ class TestController(TestCase):
                 patch('pkgs.controller.os.listdir') as mockedListSupported:
             mockedListConnected.return_value = self.testNames
             mockedListSupported.return_value = testSupported
-            Controller.listController()
+            Controller.listControllers()
             mockedFilterUnsupported.assert_called_once_with(self.testNames,
                                                             expectedSupported)
 
@@ -192,7 +192,7 @@ class TestController(TestCase):
                 as mockedFilterUnsupported, \
                 patch('pkgs.controller.os.listdir'):
             mockedFilterUnsupported.return_value = expectedList
-            testResult = Controller.listController()
+            testResult = Controller.listControllers()
             self.assertEqual(testResult, expectedList)
 
     def test_saveSteeringLeft(self):

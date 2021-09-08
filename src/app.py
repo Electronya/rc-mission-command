@@ -13,6 +13,14 @@ from ui.baseFrame import BaseFrame
 from pkgs.unit import Unit
 
 
+class NoAvailableCtrlr(Exception):
+    """
+    The no available controller exception.
+    """
+    def __init__(self) -> None:
+        super().__init__('No controller available.')
+
+
 class App(tk.Tk):
     """
     The application base class.
@@ -96,7 +104,11 @@ class App(tk.Tk):
         Return:
             The list of available controllers.
         """
-        pass
+        controllers = Controller.listControllers()
+        self._logger.debug(f"available controllers: {controllers}")
+        if len(controllers) == 0:
+            raise NoAvailableCtrlr()
+        return controllers
 
     def _initControllers(self, appLogger: object) -> None:
         """
@@ -204,7 +216,7 @@ def list_connected_controllers():
     """
     List the connected controllers.
     """
-    controllerNames = Controller.listController()
+    controllerNames = Controller.listControllers()
     # appLogger.debug(f"controller list: {controllerNames}")
     if len(controllerNames):
         return controllerNames

@@ -81,7 +81,7 @@ class Controller:
         return connected_supported
 
     @classmethod
-    def listController(cls) -> dict:
+    def listControllers(cls) -> dict:
         """
         List the connected and supported controller.
 
