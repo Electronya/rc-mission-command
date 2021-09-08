@@ -20,6 +20,15 @@ class Unit:
         self._client = client
         self._steeringMsg = UnitWhldCmdMsg(self._id)
 
+    def getId(self):
+        """
+        Get the unit ID.
+
+        Return:
+            The unit ID.
+        """
+        return self._id
+
     def _update_steering(self, modifier):
         """
         Update the unit steering.
@@ -30,23 +39,3 @@ class Unit:
         self._steeringMsg.update_modifier(modifier)
         self._client.publish(self._steeringMsg.get_topic(),
                              payload=self._steeringMsg.to_json())
-
-    def get_id(self):
-        """
-        Get the unit ID.
-
-        Return:
-            The unit ID.
-        """
-        return self._id
-
-    def get_functions(self):
-        """
-        Get the unit functions.
-
-        Retrun:
-            The unit functions.
-        """
-        return {
-            'steering': self._update_steering,
-        }
