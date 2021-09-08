@@ -28,6 +28,7 @@ class App(tk.Tk):
         """
         tk.Tk.__init__(self)
         appLogger = self._initLogger()
+        self._logger.info('launcihing application...')
         self._initPygame()
         self._initMqttClient()
         self._initControllers(appLogger)
@@ -35,9 +36,7 @@ class App(tk.Tk):
         self.after(Controller.CTRL_FRAME_RATE, self._process_pygame_events)
         # self._units = {'active': None, 'list': []}
         # self.title('RC Mission Commander')
-        # appLogger = initLogger()
-        # self._logger = appLogger.getLogger('APP')
-        # self._logger.info('launcihing application...')
+
         # self._logger.info('initializing pygame...')
         # pygame.init()
         # pygame.event.set_allowed([pygame.JOYAXISMOTION, pygame.JOYBUTTONDOWN,
@@ -73,7 +72,9 @@ class App(tk.Tk):
         Return:
             The initialized application logger.
         """
-        pass
+        appLogger = initLogger()
+        self._logger = appLogger.getLogger('APP')
+        return appLogger
 
     def _initPygame(self) -> None:
         """

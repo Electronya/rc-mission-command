@@ -21,6 +21,14 @@ class TestApp(TestCase):
         Test cases setup.
         """
         self.testLogger = Mock()
+        with patch.object(App, '_initLogger') as mockedInitLog, \
+                patch.object(App, '_initPygame'), \
+                patch.object(App, '_initMqttClient'), \
+                patch.object(App, '_initControllers'), \
+                patch.object(App, '_initUsrInterface'), \
+                patch.object(App, 'after'):
+            mockedInitLog.return_value = self.testLogger
+            self.testApp = App()
 
     @patch('app.tk.Tk.__init__')
     def test_constructorInitTk(self, mockedTkInit):
@@ -115,3 +123,15 @@ class TestApp(TestCase):
             testApp = App()
             mockedAfter.assert_called_once_with(testApp.CTRL_FRAME_RATE,
                                                 testApp._process_pygame_events)
+
+    def test_initLogger(self):
+        """
+        The _initLogger method must initialize the application logger,
+        create the class logger and return the application logger.
+        """
+        with patch('app.initLogger') as mockedInitLogger:
+            mockedInitLogger.return_value = self.testLogger
+            testResult = self.testApp._initLogger()
+            mockedInitLogger.assert_called_once()
+            self.testLogger.getLogger.assert_called_once_with('APP')
+            self.assertEqual(testResult, self.testLogger)
