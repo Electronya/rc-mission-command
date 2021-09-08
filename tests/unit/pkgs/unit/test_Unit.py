@@ -92,3 +92,27 @@ class TestUnit(TestCase):
         self.testUnit.updateSteeringCmd(expectedModifier)
         self.testMsg.setSteering.assert_called_once_with(expectedModifier)
         self.testClient.publish.assert_not_called()
+
+    def test_updateThrottleCmdCombine(self):
+        """
+        The updateThrottlCmd method must combine the throttle and brake
+        modifier.
+        """
+        expectedThrtlMod = 0.34
+        expectedBrakeMod = 0.98
+        with patch.object(self.testUnit, '_combineThrtlBrake') \
+                as mockedCombine:
+            self.testUnit.updateThrottleCmd(expectedThrtlMod, expectedBrakeMod)
+            mockedCombine.assert_called_once_with(expectedThrtlMod,
+                                                  expectedBrakeMod)
+
+    def test_updateThrottleCmd(self):
+        """
+        The updateThrottleCmd must update the throttle modifier in
+        the next command message.
+        """
+        throttleModifier = 0.12
+        brakeModifier = 0.45
+        self.testUnit.updateThrottleCmd(throttleModifier, brakeModifier)
+        self.testMsg.setThrottle.assert_called_once_with(0.0)
+        self.testClient.publish.assert_not_called()

@@ -21,7 +21,7 @@ class Unit:
         self._cmdMsg = UnitWhldCmdMsg(self._id)
 
     def _combineThrtlBrake(self, thrtlModifier: float,
-                           brakeModifier: float) -> None:
+                           brakeModifier: float) -> float:
         """
         Combine the throttle and brake modifier in a single one.
 
@@ -66,4 +66,5 @@ class Unit:
             thrtlModifier:  The unit throttle modifier.
             brakeModifier:  The unit brake modifier.
         """
-        pass
+        modifier = self._combineThrtlBrake(thrtlModifer, brakeModifier)
+        self._cmdMsg.setThrottle(modifier)
