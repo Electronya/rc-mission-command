@@ -68,3 +68,9 @@ class Unit:
         """
         modifier = self._combineThrtlBrake(thrtlModifer, brakeModifier)
         self._cmdMsg.setThrottle(modifier)
+
+    def sendCommandMsg(self) -> None:
+        """
+        Send the command message.
+        """
+        self._client.publish(self._cmdMsg)

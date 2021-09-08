@@ -116,3 +116,10 @@ class TestUnit(TestCase):
         self.testUnit.updateThrottleCmd(throttleModifier, brakeModifier)
         self.testMsg.setThrottle.assert_called_once_with(0.0)
         self.testClient.publish.assert_not_called()
+
+    def test_sendCommand(self):
+        """
+        The sendCommand must send the command message.
+        """
+        self.testUnit.sendCommandMsg()
+        self.testClient.publish.assert_called_once_with(self.testMsg)
