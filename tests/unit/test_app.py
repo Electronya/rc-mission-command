@@ -75,14 +75,15 @@ class TestApp(TestCase):
         """
         The constructor must initialize the MQTT client.
         """
-        with patch.object(App, '_initLogger'), \
+        with patch.object(App, '_initLogger') as mockedInitLog, \
                 patch.object(App, '_initPygame'), \
                 patch.object(App, '_initMqttClient') as mockedInitClient, \
                 patch.object(App, '_initControllers'), \
                 patch.object(App, '_initUsrInterface'), \
                 patch.object(App, 'after'):
+            mockedInitLog.return_value = self.testLogger
             testApp = App()     # noqa: F841
-            mockedInitClient.assert_called_once()
+            mockedInitClient.assert_called_once_with(self.testLogger)
 
     def test_constructorInitControllers(self):
         """
@@ -149,3 +150,14 @@ class TestApp(TestCase):
         self.testApp._initPygame()
         mockedPygame.init.assert_called_once()
         mockedPygame.event.set_allowed.assert_called_once_with(expectedEvents)
+
+    def test_initMqttClient(self):
+        """
+        The _initMqttClient method must initialize the MQTT client.
+        """
+        with patch('app.client') as mockedClient:
+            mockedAppLogger = Mock()
+            self.testApp._initMqttClient(mockedAppLogger)
+            mockedClient.init.assert_called_once_with(mockedAppLogger,
+                                                      App.CLIENT_ID,
+                                                      App.CLIENT_PASSWD)
