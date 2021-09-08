@@ -16,7 +16,8 @@ class TestApp(TestCase):
     """
     The app module test cases.
     """
-    def setUp(self):
+    @patch('app.tk.Tk.__init__')
+    def setUp(self, mockedTkInit):
         """
         Test cases setup.
         """
@@ -45,7 +46,8 @@ class TestApp(TestCase):
             testApp = App()
             mockedTkInit.assert_called_once_with(testApp)
 
-    def test_contructorInitLogger(self):
+    @patch('app.tk.Tk.__init__')
+    def test_contructorInitLogger(self, mockedTkInit):
         """
         The constructor must initialize the application logger.
         """
@@ -58,7 +60,8 @@ class TestApp(TestCase):
             testApp = App()     # noqa: F841
             mockedInitLog.assert_called_once()
 
-    def test_constructorInitPygame(self):
+    @patch('app.tk.Tk.__init__')
+    def test_constructorInitPygame(self, mockedTkInit):
         """
         The constructor must initialize the pygame pakage.
         """
@@ -71,7 +74,8 @@ class TestApp(TestCase):
             testApp = App()     # noqa: F841
             mockedInitPygame.assert_called_once()
 
-    def test_constructorInitMqttClient(self):
+    @patch('app.tk.Tk.__init__')
+    def test_constructorInitMqttClient(self, mockedTkInit):
         """
         The constructor must initialize the MQTT client.
         """
@@ -85,7 +89,8 @@ class TestApp(TestCase):
             testApp = App()     # noqa: F841
             mockedInitClient.assert_called_once_with(self.testLogger)
 
-    def test_constructorInitControllers(self):
+    @patch('app.tk.Tk.__init__')
+    def test_constructorInitControllers(self, mockedTkInit):
         """
         The constructor must initialize the controllers.
         """
@@ -99,7 +104,8 @@ class TestApp(TestCase):
             testApp = App()     # noqa: F841
             mockedInitCtrls.assert_called_once_with(self.testLogger)
 
-    def test_constructorInitUsrInterface(self):
+    @patch('app.tk.Tk.__init__')
+    def test_constructorInitUsrInterface(self, mockedTkInit):
         """
         The constructor must initialize the user interface.
         """
@@ -112,7 +118,8 @@ class TestApp(TestCase):
             testApp = App()     # noqa: F841
             mockedInitUI.assert_called_once()
 
-    def test_constructorStartEventLoop(self):
+    @patch('app.tk.Tk.__init__')
+    def test_constructorStartEventLoop(self, mockedTkInit):
         """
         The constructor must start the event loop.
         """
