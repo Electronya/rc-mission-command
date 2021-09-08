@@ -97,7 +97,7 @@ class App(tk.Tk):
         client.init(appLogger, self.CLIENT_ID, self.CLIENT_PASSWD)
         self._logger.info('mqtt client initialized')
 
-    def _listControllers(self) -> tuple:
+    def _listControllers(self) -> dict:
         """
         List the available controllers.
 
@@ -115,14 +115,16 @@ class App(tk.Tk):
         Initialize the controllers.
 
         Params:
-            appLogger:      The application logger.
+            appLogger:  The application logger.
         """
-        # self._controllers = {}
-        # controllers = []
-        # for ctrl_name in ctrlrNameList.keys():
-        #     controllers.append(Controller(ctrlrNameList[ctrl_name],
-        #                                   ctrl_name, self))
-        # self._controllers = {'active': controllers[0], 'list': controllers}
+        ctrlrList = self._listControllers()
+        self._controllers = {}
+        controllers = []
+        for ctrl_name in ctrlrList.keys():
+            controllers.append(Controller(appLogger,
+                                          ctrlrList[ctrl_name],
+                                          ctrl_name))
+        self._controllers = {'active': controllers[0], 'list': controllers}
 
     def _initUsrInterface(self) -> None:
         """

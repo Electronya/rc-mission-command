@@ -21,6 +21,9 @@ class TestApp(TestCase):
         """
         Test cases setup.
         """
+        self.testCtrlrList = {'test controller 1': 0, 'test controller 2': 1,
+                              'test controller 3': 2, 'test controller 4': 3}
+        self.testCtrlrs = [Mock(), Mock(), Mock(), Mock()]
         self.testLogger = Mock()
         with patch.object(App, '_initLogger') as mockedInitLog, \
                 patch.object(App, '_initPygame'), \
@@ -185,9 +188,51 @@ class TestApp(TestCase):
         The _listControllers method must return the list of all
         available controllers.
         """
-        expectedctrlrs = ('test controller 1', 'test controller 2',
-                          'test controller 3', 'test controller 4')
         with patch('app.Controller.listControllers') as mockedListCtrlrs:
-            mockedListCtrlrs.return_value = expectedctrlrs
+            mockedListCtrlrs.return_value = self.testCtrlrList
             testResult = self.testApp._listControllers()
-            self.assertEqual(testResult, expectedctrlrs)
+            self.assertEqual(testResult, self.testCtrlrList)
+
+    def test_initControllersList(self):
+        """
+        The _initControllers method must list the available controllers.
+        """
+        with patch.object(self.testApp, '_listControllers') \
+                as mockedListCtrlrs, \
+                patch('app.Controller') as mockedCtrlr:
+            mockedListCtrlrs.return_value = self.testCtrlrList
+            mockedCtrlr.side_effect = self.testCtrlrs
+            self.testApp._initControllers(self.testLogger)
+            mockedListCtrlrs.assert_called_once()
+
+    def test_initControllersNewInstances(self):
+        """
+        The _initcontrollers method must create an new Controller isntance
+        for each available controller.
+        """
+        expectedCalls = []
+        for ctrlrName in self.testCtrlrList.keys():
+            expectedCalls.append(call(self.testLogger,
+                                      self.testCtrlrList[ctrlrName],
+                                      ctrlrName))
+        with patch.object(self.testApp, '_listControllers') \
+                as mockedListCtrlrs, \
+                patch('app.Controller') as mockedCtrlr:
+            mockedListCtrlrs.return_value = self.testCtrlrList
+            mockedCtrlr.side_effect = self.testCtrlrs
+            self.testApp._initControllers(self.testLogger)
+            mockedCtrlr.assert_has_calls(expectedCalls)
+
+    def test_initControllersActivateFirst(self):
+        """
+        The _initControllers method must activate the first
+        controller in the list.
+        """
+        with patch.object(self.testApp, '_listControllers') \
+                as mockedListCtrlrs, \
+                patch('app.Controller') as mockedCtrlr:
+            mockedListCtrlrs.return_value = self.testCtrlrList
+            mockedCtrlr.side_effect = self.testCtrlrs
+            self.testApp._initControllers(self.testLogger)
+            self.assertEqual(self.testApp._controllers['active'],
+                             self.testCtrlrs[0])
