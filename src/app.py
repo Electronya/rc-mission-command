@@ -28,6 +28,7 @@ class App(tk.Tk):
     WINDOW_TITLE = 'RC Mission Commander'
     CLIENT_ID = 'commander'
     CLIENT_PASSWD = '12345'
+    CTRL_FRAME_RATE = 10
 
     def __init__(self):
         """

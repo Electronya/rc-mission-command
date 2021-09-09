@@ -9,7 +9,6 @@ class Controller:
     Class implementing the controller function.
     """
     CONFIG_ROOT_DIR = './src/pkgs/controller/configs/'
-    CTRL_FRAME_RATE = 10
     TYPE_KEY = 'type'
     CTRLS_KEY = 'controls'
     AXES_KEY = 'axes'

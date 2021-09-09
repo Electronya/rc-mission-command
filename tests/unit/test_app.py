@@ -10,7 +10,6 @@ sys.path.append(os.path.abspath('./src'))
 mockedPygame = Mock()
 sys.modules['pygame'] = mockedPygame
 
-from pkgs.controller import Controller  # noqa: E402
 from app import App, NoAvailableCtrlr   # noqa: E402
 
 
@@ -147,7 +146,7 @@ class TestApp(TestCase):
                 patch.object(App, '_initUsrInterface'), \
                 patch.object(App, 'after') as mockedAfter:
             testApp = App()
-            mockedAfter.assert_called_once_with(Controller.CTRL_FRAME_RATE,
+            mockedAfter.assert_called_once_with(testApp.CTRL_FRAME_RATE,
                                                 testApp._processPygameEvents)
 
     def test_initLogger(self):
@@ -352,5 +351,5 @@ class TestApp(TestCase):
         with patch.object(self.testApp, 'after') as mockedAfter:
             mockedPygame.event.get.return_value = []
             self.testApp._processPygameEvents()
-            mockedAfter.assert_called_once_with(Controller.CTRL_FRAME_RATE,
+            mockedAfter.assert_called_once_with(self.testApp.CTRL_FRAME_RATE,
                                                 self.testApp._processPygameEvents)  # noqa: E501
