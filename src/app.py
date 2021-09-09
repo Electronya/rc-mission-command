@@ -41,7 +41,7 @@ class App(tk.Tk):
         self._initMqttClient(appLogger)
         self._initControllers(appLogger)
         self._initUsrInterface()
-        self.after(Controller.CTRL_FRAME_RATE, self._processPygameEvents)
+        self.after(self.CTRL_FRAME_RATE, self._processPygameEvents)
 
     def _initLogger(self) -> object:
         """
@@ -151,7 +151,7 @@ class App(tk.Tk):
             if event.type == pygame.JOYHATMOTION:
                 self._logger.debug(f"processing joystick {event.instance_id} "
                                    f"hat {event.hat} with value {event.value}")
-        self.after(Controller.CTRL_FRAME_RATE, self._processPygameEvents)
+        self.after(self.CTRL_FRAME_RATE, self._processPygameEvents)
 
     def _process_axis(self, joystickIdx, axisIdx):
         """
