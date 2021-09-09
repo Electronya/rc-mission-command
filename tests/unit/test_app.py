@@ -345,7 +345,7 @@ class TestApp(TestCase):
             mockedProcessButton.assert_called_once_with(mockedEvent.instance_id,    # noqa: E501
                                                         mockedEvent.button)
 
-    def test_processPygameLoop(self):
+    def test_processPygameEventLoop(self):
         """
         The processPygameEvent must keep the loop going.
         """
