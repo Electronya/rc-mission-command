@@ -41,7 +41,7 @@ class App(tk.Tk):
         self._initMqttClient(appLogger)
         self._initControllers(appLogger)
         self._initUsrInterface()
-        self.after(self.CTRL_FRAME_RATE, self._processPygameEvents)
+        self.after(self.CTRL_FRAME_RATE, self._processCtrlrEvents)
 
     def _initLogger(self) -> object:
         """
@@ -131,60 +131,12 @@ class App(tk.Tk):
         self._logger.info('UI initialized')
         self._logger.info('application launched')
 
-    def _processPygameEvents(self):
+    def _processCtrlrEvents(self):
         """
         Process the pygame events.
         """
-        for event in pygame.event.get():
-            if event.type == pygame.JOYAXISMOTION:
-                self._logger.debug(f"processing joystick {event.instance_id} "
-                                   f"axis {event.axis} with "
-                                   f"value {event.value}")
-                self._process_axis(event.instance_id, event.axis)
-            if event.type == pygame.JOYBUTTONDOWN:
-                self._logger.debug(f"processing joystick {event.instance_id} "
-                                   f"button {event.button} down")
-                self._processButtonDown(event.instance_id, event.button)
-            if event.type == pygame.JOYBUTTONUP:
-                self._logger.debug(f"processing joystick {event.instance_id} "
-                                   f"button {event.button} up")
-            if event.type == pygame.JOYHATMOTION:
-                self._logger.debug(f"processing joystick {event.instance_id} "
-                                   f"hat {event.hat} with value {event.value}")
-        self.after(self.CTRL_FRAME_RATE, self._processPygameEvents)
-
-    def _process_axis(self, joystickIdx, axisIdx):
-        """
-        Processing axis event.
-
-        Params:
-            joystickIdx:    The joystick index.
-            axisIdx:        The axis index.
-        """
-        self._logger.debug(f"processing controller {joystickIdx} "
-                           f"axis {axisIdx}")
-        if self._controllers['active'].get_idx() == joystickIdx \
-                and self._controllers['active'].is_calibrated():
-            ctrlrFunctions = self._controllers['active'].get_funct_map()
-            axis = self._controllers['active'].get_axis_map()
-            self.event_generate(f"<<{ctrlrFunctions[axis[axisIdx]]}-axis>>")
-            if self._units['active']:
-                modifier = self._controllers['active'].get_axis(axisIdx)
-                unitFunctions = self._units['active'].get_functions()
-                unitFunctions[ctrlrFunctions[axis[axisIdx]]](modifier)
-
-    def _processButtonDown(self, joystickIdx, asxisIdx):
-        """
-        Processing button event.
-
-        Params:
-            joystickIdx:    The joystick index.
-            axisIdx:        The button index.
-        """
-        pass
-        # buttons = self._controllers['list'][event.instance_id] \
-        #             .get_buttons_map()
-        # self.event_generate(f"<<{buttons[event.button]}-button>>")
+        self._controllers['active'].processEvents()
+        self.after(self.CTRL_FRAME_RATE, self._processCtrlrEvents)
 
     def quit(self):
         """

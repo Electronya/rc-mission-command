@@ -147,7 +147,7 @@ class TestApp(TestCase):
                 patch.object(App, 'after') as mockedAfter:
             testApp = App()
             mockedAfter.assert_called_once_with(testApp.CTRL_FRAME_RATE,
-                                                testApp._processPygameEvents)
+                                                testApp._processCtrlrEvents)
 
     def test_initLogger(self):
         """
@@ -307,49 +307,21 @@ class TestApp(TestCase):
             mockedBaseFrame.pack.assert_called_once_with(fill=tk.BOTH,
                                                          expand=True)
 
-    def test_processPygameEventGetEvents(self):
+    def test_processCtrlrEvents(self):
         """
-        The processPygameEvent must fetch the events information.
+        The _processCtrlrEvents must process the event of the
+        active controller.
         """
         with patch.object(self.testApp, 'after'):
-            mockedPygame.event.get.return_value = []
-            self.testApp._processPygameEvents()
-            mockedPygame.event.get.assert_called_once()
+            self.testApp._processCtrlrEvents()
+            self.testApp._controllers['active'].processEvents.assert_called_once()  # noqa: E501
 
-    def test_processPygameEventAxisEvent(self):
+    def test_processCtrlrEventsLoop(self):
         """
-        The processPygameEvent must process axis event.
-        """
-        mockedEvent = Mock()
-        mockedEvent.type = mockedPygame.JOYAXISMOTION
-        with patch.object(self.testApp, '_process_axis') \
-                as mockedProcessAxis, \
-                patch.object(self.testApp, 'after'):
-            mockedPygame.event.get.return_value = [mockedEvent]
-            self.testApp._processPygameEvents()
-            mockedProcessAxis.assert_called_once_with(mockedEvent.instance_id,
-                                                      mockedEvent.axis)
-
-    def test_processPygameEventButtonEvent(self):
-        """
-        The processPygameEvent must process button event.
-        """
-        mockedEvent = Mock()
-        mockedEvent.type = mockedPygame.JOYBUTTONDOWN
-        with patch.object(self.testApp, '_processButtonDown') \
-                as mockedProcessButton, \
-                patch.object(self.testApp, 'after'):
-            mockedPygame.event.get.return_value = [mockedEvent]
-            self.testApp._processPygameEvents()
-            mockedProcessButton.assert_called_once_with(mockedEvent.instance_id,    # noqa: E501
-                                                        mockedEvent.button)
-
-    def test_processPygameEventLoop(self):
-        """
-        The processPygameEvent must keep the loop going.
+        The _processCtrlrEvents must keep the loop going.
         """
         with patch.object(self.testApp, 'after') as mockedAfter:
             mockedPygame.event.get.return_value = []
-            self.testApp._processPygameEvents()
+            self.testApp._processCtrlrEvents()
             mockedAfter.assert_called_once_with(self.testApp.CTRL_FRAME_RATE,
-                                                self.testApp._processPygameEvents)  # noqa: E501
+                                                self.testApp._processCtrlrEvents)  # noqa: E501
