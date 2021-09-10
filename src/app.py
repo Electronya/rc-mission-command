@@ -146,9 +146,9 @@ class App(tk.Tk):
         for controller in self._controllers['list']:
             controller.quit()
         pygame.quit()
-        self._client.disconnect()
+        client.disconnect()
         self.destroy()
-        sys.exit()
+        sys.exit(0)
 
     def add_unit(self, unitId):
         """

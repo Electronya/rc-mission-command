@@ -325,3 +325,54 @@ class TestApp(TestCase):
             self.testApp._processCtrlrEvents()
             mockedAfter.assert_called_once_with(self.testApp.CTRL_FRAME_RATE,
                                                 self.testApp._processCtrlrEvents)  # noqa: E501
+
+    def test_quitCtrlrs(self):
+        """
+        The quit method must quit all controllers.
+        """
+        with patch('app.client'), \
+                patch.object(self.testApp, 'destroy'), \
+                patch('app.sys'):
+            self.testApp.quit()
+            for ctrlrs in self.testApp._controllers['list']:
+                ctrlrs.quit.assert_called_once()
+
+    def test_quitPygame(self):
+        """
+        The quit method must quit pygame
+        """
+        with patch('app.client'), \
+                patch.object(self.testApp, 'destroy'), \
+                patch('app.sys'):
+            self.testApp.quit()
+            mockedPygame.quit.assert_called_once()
+
+    def test_quitDisconnectClient(self):
+        """
+        The quit method must disconnect the MQTT client.
+        """
+        with patch('app.client') as mockedClient, \
+                patch.object(self.testApp, 'destroy'), \
+                patch('app.sys'):
+            self.testApp.quit()
+            mockedClient.disconnect.assert_called_once()
+
+    def test_quitDestroyUI(self):
+        """
+        The quit methos must destroy the application UI.
+        """
+        with patch('app.client'), \
+                patch.object(self.testApp, 'destroy') as mockedDestroy, \
+                patch('app.sys'):
+            self.testApp.quit()
+            mockedDestroy.assert_called_once()
+
+    def test_quitSysExit(self):
+        """
+        The quit method must exit from the application.
+        """
+        with patch('app.client'), \
+                patch.object(self.testApp, 'destroy'), \
+                patch('app.sys') as mockedSys:
+            self.testApp.quit()
+            mockedSys.exit.asset_called_once_with(0)
