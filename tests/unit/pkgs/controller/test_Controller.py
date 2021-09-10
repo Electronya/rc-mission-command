@@ -17,6 +17,7 @@ class TestController(TestCase):
         """
         Teast cases setup.
         """
+        self.testRoot = Mock()
         self.testLogger = Mock()
         self.testNames = ('test ctrlr 1', 'test ctrlr 2', 'test ctrlr 3')
         self.testIdxes = (0, 1, 2)
@@ -31,7 +32,8 @@ class TestController(TestCase):
         with patch('builtins.open', mock_open(read_data=self.testConfig)), \
                 patch('pkgs.controller.joystick.Joystick') as mockedJoystick:
             mockedJoystick.return_value = self.testJoysticks[0]
-            self.testCtrlr = Controller(self.testLogger, 0, self.testNames[0])
+            self.testCtrlr = Controller(self.testRoot, self.testLogger,
+                                        0, self.testNames[0])
         self._setSteeringValues()
         self._setThrottleValues()
         self._setBrakeValues()
@@ -91,7 +93,7 @@ class TestController(TestCase):
         with patch('builtins.open', mock_open(read_data=self.testConfig)), \
                 patch('pkgs.controller.joystick.Joystick') as mockedJoystick:
             mockedJoystick.return_value = self.testJoysticks[0]
-            testCtrlr = Controller(self.testLogger,     # noqa: F841
+            testCtrlr = Controller(self.testRoot, self.testLogger,  # noqa: F841 E501
                                    self.testIdxes[0], self.testNames[0])
             mockedJoystick.assert_called_once_with(self.testIdxes[0])
             self.testJoysticks[0].init.assert_called_once()
@@ -105,7 +107,7 @@ class TestController(TestCase):
         with patch('builtins.open', mock_open(read_data=self.testConfig)) \
                 as mockedConfigFile, \
                 patch('pkgs.controller.joystick.Joystick'):
-            testCtrlr = Controller(self.testLogger,     # noqa: F841
+            testCtrlr = Controller(self.testRoot, self.testLogger,  # noqa: F841 E501
                                    self.testIdxes[0], self.testNames[0])
             mockedConfigFile.assert_called_once_with(expectedPath)
             mockedConfigFile().read.assert_called_once()
@@ -299,6 +301,114 @@ class TestController(TestCase):
         self.assertEqual(testResult,
                          self.testCtrlr._config[Controller.FUNC_KEY])
 
+    def test_getSterringModifier(self):
+        """
+        The _getSterringModifier must return the sterring modifer.
+        """
+        expectedAxisIdx = self.testCtrlr._getAxesMap().index(Controller.STRG_KEY)       # noqa: E501
+        for idx, value in enumerate(self.steeringAxisValues):
+            self.testJoysticks[0].get_axis.return_value = value
+            testResult = self.testCtrlr._getSteeringModifier()
+            self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)     # noqa: E501
+            self.testJoysticks[0].get_axis.reset_mock()
+            self.assertEqual(testResult, self.expectedSteeringMod[idx])
+
+    def test_getThrottleModifier(self):
+        """
+        The _getThrottleModifier must return the throttle modifier.
+        """
+        expectedAxisIdx = self.testCtrlr._getAxesMap().index(Controller.THRTL_KEY)      # noqa: E501
+        for idx, value in enumerate(self.throttleAxisValues):
+            self.testJoysticks[0].get_axis.return_value = value
+            testResult = self.testCtrlr._getThrottleModifier()
+            self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)     # noqa: E501
+            self.testJoysticks[0].get_axis.reset_mock()
+            self.assertEqual(testResult, self.expectedThrottleMod[idx])
+
+    def test_getBrakeModifier(self):
+        """
+        The _getBrakeModifier must return the brake modifier.
+        """
+        expectedAxisIdx = self.testCtrlr._getAxesMap().index(Controller.BRK_KEY)        # noqa: E501
+        for idx, value in enumerate(self.brakeAxisValues):
+            self.testJoysticks[0].get_axis.return_value = value
+            testResult = self.testCtrlr._getBrakeModifier()
+            self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)     # noqa: E501
+            self.testJoysticks[0].get_axis.reset_mock()
+            self.assertEqual(testResult, self.expectedBrakeMod[idx])
+
+    def test_calibrateSaveStrgLeft(self):
+        """
+        The calibrate method must save the steering left calibration
+        value when the calibration sequence is 0 and advance to the
+        next sequence.
+        """
+        testCalibSeqNumber = 0
+        with patch.object(self.testCtrlr, '_saveSteeringLeft') \
+                as mockedSave:
+            self.testCtrlr._calibrate(testCalibSeqNumber)
+            mockedSave.assert_called_once()
+
+    def test_calibrateSaveStrgRight(self):
+        """
+        The _calibrate method must save the steering right calibration
+        value when the calibration sequence is 1 and advance to the
+        next sequence.
+        """
+        testCalibSeqNumber = 1
+        with patch.object(self.testCtrlr, '_saveSteeringRight') \
+                as mockedSave:
+            self.testCtrlr._calibrate(testCalibSeqNumber)
+            mockedSave.assert_called_once()
+
+    def test_calibrateSaveThrtlOff(self):
+        """
+        The _calibrate method must save the throttle off calibration
+        value when the calibration sequence is 2 and advance to the
+        next sequence.
+        """
+        testCalibSeqNumber = 2
+        with patch.object(self.testCtrlr, '_saveThrottleOff') \
+                as mockedSave:
+            self.testCtrlr._calibrate(testCalibSeqNumber)
+            mockedSave.assert_called_once()
+
+    def test_calibrateSaveThrtlFull(self):
+        """
+        The _calibrate method must save the throttle full calibration
+        value when the calibration sequence is 3 and advance to the
+        next sequence.
+        """
+        testCalibSeqNumber = 3
+        with patch.object(self.testCtrlr, '_saveThrottleFull') \
+                as mockedSave:
+            self.testCtrlr._calibrate(testCalibSeqNumber)
+            mockedSave.assert_called_once()
+
+    def test_calibrateSaveBrkOff(self):
+        """
+        The _calibrate method must save the brake off calibration
+        value when the calibration sequence is 4 and advance to the
+        next sequence.
+        """
+        testCalibSeqNumber = 4
+        with patch.object(self.testCtrlr, '_saveBrakeOff') \
+                as mockedSave:
+            self.testCtrlr._calibrate(testCalibSeqNumber)
+            mockedSave.assert_called_once()
+
+    def test_calibrateSaveBrkFull(self):
+        """
+        The _calibrate method must save the brake full calibration
+        value when the calibration sequence is 5 and advance to the
+        next sequence.
+        """
+        testCalibSeqNumber = 5
+        with patch.object(self.testCtrlr, '_saveBrakeFull') \
+                as mockedSave:
+            self.testCtrlr._calibrate(testCalibSeqNumber)
+            mockedSave.assert_called_once()
+
     def test_getName(self):
         """
         The getName method must return the controller name.
@@ -323,135 +433,24 @@ class TestController(TestCase):
         self.assertEqual(testResult,
                          self.testCtrlr._config[Controller.TYPE_KEY])
 
-    def test_isCalibrated(self):
+    def test_processEventsNotCalibrated(self):
         """
-        The isCalibrated method must return the calibration
-        status of the controller.
+        The processEvents method must not process event if not calibrated.
         """
-        testResult = self.testCtrlr.isCalibrated()
-        self.assertFalse(testResult)
+        with patch('pkgs.controller.event') as mockedEvent:
+            self.testCtrlr.processEvents()
+            mockedEvent.get.assert_not_called()
+
+    def test_processEventPygameEvent(self):
+        """
+        The processEvents method must fetch the pygame events.
+        """
         self.testCtrlr._isCalibrated = True
-        testResult = self.testCtrlr.isCalibrated()
-        self.assertTrue(testResult)
-
-    def test_getSterringModifier(self):
-        """
-        The getSterringModifier must return the sterring modifer.
-        """
-        expectedAxisIdx = self.testCtrlr._getAxesMap().index(Controller.STRG_KEY)       # noqa: E501
-        for idx, value in enumerate(self.steeringAxisValues):
-            self.testJoysticks[0].get_axis.return_value = value
-            testResult = self.testCtrlr.getSteeringModifier()
-            self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)     # noqa: E501
-            self.testJoysticks[0].get_axis.reset_mock()
-            self.assertEqual(testResult, self.expectedSteeringMod[idx])
-
-    def test_getThrottleModifier(self):
-        """
-        The getThrottleModifier must return the throttle modifier.
-        """
-        expectedAxisIdx = self.testCtrlr._getAxesMap().index(Controller.THRTL_KEY)      # noqa: E501
-        for idx, value in enumerate(self.throttleAxisValues):
-            self.testJoysticks[0].get_axis.return_value = value
-            testResult = self.testCtrlr.getThrottleModifier()
-            self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)     # noqa: E501
-            self.testJoysticks[0].get_axis.reset_mock()
-            self.assertEqual(testResult, self.expectedThrottleMod[idx])
-
-    def test_getBrakeModifier(self):
-        """
-        The getBrakeModifier must return the brake modifier.
-        """
-        expectedAxisIdx = self.testCtrlr._getAxesMap().index(Controller.BRK_KEY)        # noqa: E501
-        for idx, value in enumerate(self.brakeAxisValues):
-            self.testJoysticks[0].get_axis.return_value = value
-            testResult = self.testCtrlr.getBrakeModifier()
-            self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)     # noqa: E501
-            self.testJoysticks[0].get_axis.reset_mock()
-            self.assertEqual(testResult, self.expectedBrakeMod[idx])
-
-    def test_calibrateSaveStrgLeft(self):
-        """
-        The calibrate method must save the steering left calibration
-        value when the calibration sequence is 0 and advance to the
-        next sequence.
-        """
-        expectedNewSeq = self.testCtrlr._calibSeqNumber + 1
-        with patch.object(self.testCtrlr, '_saveSteeringLeft') \
-                as mockedSave:
-            self.testCtrlr.calibrate()
-            mockedSave.assert_called_once()
-            self.assertEqual(self.testCtrlr._calibSeqNumber, expectedNewSeq)
-
-    def test_calibrateSaveStrgRight(self):
-        """
-        The calibrate method must save the steering right calibration
-        value when the calibration sequence is 1 and advance to the
-        next sequence.
-        """
-        self.testCtrlr._calibSeqNumber = 1
-        expectedNewSeq = self.testCtrlr._calibSeqNumber + 1
-        with patch.object(self.testCtrlr, '_saveSteeringRight') \
-                as mockedSave:
-            self.testCtrlr.calibrate()
-            mockedSave.assert_called_once()
-            self.assertEqual(self.testCtrlr._calibSeqNumber, expectedNewSeq)
-
-    def test_calibrateSaveThrtlOff(self):
-        """
-        The calibrate method must save the throttle off calibration
-        value when the calibration sequence is 2 and advance to the
-        next sequence.
-        """
-        self.testCtrlr._calibSeqNumber = 2
-        expectedNewSeq = self.testCtrlr._calibSeqNumber + 1
-        with patch.object(self.testCtrlr, '_saveThrottleOff') \
-                as mockedSave:
-            self.testCtrlr.calibrate()
-            mockedSave.assert_called_once()
-            self.assertEqual(self.testCtrlr._calibSeqNumber, expectedNewSeq)
-
-    def test_calibrateSaveThrtlFull(self):
-        """
-        The calibrate method must save the throttle full calibration
-        value when the calibration sequence is 3 and advance to the
-        next sequence.
-        """
-        self.testCtrlr._calibSeqNumber = 3
-        expectedNewSeq = self.testCtrlr._calibSeqNumber + 1
-        with patch.object(self.testCtrlr, '_saveThrottleFull') \
-                as mockedSave:
-            self.testCtrlr.calibrate()
-            mockedSave.assert_called_once()
-            self.assertEqual(self.testCtrlr._calibSeqNumber, expectedNewSeq)
-
-    def test_calibrateSaveBrkOff(self):
-        """
-        The calibrate method must save the brake off calibration
-        value when the calibration sequence is 4 and advance to the
-        next sequence.
-        """
-        self.testCtrlr._calibSeqNumber = 4
-        expectedNewSeq = self.testCtrlr._calibSeqNumber + 1
-        with patch.object(self.testCtrlr, '_saveBrakeOff') \
-                as mockedSave:
-            self.testCtrlr.calibrate()
-            mockedSave.assert_called_once()
-            self.assertEqual(self.testCtrlr._calibSeqNumber, expectedNewSeq)
-
-    def test_calibrateSaveBrkFull(self):
-        """
-        The calibrate method must save the brake full calibration
-        value when the calibration sequence is 5 and advance to the
-        next sequence.
-        """
-        self.testCtrlr._calibSeqNumber = 5
-        expectedNewSeq = self.testCtrlr._calibSeqNumber + 1
-        with patch.object(self.testCtrlr, '_saveBrakeFull') \
-                as mockedSave:
-            self.testCtrlr.calibrate()
-            mockedSave.assert_called_once()
-            self.assertEqual(self.testCtrlr._calibSeqNumber, expectedNewSeq)
+        with patch('pkgs.controller.event') as mockedEvent:
+            print(mockedEvent)
+            mockedEvent.return_value = []
+            self.testCtrlr.processEvents()
+            mockedEvent.get.assert_called_once()
 
     def test_quit(self):
         """
