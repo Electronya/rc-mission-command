@@ -8,3 +8,4 @@ flake8==3.9.2
 paho-mqtt==1.5.1
 Pillow==8.2.0
 pygame==2.0.1
+pypubsub==4.0.3
