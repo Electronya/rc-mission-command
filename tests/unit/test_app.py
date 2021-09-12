@@ -11,6 +11,7 @@ mockedPygame = Mock()
 sys.modules['pygame'] = mockedPygame
 
 from app import App, NoAvailableCtrlr   # noqa: E402
+from pkgs.messages.unitCxnStateMsg import UnitCxnStateMsg   # noqa: E402
 
 
 class TestApp(TestCase):
@@ -24,7 +25,14 @@ class TestApp(TestCase):
         """
         self.testCtrlrList = {'test controller 1': 0, 'test controller 2': 1,
                               'test controller 3': 2, 'test controller 4': 3}
+        self.testUnitId = 'test unit'
+        testCxnState = {}
+        testCxnState[UnitCxnStateMsg.UNIT_ID_KEY] = self.testUnitId
+        testCxnState[UnitCxnStateMsg.PAYLOAD_KEY] = {}
+        testCxnState[UnitCxnStateMsg.PAYLOAD_KEY][UnitCxnStateMsg.STATE_KEY] = UnitCxnStateMsg.ONLINE_STATE     # noqa: E501
+        self.testCxnStateJson = json.dumps(testCxnState)
         self.testCtrlrs = [Mock(), Mock(), Mock(), Mock()]
+        self.testUnits = [Mock(), Mock(), Mock(), Mock()]
         self.testLogger = Mock()
         with patch.object(App, '_initLogger') as mockedInitLog, \
                 patch.object(App, '_initPygame'), \
@@ -37,6 +45,9 @@ class TestApp(TestCase):
             self.testApp._logger = Mock()
             self.testApp._controllers = {'active': self.testCtrlrs[0],
                                          'list': self.testCtrlrs}
+            units = self.testUnits.copy()
+            self.testApp._units = {'active': units[0],
+                                   'list': units}
             mockedPygame.JOYAXISMOTION = 0
             mockedPygame.JOYBUTTONDOWN = 1
             mockedPygame.JOYBUTTONUP = 2
@@ -325,6 +336,109 @@ class TestApp(TestCase):
             self.testApp._processCtrlrEvents()
             mockedAfter.assert_called_once_with(self.testApp.CTRL_FRAME_RATE,
                                                 self.testApp._processCtrlrEvents)  # noqa: E501
+
+    def test_addUnit(self):
+        """
+        The _addUnit method must create the new unit
+        and add it to the list.
+        """
+        newUnit = Mock()
+        with patch('app.Unit') as mockedUnit, \
+                patch('app.client') as mockedClient:
+            mockedUnit.return_value = newUnit
+            self.testUnits.append(newUnit)
+            self.testApp._addUnit(self.testUnitId)
+            mockedUnit.assert_called_once_with(self.testLogger, mockedClient,
+                                               self.testUnitId)
+            self.assertEqual(self.testApp._units['list'], self.testUnits)
+
+    def test_addUnitAlreadyExist(self):
+        """
+        The _addUnit method must not add a unit that is already in the list.
+        """
+        testUniId = 'test unit'
+        newUnit = Mock()
+        self.testApp._units['list'][2].get_id.return_value = testUniId
+        with patch('app.Unit') as mockedUnit:
+            mockedUnit.return_value = newUnit
+            self.testApp._addUnit(testUniId)
+            mockedUnit.assert_not_called()
+
+    def test_removeUnit(self):
+        """
+        The _removeUnit method must remove the unit with the
+        provided unit ID from the list set the active on at None
+        when necessary.
+        """
+        self.testApp._units['list'][2].get_id.return_value = self.testUnitId
+        self.testApp._units['active'] = self.testApp._units['list'][2]
+        self.testApp._removeUnit(self.testUnitId)
+        self.assertNotEqual(self.testApp._units['list'],
+                            self.testUnits)
+        self.assertEqual(self.testApp._units['active'], None)
+
+    def test_removeUnitNotFound(self):
+        """
+        The _removeUnit method must do nothing if the unit is
+        not foun in the list.
+        """
+        self.testApp._units['active'] = self.testApp._units['list'][2]
+        self.testApp._removeUnit(self.testUnitId)
+        self.assertEqual(self.testApp._units['list'],
+                         self.testUnits)
+        self.assertEqual(self.testApp._units['active'],
+                         self.testApp._units['list'][2])
+
+    def test_onCxnStateMsgCreateMsg(self):
+        """
+        The _onCxnStateMsg method must create a UnitCxnStateMsg
+        from the received JSON message.
+        """
+        testCxnMsg = Mock()
+        with patch('app.UnitCxnStateMsg') as mockedCxnStateMsg, \
+                patch.object(self.testApp, 'event_generate'):
+            mockedCxnStateMsg.return_value = testCxnMsg
+            self.testApp._onCxnStateMsg(None, None, self.testCxnStateJson)
+            mockedCxnStateMsg.assert_called_once_with(self.testApp.CLIENT_ID)
+            testCxnMsg.fromJson.assert_called_once_with(self.testCxnStateJson)
+
+    def test_onCxnStateMsgAddUnit(self):
+        """
+        The _onCxnStateMsg method must add a unit if the state received
+        in online.
+        """
+        expectedUnitId = 'test unit'
+        with patch.object(self.testApp, '_addUnit') as mockedAddUnit, \
+                patch.object(self.testApp, 'event_generate'):
+            self.testApp._onCxnStateMsg(None, None, self.testCxnStateJson)
+            mockedAddUnit.assert_called_once_with(expectedUnitId)
+
+    def test_onCxnStateMsgRemoveUnit(self):
+        """
+        The _onCxnStateMsg method must remove a unit if the state received
+        in offline.
+        """
+        expectedUnitId = 'test unit'
+        self.testCxnStateJson = \
+            self.testCxnStateJson.replace(UnitCxnStateMsg.ONLINE_STATE,
+                                          UnitCxnStateMsg.OFFLINE_STATE)
+        with patch.object(self.testApp, '_removeUnit') as mockedRemoveUnit, \
+                patch.object(self.testApp, 'event_generate'):
+            self.testApp._onCxnStateMsg(None, None, self.testCxnStateJson)
+            mockedRemoveUnit.assert_called_once_with(expectedUnitId)
+
+    def test_onCxnStateMsgUpdateEvent(self):
+        """
+        The _onCxnStateMsg method must generate an update-unit UI event.
+        """
+        expectedUnitId = 'test unit'
+        testCxnMsg = Mock()
+        with patch('app.UnitCxnStateMsg') as mockedCxnStateMsg, \
+                patch.object(self.testApp, 'event_generate') as mockedEventGen:
+            mockedCxnStateMsg.return_value = testCxnMsg
+            testCxnMsg.getUnit.return_value = expectedUnitId
+            self.testApp._onCxnStateMsg(None, None, self.testCxnStateJson)
+            mockedEventGen.assert_called_once_with('<<update-unit>>')
 
     def test_quitCtrlrs(self):
         """

@@ -8,9 +8,12 @@ import pygame
 
 from logger import initLogger
 from pkgs.controller import Controller
+from pkgs.messages.unitCxnStateMsg import UnitCxnStateMsg
 import pkgs.mqttClient as client
 from ui.baseFrame import BaseFrame
 from pkgs.unit import Unit
+
+appLogger = None
 
 
 class NoAvailableCtrlr(Exception):
@@ -34,6 +37,7 @@ class App(tk.Tk):
         """
         Constructor.
         """
+        global appLogger
         tk.Tk.__init__(self)
         self._units = {'active': None, 'list': []}
         appLogger = self._initLogger()
@@ -138,6 +142,62 @@ class App(tk.Tk):
         self._controllers['active'].processEvents()
         self.after(self.CTRL_FRAME_RATE, self._processCtrlrEvents)
 
+    def _addUnit(self, unitId):
+        """
+        Add a newly connected unit in the list.
+
+        Params:
+            unitId:     The ID of the unit to add.
+        """
+        global appLogger
+        alreadyExist = False
+        for unit in self._units['list']:
+            if unitId == unit.get_id():
+                self._logger.warn(f"unit {unitId} already exist in the list")
+                alreadyExist = True
+        if not alreadyExist:
+            self._logger.debug(f"adding new unit {unitId}")
+            self._units['list'].append(Unit(appLogger, client, unitId))
+
+    def _removeUnit(self, unitId):
+        """
+        Remove the disconnected unit.
+
+        Params:
+            unitId:     The ID of the unit to remove.
+        """
+        unitToRemove = [unit for unit in self._units['list']
+                        if unitId == unit.get_id()]
+        if len(unitToRemove) == 1:
+            self._logger.debug(f"removing unit {unitId}")
+            self._units['list'].remove(unitToRemove[0])
+            if unitId == self._units['active'].get_id():
+                self._logger.debug(f"deactivating unit {unitId}")
+                self._units['active'] = None
+        else:
+            self._logger.warn(f"{len(unitToRemove)} instance of unit "
+                              f"{unitId} found")
+
+    def _onCxnStateMsg(self, mqttClient, usrData, msg):
+        """
+        On connection state message callback.
+
+        Params:
+            mqttClient:     The MQTT client instance.
+            usrData:    The user data.
+            mgs:        The received message.
+        """
+        global appLogger
+        cxnStateMsg = UnitCxnStateMsg(self.CLIENT_ID)
+        cxnStateMsg.fromJson(msg)
+        if cxnStateMsg.isOnline():
+            self._logger.info(f"new unit connected: {cxnStateMsg.getUnit()}")
+            self._addUnit(cxnStateMsg.getUnit())
+        elif cxnStateMsg.isOffline():
+            self._logger.info(f"removing unit: {cxnStateMsg.getUnit()}")
+            self._removeUnit(cxnStateMsg.getUnit())
+        self.event_generate('<<update-unit>>')
+
     def quit(self):
         """
         Quit the application.
@@ -150,46 +210,11 @@ class App(tk.Tk):
         self.destroy()
         sys.exit(0)
 
-    def add_unit(self, unitId):
-        """
-        Add a new unit.
-
-        Params:
-            unitId:             The new unit ID.
-        """
-        self._logger.info(f"new unit connected: {unitId}")
-        self._units['list'].append(Unit(unitId, self._client))
-        self.event_generate('<<update-unit>>')
-
-    def remove_unit(self, unitId):
-        """
-        Remove a unit.
-
-        Params:
-            unitId:             The unit ID to remove.
-        """
-        self._logger.info(f"removing unit: {unitId}")
-        for unit in self._units['list']:
-            if unitId == unit.get_id():
-                self._units['list'].remove(unit)
-        self.event_generate('<<update-unit>>')
-
-
-def list_connected_controllers():
-    """
-    List the connected controllers.
-    """
-    controllerNames = Controller.listControllers()
-    # appLogger.debug(f"controller list: {controllerNames}")
-    if len(controllerNames):
-        return controllerNames
-
-    msgBox.showerror('No controller connected!!', 'Please connect a supported '
-                     'controller before restarting the application.')
-
 
 if __name__ == '__main__':
-    connectedCtrlrs = list_connected_controllers()
-    app = App(connectedCtrlrs)
-    app.protocol("WM_DELETE_WINDOW", app.quit)
-    app.mainloop()
+    try:
+        app = App()
+        app.protocol("WM_DELETE_WINDOW", app.quit)
+        app.mainloop()
+    except Exception as e:
+        app._logger.error(e)
