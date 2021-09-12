@@ -196,6 +196,26 @@ class TestApp(TestCase):
                                                       App.CLIENT_ID,
                                                       App.CLIENT_PASSWD)
 
+    def test_initMqttClientCxnStateCallback(self):
+        """
+        The _initMqttClient method must register the connection sate
+        message callback.
+        """
+        with patch('app.client') as mockedClient:
+            mockedAppLogger = Mock()
+            self.testApp._initMqttClient(mockedAppLogger)
+            mockedClient.registerMsgCallback.assert_called_once_with(UnitCxnStateMsg.TOPIC_ROOT,    # noqa: E501
+                                                                     self.testApp._onCxnStateMsg)   # noqa: E501
+
+    def test_initMqttClientStartLoop(self):
+        """
+        The _initMqttClient method must start the client network loop.
+        """
+        with patch('app.client') as mockedClient:
+            mockedAppLogger = Mock()
+            self.testApp._initMqttClient(mockedAppLogger)
+            mockedClient.startLoop.assert_called_once()
+
     def test_listControllersNoAvailable(self):
         """
         The _listControllers method must raise a NoAvailableCtrlr exception

@@ -78,6 +78,9 @@ class App(tk.Tk):
         """
         self._logger.info('initializing mqtt client...')
         client.init(appLogger, self.CLIENT_ID, self.CLIENT_PASSWD)
+        client.registerMsgCallback(UnitCxnStateMsg.TOPIC_ROOT,
+                                   self._onCxnStateMsg)
+        client.startLoop()
         self._logger.info('mqtt client initialized')
 
     def _listControllers(self) -> dict:
