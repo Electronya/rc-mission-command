@@ -258,7 +258,7 @@ class Controller:
         ]
         self._logger.info(f"calibration seq: {calibSeqNumber}.")
         calibrationSeq[calibSeqNumber]()
-        if calibSeqNumber == self.CAL_SEQ:
+        if calibSeqNumber == self.CAL_SEQ - 1:
             self._isCalibrated = True
 
     def getName(self) -> str:

@@ -400,14 +400,15 @@ class TestController(TestCase):
     def test_calibrateSaveBrkFull(self):
         """
         The _calibrate method must save the brake full calibration
-        value when the calibration sequence is 5 and advance to the
-        next sequence.
+        value when the calibration sequence is 5 and set the _isCalibratedFlag
+        to true.
         """
         testCalibSeqNumber = 5
         with patch.object(self.testCtrlr, '_saveBrakeFull') \
                 as mockedSave:
             self.testCtrlr._calibrate(testCalibSeqNumber)
             mockedSave.assert_called_once()
+            self.assertTrue(self.testCtrlr._isCalibrated)
 
     def test_getName(self):
         """
