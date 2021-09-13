@@ -1,7 +1,7 @@
 import json
 import os
 
-from pygame import joystick
+from pygame import event, joystick
 
 
 class Controller:
@@ -9,7 +9,6 @@ class Controller:
     Class implementing the controller function.
     """
     CONFIG_ROOT_DIR = './src/pkgs/controller/configs/'
-    CTRL_FRAME_RATE = 10
     TYPE_KEY = 'type'
     CTRLS_KEY = 'controls'
     AXES_KEY = 'axes'
@@ -22,23 +21,25 @@ class Controller:
     RVS_KEY = 'reverse'
     CAL_SEQ = 6
 
-    def __init__(self, logger: object, idx: int,
+    def __init__(self, dispatcher: object, logger: object, idx: int,
                  name: str, ndigit: int = 2) -> None:
         """
         Constructor.
 
         Params:
-            logger:     The application logger.
-            idx:        The index of the controller from 0 to
-                        pygame.joystick.get_count().
-            name:       The controller name.
-            ndigit:     The digit number for the axis precision. Default: 2.
+            dispatcher:     The application event dispatcher.
+            logger:         The application logger.
+            idx:            The index of the controller from 0 to
+                            pygame.joystick.get_count().
+            name:           The controller name.
+            ndigit:         The digit number for the axis precision.
+                            Default: 2.
         """
+        self._dispatcher = dispatcher
         self._logger = logger.getLogger(f"CTRL_{idx}")
         self._idx = idx
         self._ndigit = ndigit
         self._isCalibrated = False
-        self._calibSeqNumber = 0
         self._logger.info(f"creating controller {name}")
         self._joystick = joystick.Joystick(idx)
         self._joystick.init()
@@ -81,7 +82,7 @@ class Controller:
         return connected_supported
 
     @classmethod
-    def listController(cls) -> dict:
+    def listControllers(cls) -> dict:
         """
         List the connected and supported controller.
 
@@ -190,6 +191,76 @@ class Controller:
         """
         return self._config[self.FUNC_KEY]
 
+    def _getSteeringModifier(self) -> float:
+        """
+        Get the steering modifier.
+
+        Return:
+            The steering modifier.
+        """
+        axisName = self._getFuncMap()[self.STRG_KEY]
+        steeringPos = \
+            self._joystick.get_axis(self._getAxesMap().index(axisName))
+        modifier = 0
+        if steeringPos < 0:
+            modifier = round(steeringPos / self._steeringLeft, self._ndigit)
+        else:
+            modifier = round(steeringPos / self._steeringRight, self._ndigit)
+        self._logger.debug(f"steering modifier: {modifier}")
+        return modifier
+
+    def _getThrottleModifier(self) -> float:
+        """
+        Get the throttle modifier.
+
+        Return:
+            The throttle modifier.
+        """
+        axisName = self._getFuncMap()[self.THRTL_KEY]
+        throttlePos = \
+            self._joystick.get_axis(self._getAxesMap().index(axisName))
+        tmpVal = self._throttleOff - throttlePos
+        throttleRange = self._throttleOff - self._throttleFull
+        modifier = round(tmpVal / throttleRange, self._ndigit)
+        self._logger.debug(f"throttle modifier: {modifier}")
+        return modifier
+
+    def _getBrakeModifier(self) -> float:
+        """
+        Get the break modifier.
+
+        Return:
+            The break modifier.
+        """
+        axisName = self._getFuncMap()[self.BRK_KEY]
+        brakePos = \
+            self._joystick.get_axis(self._getAxesMap().index(axisName))
+        tmpVal = self._brakeOff - brakePos
+        brakeRange = self._brakeOff - self._brakeFull
+        modifier = round(tmpVal / brakeRange, self._ndigit)
+        self._logger.debug(f"break modifier: {modifier}")
+        return modifier
+
+    def _calibrate(self, calibSeqNumber: int) -> None:
+        """
+        Calibrate the controller.
+
+        Params:
+            calibSeqNumber: calibration sequence number.
+        """
+        calibrationSeq = [
+            self._saveSteeringLeft,
+            self._saveSteeringRight,
+            self._saveThrottleOff,
+            self._saveThrottleFull,
+            self._saveBrakeOff,
+            self._saveBrakeFull
+        ]
+        self._logger.info(f"calibration seq: {calibSeqNumber}.")
+        calibrationSeq[calibSeqNumber]()
+        if calibSeqNumber == self.CAL_SEQ - 1:
+            self._isCalibrated = True
+
     def getName(self) -> str:
         """
         Get the joystick name.
@@ -216,82 +287,28 @@ class Controller:
         """
         return self._config[self.TYPE_KEY]
 
-    def isCalibrated(self) -> bool:
+    def processEvents(self):
         """
-        Get the controller calibartion state.
-
-        Return:
-            True if the controller is calibrated, False otherwise.
+        Process the controller events.
         """
-        return self._isCalibrated
-
-    def getSteeringModifier(self) -> float:
-        """
-        Get the steering modifier.
-
-        Return:
-            The steering modifier.
-        """
-        axisName = self._getFuncMap()[self.STRG_KEY]
-        steeringPos = \
-            self._joystick.get_axis(self._getAxesMap().index(axisName))
-        modifier = 0
-        if steeringPos < 0:
-            modifier = round(steeringPos / self._steeringLeft, self._ndigit)
-        else:
-            modifier = round(steeringPos / self._steeringRight, self._ndigit)
-        self._logger.debug(f"steering modifier: {modifier}")
-        return modifier
-
-    def getThrottleModifier(self) -> float:
-        """
-        Get the throttle modifier.
-
-        Return:
-            The throttle modifier.
-        """
-        axisName = self._getFuncMap()[self.THRTL_KEY]
-        throttlePos = \
-            self._joystick.get_axis(self._getAxesMap().index(axisName))
-        tmpVal = self._throttleOff - throttlePos
-        throttleRange = self._throttleOff - self._throttleFull
-        modifier = round(tmpVal / throttleRange, self._ndigit)
-        self._logger.debug(f"throttle modifier: {modifier}")
-        return modifier
-
-    def getBrakeModifier(self) -> float:
-        """
-        Get the break modifier.
-
-        Return:
-            The break modifier.
-        """
-        axisName = self._getFuncMap()[self.BRK_KEY]
-        brakePos = \
-            self._joystick.get_axis(self._getAxesMap().index(axisName))
-        tmpVal = self._brakeOff - brakePos
-        brakeRange = self._brakeOff - self._brakeFull
-        modifier = round(tmpVal / brakeRange, self._ndigit)
-        self._logger.debug(f"break modifier: {modifier}")
-        return modifier
-
-    def calibrate(self) -> None:
-        """
-        Calibrate the controller.
-        """
-        calibrationSeq = [
-            self._saveSteeringLeft,
-            self._saveSteeringRight,
-            self._saveThrottleOff,
-            self._saveThrottleFull,
-            self._saveBrakeOff,
-            self._saveBrakeFull
-        ]
-        self._logger.info(f"calibration seq: {self._calibSeqNumber}.")
-        calibrationSeq[self._calibSeqNumber]()
-        self._calibSeqNumber += 1
-        if self._calibSeqNumber == self.CAL_SEQ:
-            self._isCalibrated = True
+        if self._isCalibrated:
+            for ev in event.get():
+                pass
+                # if event.type == pygame.JOYAXISMOTION:
+                #     self._logger.debug(f"processing joystick {event.instance_id} "
+                #                     f"axis {event.axis} with "
+                #                     f"value {event.value}")
+                #     self._process_axis(event.instance_id, event.axis)
+                # if event.type == pygame.JOYBUTTONDOWN:
+                #     self._logger.debug(f"processing joystick {event.instance_id} "
+                #                     f"button {event.button} down")
+                #     self._processButtonDown(event.instance_id, event.button)
+                # if event.type == pygame.JOYBUTTONUP:
+                #     self._logger.debug(f"processing joystick {event.instance_id} "
+                #                     f"button {event.button} up")
+                # if event.type == pygame.JOYHATMOTION:
+                #     self._logger.debug(f"processing joystick {event.instance_id} "
+                #                     f"hat {event.hat} with value {event.value}")
 
     def quit(self) -> None:
         """

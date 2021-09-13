@@ -28,6 +28,6 @@
         "steering": "steering",
         "throttle": "throttle",
         "brake": "brake",
-        "reverse": "x"
+        "x": "reverse"
     }
 }
