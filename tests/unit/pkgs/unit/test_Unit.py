@@ -1,12 +1,12 @@
 from unittest import TestCase
-from unittest.mock import Mock, mock_open, patch
+from unittest.mock import Mock, patch
 
 import os
 import sys
 
 sys.path.append(os.path.abspath('./src'))
 
-from pkgs.unit import Unit      # noqa: E402
+from pkgs.unit.unit import Unit      # noqa: E402
 
 
 class TestUnit(TestCase):
@@ -22,7 +22,7 @@ class TestUnit(TestCase):
         self.testLogger = Mock()
         self.testClient = Mock()
         self.testMsg = Mock()
-        with patch('pkgs.unit.UnitWhldCmdMsg') as mockedUnitWhldCmdMsg:
+        with patch('pkgs.unit.unit.UnitWhldCmdMsg') as mockedUnitWhldCmdMsg:
             mockedUnitWhldCmdMsg.return_value = self.testMsg
             self.testLogging.getLogger.return_value = self.testLogger
             self.testUnit = Unit(self.testLogging, self.testClient,
@@ -35,7 +35,7 @@ class TestUnit(TestCase):
         its logger.
         """
         testId = 'test unit'
-        with patch('pkgs.unit.UnitWhldCmdMsg') as mockedUnitWhledCmdMsg:
+        with patch('pkgs.unit.unit.UnitWhldCmdMsg') as mockedUnitWhledCmdMsg:
             testUnit = Unit(self.testLogging, self.testClient, testId)
             self.testLogging.getLogger.assert_called_once_with(f"UNIT-{testId.upper()}")    # noqa: E501
             self.assertEqual(testUnit._id, testId)

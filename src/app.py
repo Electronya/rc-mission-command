@@ -8,7 +8,7 @@ import pygame
 
 from logger import initLogger
 from pkgs.controller import Controller
-from pkgs.messages.unitCxnStateMsg import UnitCxnStateMsg
+from pkgs.messages import UnitCxnStateMsg
 import pkgs.mqttClient as client
 from ui.baseFrame import BaseFrame
 from pkgs.unit import Unit

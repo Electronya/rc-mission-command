@@ -6,7 +6,7 @@ import sys
 
 sys.path.append(os.path.abspath('./src'))
 
-from pkgs.controller import Controller  # noqa: E402
+from pkgs.controller.controller import Controller  # noqa: E402
 
 
 class TestController(TestCase):
@@ -30,7 +30,7 @@ class TestController(TestCase):
                 as configFile:
             self.testConfig = configFile.read()
         with patch('builtins.open', mock_open(read_data=self.testConfig)), \
-                patch('pkgs.controller.joystick.Joystick') as mockedJoystick:
+                patch('pkgs.controller.controller.joystick.Joystick') as mockedJoystick:
             mockedJoystick.return_value = self.testJoysticks[0]
             self.testCtrlr = Controller(self.testRoot, self.testLogger,
                                         0, self.testNames[0])
@@ -91,7 +91,7 @@ class TestController(TestCase):
         """
         self.testJoysticks[0].reset_mock()
         with patch('builtins.open', mock_open(read_data=self.testConfig)), \
-                patch('pkgs.controller.joystick.Joystick') as mockedJoystick:
+                patch('pkgs.controller.controller.joystick.Joystick') as mockedJoystick:
             mockedJoystick.return_value = self.testJoysticks[0]
             testCtrlr = Controller(self.testRoot, self.testLogger,  # noqa: F841 E501
                                    self.testIdxes[0], self.testNames[0])
@@ -106,7 +106,7 @@ class TestController(TestCase):
                                     f"{self.testNames[0].replace(' ', '_')}.json")  # noqa: E501
         with patch('builtins.open', mock_open(read_data=self.testConfig)) \
                 as mockedConfigFile, \
-                patch('pkgs.controller.joystick.Joystick'):
+                patch('pkgs.controller.controller.joystick.Joystick'):
             testCtrlr = Controller(self.testRoot, self.testLogger,  # noqa: F841 E501
                                    self.testIdxes[0], self.testNames[0])
             mockedConfigFile.assert_called_once_with(expectedPath)
@@ -117,7 +117,7 @@ class TestController(TestCase):
         The _listConnected mothod must return the list of
         connected controller name.
         """
-        with patch('pkgs.controller.joystick') as mockJoystickMod:
+        with patch('pkgs.controller.controller.joystick') as mockJoystickMod:
             mockJoystickMod.get_count.return_value = len(self.testNames)
             mockJoystickMod.Joystick.side_effect = self.testJoysticks
             testResult = Controller._listConnected()
@@ -148,7 +148,7 @@ class TestController(TestCase):
         with patch.object(Controller, '_listConnected') \
                 as mockedListConnected, \
                 patch.object(Controller, '_filterUnsupported'), \
-                patch('pkgs.controller.os.listdir'):
+                patch('pkgs.controller.controller.os.listdir'):
             Controller.listControllers()
             mockedListConnected.assert_called_once()
 
@@ -158,7 +158,7 @@ class TestController(TestCase):
         """
         with patch.object(Controller, '_listConnected'), \
                 patch.object(Controller, '_filterUnsupported'), \
-                patch('pkgs.controller.os.listdir') as mockedListDir:
+                patch('pkgs.controller.controller.os.listdir') as mockedListDir:
             Controller.listControllers()
             mockedListDir.assert_called_once_with(Controller.CONFIG_ROOT_DIR)
 
@@ -174,7 +174,7 @@ class TestController(TestCase):
                 as mockedListConnected, \
                 patch.object(Controller, '_filterUnsupported') \
                 as mockedFilterUnsupported, \
-                patch('pkgs.controller.os.listdir') as mockedListSupported:
+                patch('pkgs.controller.controller.os.listdir') as mockedListSupported:
             mockedListConnected.return_value = self.testNames
             mockedListSupported.return_value = testSupported
             Controller.listControllers()
@@ -192,7 +192,7 @@ class TestController(TestCase):
         with patch.object(Controller, '_listConnected'), \
                 patch.object(Controller, '_filterUnsupported') \
                 as mockedFilterUnsupported, \
-                patch('pkgs.controller.os.listdir'):
+                patch('pkgs.controller.controller.os.listdir'):
             mockedFilterUnsupported.return_value = expectedList
             testResult = Controller.listControllers()
             self.assertEqual(testResult, expectedList)
@@ -438,7 +438,7 @@ class TestController(TestCase):
         """
         The processEvents method must not process event if not calibrated.
         """
-        with patch('pkgs.controller.event') as mockedEvent:
+        with patch('pkgs.controller.controller.event') as mockedEvent:
             self.testCtrlr.processEvents()
             mockedEvent.get.assert_not_called()
 
@@ -447,7 +447,7 @@ class TestController(TestCase):
         The processEvents method must fetch the pygame events.
         """
         self.testCtrlr._isCalibrated = True
-        with patch('pkgs.controller.event') as mockedEvent:
+        with patch('pkgs.controller.controller.event') as mockedEvent:
             print(mockedEvent)
             mockedEvent.return_value = []
             self.testCtrlr.processEvents()
