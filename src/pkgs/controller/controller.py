@@ -21,7 +21,7 @@ class Controller:
     RVS_KEY = 'reverse'
     CAL_SEQ = 6
 
-    def __init__(self, dispatcher: object, logger: object, idx: int,
+    def __init__(self, logger: object, idx: int,
                  name: str, ndigit: int = 2) -> None:
         """
         Constructor.
@@ -35,7 +35,6 @@ class Controller:
             ndigit:         The digit number for the axis precision.
                             Default: 2.
         """
-        self._dispatcher = dispatcher
         self._logger = logger.getLogger(f"CTRL_{idx}")
         self._idx = idx
         self._ndigit = ndigit

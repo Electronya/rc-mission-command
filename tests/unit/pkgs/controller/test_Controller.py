@@ -17,7 +17,6 @@ class TestController(TestCase):
         """
         Teast cases setup.
         """
-        self.testRoot = Mock()
         self.testLogger = Mock()
         self.testNames = ('test ctrlr 1', 'test ctrlr 2', 'test ctrlr 3')
         self.testIdxes = (0, 1, 2)
@@ -30,10 +29,10 @@ class TestController(TestCase):
                 as configFile:
             self.testConfig = configFile.read()
         with patch('builtins.open', mock_open(read_data=self.testConfig)), \
-                patch('pkgs.controller.controller.joystick.Joystick') as mockedJoystick:
+                patch('pkgs.controller.controller.joystick.Joystick') \
+                as mockedJoystick:
             mockedJoystick.return_value = self.testJoysticks[0]
-            self.testCtrlr = Controller(self.testRoot, self.testLogger,
-                                        0, self.testNames[0])
+            self.testCtrlr = Controller(self.testLogger, 0, self.testNames[0])
         self._setSteeringValues()
         self._setThrottleValues()
         self._setBrakeValues()
@@ -91,9 +90,10 @@ class TestController(TestCase):
         """
         self.testJoysticks[0].reset_mock()
         with patch('builtins.open', mock_open(read_data=self.testConfig)), \
-                patch('pkgs.controller.controller.joystick.Joystick') as mockedJoystick:
+                patch('pkgs.controller.controller.joystick.Joystick') \
+                as mockedJoystick:
             mockedJoystick.return_value = self.testJoysticks[0]
-            testCtrlr = Controller(self.testRoot, self.testLogger,  # noqa: F841 E501
+            testCtrlr = Controller(self.testLogger,  # noqa: F841 E501
                                    self.testIdxes[0], self.testNames[0])
             mockedJoystick.assert_called_once_with(self.testIdxes[0])
             self.testJoysticks[0].init.assert_called_once()
@@ -107,7 +107,7 @@ class TestController(TestCase):
         with patch('builtins.open', mock_open(read_data=self.testConfig)) \
                 as mockedConfigFile, \
                 patch('pkgs.controller.controller.joystick.Joystick'):
-            testCtrlr = Controller(self.testRoot, self.testLogger,  # noqa: F841 E501
+            testCtrlr = Controller(self.testLogger,  # noqa: F841 E501
                                    self.testIdxes[0], self.testNames[0])
             mockedConfigFile.assert_called_once_with(expectedPath)
             mockedConfigFile().read.assert_called_once()
