@@ -17,7 +17,7 @@ class CtrlrModel():
         """
         super(CtrlrModel, self).__init__()
         self._logger = appLogger.getLogger('CTRL_MODEL')
-        self._calibBtn, self._ctrlrSelect, \
+        self._calibBtn, self._ctrlrSelect, self._wheelIcon, \
             self._thrtlBar, self._brkBar = widgets
         self._initControllers(appLogger)
 

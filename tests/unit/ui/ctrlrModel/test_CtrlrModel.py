@@ -20,7 +20,8 @@ class TestCtrlrModel(TestCase):
         self.ctrlr = 'ui.ctrlrModel.ctrlrModel.Controller'
         self.testLogger = Mock()
         with patch.object(CtrlrModel, '_initControllers'):
-            self.ctrlrMdl = CtrlrModel(self.testLogger, ())
+            self.ctrlrMdl = CtrlrModel(self.testLogger,
+                                       (None, None, None, None, None))
         self.testCtrlrList = {'test controller 1': 0, 'test controller 2': 1,
                               'test controller 3': 2, 'test controller 4': 3}
 
@@ -29,7 +30,8 @@ class TestCtrlrModel(TestCase):
         The constructor must initialize the controllers.
         """
         with patch.object(CtrlrModel, '_initControllers') as mockedInitCtrlrs:
-            ctrlrMdl = CtrlrModel(self.testLogger, ())      # noqa: F841
+            ctrlrMdl = CtrlrModel(self.testLogger,      # noqa: F841
+                                  (None, None, None, None, None))
             mockedInitCtrlrs.assert_called_once()
 
     def test_initCtrlrsInitFmk(self):
