@@ -1,6 +1,7 @@
 import json
 import os
 
+import pygame as pg
 from pygame import event, joystick
 
 
@@ -48,6 +49,15 @@ class Controller:
             self._config = json.load(configFile)
 
     @classmethod
+    def initFramework(cls):
+        """
+        Initialize the pygame framework.
+        """
+        pg.init()
+        pg.event.set_allowed([pg.JOYAXISMOTION, pg.JOYBUTTONDOWN,
+                              pg.JOYBUTTONUP, pg.JOYHATMOTION])
+
+    @classmethod
     def _listConnected(cls) -> tuple:
         """
         List the connected controller.
@@ -72,13 +82,16 @@ class Controller:
         Params:
             connected:  The list of connected controller.
             supported:  The list of supported controller.
+
+        Return:
+            A dictionary listing the filtered controllers
         """
-        connected_supported = {}
-        for idx in range(len(connected)):
-            if any(connected[idx].lower().replace(' ', '_')
-                   in ctrl_name for ctrl_name in supported):
-                connected_supported[connected[idx]] = idx
-        return connected_supported
+        filteredCtrlrs = {}
+        for idx, ctrlrName in enumerate(connected):
+            if any(ctrlrName.lower().replace(' ', '_')
+                   in suppCtrlr for suppCtrlr in supported):
+                filteredCtrlrs[connected[idx]] = idx
+        return filteredCtrlrs
 
     @classmethod
     def listControllers(cls) -> dict:
@@ -292,22 +305,26 @@ class Controller:
         """
         if self._isCalibrated:
             for ev in event.get():
-                pass
-                # if event.type == pygame.JOYAXISMOTION:
-                #     self._logger.debug(f"processing joystick {event.instance_id} "
-                #                     f"axis {event.axis} with "
-                #                     f"value {event.value}")
-                #     self._process_axis(event.instance_id, event.axis)
-                # if event.type == pygame.JOYBUTTONDOWN:
-                #     self._logger.debug(f"processing joystick {event.instance_id} "
-                #                     f"button {event.button} down")
-                #     self._processButtonDown(event.instance_id, event.button)
-                # if event.type == pygame.JOYBUTTONUP:
-                #     self._logger.debug(f"processing joystick {event.instance_id} "
-                #                     f"button {event.button} up")
-                # if event.type == pygame.JOYHATMOTION:
-                #     self._logger.debug(f"processing joystick {event.instance_id} "
-                #                     f"hat {event.hat} with value {event.value}")
+                if event.type == pg.JOYAXISMOTION:
+                    self._logger.debug(f"processing joystick "
+                                       "{event.instance_id} "
+                                       f"axis {event.axis} with "
+                                       f"value {event.value}")
+                    self._process_axis(event.instance_id, event.axis)
+                if event.type == pg.JOYBUTTONDOWN:
+                    self._logger.debug(f"processing joystick "
+                                       "{event.instance_id} "
+                                       f"button {event.button} down")
+                    self._processButtonDown(event.instance_id, event.button)
+                if event.type == pg.JOYBUTTONUP:
+                    self._logger.debug(f"processing joystick "
+                                       "{event.instance_id} "
+                                       f"button {event.button} up")
+                if event.type == pg.JOYHATMOTION:
+                    self._logger.debug(f"processing joystick "
+                                       "{event.instance_id} "
+                                       f"hat {event.hat} with value "
+                                       f"{event.value}")
 
     def quit(self) -> None:
         """
