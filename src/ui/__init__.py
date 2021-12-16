@@ -1,1 +1,1 @@
-from .appWindow import AppWindow        # noqa: F401
+from .appComposer import AppComposer    # noqa: F401

@@ -1,5 +1,13 @@
 <RCC>
-  <qresource prefix="icons">
-    <file>icons/steering-wheel.png</file>
+  <qresource prefix="controller">
+    <file>icons/steering-wheel.svg</file>
+    <file>icons/reload.svg</file>
+  </qresource>
+  <qresource prefix="communication">
+    <file>icons/connected.svg</file>
+    <file>icons/disconnected.svg</file>
+  </qresource>
+  <qresource prefix="window">
+    <file>icons/app-icon.png</file>
   </qresource>
 </RCC>
