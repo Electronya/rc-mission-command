@@ -1,6 +1,7 @@
 from PySide2.QtCore import QModelIndex
 from PySide2.QtGui import QStandardItemModel
-from PySide2.QtWidgets import QComboBox, QGraphicsView, QProgressBar, QPushButton
+from PySide2.QtWidgets import QComboBox, QGraphicsView, \
+    QProgressBar, QPushButton
 
 from pkgs.controller import Controller
 
@@ -9,21 +10,33 @@ class CtrlrModel(QStandardItemModel):
     """
     Controller model.
     """
-    def __init__(self, appLogger: object, widgets: tuple) -> None:
+    def __init__(self, appLogger: object, calBtn: QPushButton,
+                 ctrlrSelect: QComboBox, refreshBtn: QPushButton,
+                 wheelIcon: QGraphicsView, thrtlBar: QProgressBar,
+                 brkBar: QProgressBar) -> None:
         """
         Constructor.
 
         Params:
-            appLogger:  The application logger.
-            widgets:    The wigeds controlled by the model
+            appLogger:      The application logger.
+            calBtn:         The calibration button.
+            ctrlrSelect:    The controller selection combo box.
+            refreshBtn:     The controller list refresh button.
+            wheelIcon:      The wheel icon.
+            thrtlBar:       The throttle bar.
+            brkBar:         The brake bar.
         """
         super(CtrlrModel, self).__init__(0, 1)
         self._logger = appLogger.getLogger('CTRL_MODEL')
-        self._calibBtn, self._ctrlrSelect, self._wheelIcon, \
-            self._thrtlBar, self._brkBar = widgets
+        self._calibBtn = calBtn
+        self._ctrlrSelect = ctrlrSelect
+        self._refreshBtn = refreshBtn
+        self._wheelIcon = wheelIcon
+        self._thrtlBar = thrtlBar
+        self._brkBar = brkBar
         self._controllers = {'active': None, 'list': []}
         Controller.initFramework()
-        self.updateCtrlrList(appLogger)
+        self._updateCtrlrList(appLogger)
 
     def _listCurrentCtrlrs(self) -> tuple:
         """
@@ -77,7 +90,7 @@ class CtrlrModel(QStandardItemModel):
             addList:            The list on controllers to add.
         """
 
-    def updateCtrlrList(self, appLogger) -> None:
+    def _updateCtrlrList(self, appLogger) -> None:
         """
         Update the controller list.
 

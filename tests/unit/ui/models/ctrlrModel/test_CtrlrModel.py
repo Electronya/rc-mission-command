@@ -6,7 +6,7 @@ import sys
 
 sys.path.append(os.path.abspath('./src'))
 
-from ui.ctrlrModel import CtrlrModel        # noqa: E402
+from ui.models.ctrlrModel import CtrlrModel     # noqa: E402
 
 
 class TestCtrlrModel(TestCase):
@@ -17,19 +17,22 @@ class TestCtrlrModel(TestCase):
         """
         Test cases setup.
         """
-        self.ctrlr = 'ui.ctrlrModel.ctrlrModel.Controller'
+        self.ctrlr = 'ui.models.ctrlrModel.ctrlrModel.Controller'
         self.testLogger = Mock()
         self.testCtrlrList = {'test controller 1': 0, 'test controller 2': 1,
                               'test controller 3': 2, 'test controller 4': 3}
         self._setUpMockedCtrlrs()
+        self._setUpMockedWidgets()
         with patch(self.ctrlr) as mockedCtrlr, \
                 patch.object(mockedCtrlr, 'initFramework'), \
                 patch.object(mockedCtrlr, 'listControllers') \
                 as mockedListCtrlrs:
             mockedCtrlr.side_effect = self.testCtrlrs
             mockedListCtrlrs.return_value = self.testCtrlrList
-            self.ctrlrMdl = CtrlrModel(self.testLogger,
-                                       (None, None, None, None, None))
+            self.ctrlrMdl = CtrlrModel(self.testLogger, self.calBtn,
+                                       self.ctrlrSelect, self.refreshBtn,
+                                       self.wheelIcon, self.thrtlBar,
+                                       self.brkBar)
 
     def _setUpMockedCtrlrs(self):
         """
@@ -42,16 +45,26 @@ class TestCtrlrModel(TestCase):
             mockedCtrlr.getIdx.return_value = self.testCtrlrList[testCtrlr]
             self.testCtrlrs.append(mockedCtrlr)
 
+    def _setUpMockedWidgets(self):
+        """
+        Setup the mocked widgets.
+        """
+        self.calBtn = Mock(),
+        self.ctrlrSelect = Mock()
+        self.refreshBtn = Mock()
+        self.wheelIcon = Mock()
+        self.thrtlBar = Mock()
+        self.brkBar = Mock()
+
     def test_constructorInitCtrlrs(self):
         """
         The constructor must initialize the controller framework
         and update the controller list.
         """
         with patch(f"{self.ctrlr}.initFramework") as mockedinitFmk, \
-                patch.object(CtrlrModel, 'updateCtrlrList') \
+                patch.object(CtrlrModel, '_updateCtrlrList') \
                 as mockedInitCtrlrs:
-            ctrlrMdl = CtrlrModel(self.testLogger,      # noqa: F841
-                                  (None, None, None, None, None))
+            CtrlrModel(self.testLogger, None, None, None, None, None, None)
             mockedinitFmk.assert_called_once()
             mockedInitCtrlrs.assert_called_once()
 
@@ -106,7 +119,7 @@ class TestCtrlrModel(TestCase):
                 patch.object(mockedCtrlr, 'listControllers') \
                 as mockedListCtrlrs:
             mockedListCtrlrs.return_value = self.testCtrlrList
-            self.ctrlrMdl.updateCtrlrList(self.testLogger)
+            self.ctrlrMdl._updateCtrlrList(self.testLogger)
             mockedListCtrlrs.assert_called_once()
 
     def test_initCtrlrsCreateCtrlrs(self):
@@ -124,5 +137,5 @@ class TestCtrlrModel(TestCase):
                 patch.object(mockedCtrlr, 'listControllers') \
                 as mockedListCtrlrs:
             mockedListCtrlrs.return_value = self.testCtrlrList
-            self.ctrlrMdl.updateCtrlrList(self.testLogger)
+            self.ctrlrMdl._updateCtrlrList(self.testLogger)
             mockedCtrlr.assert_has_calls(expectedCalls)

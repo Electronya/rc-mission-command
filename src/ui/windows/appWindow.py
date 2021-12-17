@@ -1,6 +1,7 @@
 import PySide2.QtWidgets as qtw
 
 from .appWindow_auto import Ui_MainWindow
+from ..models.ctrlrModel import CtrlrModel
 
 
 class AppWindow(qtw.QMainWindow, Ui_MainWindow):
@@ -27,4 +28,13 @@ class AppWindow(qtw.QMainWindow, Ui_MainWindow):
         Params:
             logger:     The application logger.
         """
-        pass
+        self._initCtrlrModel(logger)
+
+    def _initCtrlrModel(self, logger: object) -> None:
+        """
+        Initialize the controller model.
+        """
+        self._ctrlrModel = CtrlrModel(logger, self.ctrlrCalBtn,
+                                      self.ctrlrSelect, self.ctrlRefreshBtn,
+                                      self.ctrlrWheelIcon, self.ctrlrThrlBar,
+                                      self.ctrlrBrkBar)
