@@ -18,3 +18,13 @@ class AppWindow(qtw.QMainWindow, Ui_MainWindow):
         self._logger = appLogger.getLogger('APP_WINDOW')
         self._logger.debug('loading UI...')
         self.setupUi(self)
+        self._initModels(appLogger)
+
+    def _initModels(self, logger: object) -> None:
+        """
+        Initialize the UI models.
+
+        Params:
+            logger:     The application logger.
+        """
+        pass
