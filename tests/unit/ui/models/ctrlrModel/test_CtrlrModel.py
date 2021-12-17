@@ -21,29 +21,33 @@ class TestCtrlrModel(TestCase):
         self.testLogger = Mock()
         self.testCtrlrList = {'test controller 1': 0, 'test controller 2': 1,
                               'test controller 3': 2, 'test controller 4': 3}
-        self._setUpMockedCtrlrs()
         self._setUpMockedWidgets()
         with patch(self.ctrlr) as mockedCtrlr, \
                 patch.object(mockedCtrlr, 'initFramework'), \
                 patch.object(mockedCtrlr, 'listControllers') \
                 as mockedListCtrlrs:
-            mockedCtrlr.side_effect = self.testCtrlrs
+            mockedCtrlr.side_effect = \
+                self._setUpMockedCtrlrs(self.testCtrlrList)
             mockedListCtrlrs.return_value = self.testCtrlrList
             self.ctrlrMdl = CtrlrModel(self.testLogger, self.calBtn,
                                        self.ctrlrSelect, self.refreshBtn,
                                        self.wheelIcon, self.thrtlBar,
                                        self.brkBar)
 
-    def _setUpMockedCtrlrs(self):
+    def _setUpMockedCtrlrs(self, ctrlrList: dict):
         """
         Setup the mocked controllers.
+
+        Params:
+            ctrlrList:      The controller list to mock.
         """
-        self.testCtrlrs = []
-        for testCtrlr in self.testCtrlrList:
+        mockedCtrlrs = []
+        for testCtrlr in ctrlrList:
             mockedCtrlr = Mock()
             mockedCtrlr.getName.return_value = testCtrlr
-            mockedCtrlr.getIdx.return_value = self.testCtrlrList[testCtrlr]
-            self.testCtrlrs.append(mockedCtrlr)
+            mockedCtrlr.getIdx.return_value = ctrlrList[testCtrlr]
+            mockedCtrlrs.append(mockedCtrlr)
+        return mockedCtrlrs
 
     def _setUpMockedWidgets(self):
         """
@@ -106,9 +110,13 @@ class TestCtrlrModel(TestCase):
         """
         addedCtrlrs = {'new controller 1': 6, 'new controller 2': 7}
         newList = {**self.testCtrlrList, **addedCtrlrs}
-        # TODO: correct error.
-        # self.ctrlrMdl._addControllers(newList, tuple(addedCtrlrs))
-        # self.assertEqual(tuple(newList), self.ctrlrMdl._controllers['list'])
+        mockedNewCtrlrs = self._setUpMockedCtrlrs(addedCtrlrs)
+        with patch(self.ctrlr) as mockedCtrlr:
+            mockedCtrlr.side_effect = mockedNewCtrlrs
+            self.ctrlrMdl._addControllers(newList, tuple(addedCtrlrs))
+            for mockedCtrlr in mockedNewCtrlrs:
+                self.assertTrue(mockedCtrlr in
+                                self.ctrlrMdl._controllers['list'])
 
     def test_initCtrlrsListCtrlrs(self):
         """

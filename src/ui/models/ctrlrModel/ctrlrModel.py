@@ -27,6 +27,7 @@ class CtrlrModel(QStandardItemModel):
             brkBar:         The brake bar.
         """
         super(CtrlrModel, self).__init__(0, 1)
+        self._appLogger = appLogger
         self._logger = appLogger.getLogger('CTRL_MODEL')
         self._calibBtn = calBtn
         self._ctrlrSelect = ctrlrSelect
@@ -34,6 +35,7 @@ class CtrlrModel(QStandardItemModel):
         self._wheelIcon = wheelIcon
         self._thrtlBar = thrtlBar
         self._brkBar = brkBar
+        # self._ctrlrSelect.setModel(self)
         self._controllers = {'active': None, 'list': []}
         Controller.initFramework()
         self._updateCtrlrList(appLogger)
@@ -87,8 +89,21 @@ class CtrlrModel(QStandardItemModel):
 
         Params:
             availableCtrlrs:    The availabble controllers.
-            addList:            The list on controllers to add.
+            addList:            The list of controllers to add.
         """
+        for ctrlr in addList:
+            self._controllers['list'].append(Controller(self._appLogger,
+                                                        availableCtrlrs[ctrlr],
+                                                        ctrlr))
+
+    def _removeControllers(self, removeList: tuple) -> None:
+        """
+        Removed unconnected controllers.
+
+        Params:
+            removeList:         The list of controllers to remove.
+        """
+        pass
 
     def _updateCtrlrList(self, appLogger) -> None:
         """
@@ -104,7 +119,8 @@ class CtrlrModel(QStandardItemModel):
             controllers.append(Controller(appLogger,
                                           ctrlrList[ctrlName],
                                           ctrlName))
-        self._controllers = {'active': controllers[0], 'list': controllers}
+        self._controllers = {'active': controllers[0] if len(controllers) else None,    # noqa: E501
+                             'list': controllers}
         self._logger.info('controller list updated')
 
     # def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
