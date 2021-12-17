@@ -6,6 +6,8 @@ omit =
     tests/*
     src/pkgs/messages/*
     src/mqttClient/*
+    src/ui/assets/resources_auto.py
+    src/ui/windows/appWindow_auto.py
 
 [report]
 exclude_lines =

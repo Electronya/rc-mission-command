@@ -17,7 +17,8 @@ class TestController(TestCase):
         """
         Teast cases setup.
         """
-        self.testRoot = Mock()
+        self.pygamePkg = 'pkgs.controller.controller.pg'
+        self.joystickClass = 'pkgs.controller.controller.joystick.Joystick'
         self.testLogger = Mock()
         self.testNames = ('test ctrlr 1', 'test ctrlr 2', 'test ctrlr 3')
         self.testIdxes = (0, 1, 2)
@@ -30,10 +31,9 @@ class TestController(TestCase):
                 as configFile:
             self.testConfig = configFile.read()
         with patch('builtins.open', mock_open(read_data=self.testConfig)), \
-                patch('pkgs.controller.controller.joystick.Joystick') as mockedJoystick:
+                patch(self.joystickClass) as mockedJoystick:
             mockedJoystick.return_value = self.testJoysticks[0]
-            self.testCtrlr = Controller(self.testRoot, self.testLogger,
-                                        0, self.testNames[0])
+            self.testCtrlr = Controller(self.testLogger, 0, self.testNames[0])
         self._setSteeringValues()
         self._setThrottleValues()
         self._setBrakeValues()
@@ -91,9 +91,10 @@ class TestController(TestCase):
         """
         self.testJoysticks[0].reset_mock()
         with patch('builtins.open', mock_open(read_data=self.testConfig)), \
-                patch('pkgs.controller.controller.joystick.Joystick') as mockedJoystick:
+                patch(self.joystickClass) \
+                as mockedJoystick:
             mockedJoystick.return_value = self.testJoysticks[0]
-            testCtrlr = Controller(self.testRoot, self.testLogger,  # noqa: F841 E501
+            testCtrlr = Controller(self.testLogger,  # noqa: F841 E501
                                    self.testIdxes[0], self.testNames[0])
             mockedJoystick.assert_called_once_with(self.testIdxes[0])
             self.testJoysticks[0].init.assert_called_once()
@@ -106,11 +107,28 @@ class TestController(TestCase):
                                     f"{self.testNames[0].replace(' ', '_')}.json")  # noqa: E501
         with patch('builtins.open', mock_open(read_data=self.testConfig)) \
                 as mockedConfigFile, \
-                patch('pkgs.controller.controller.joystick.Joystick'):
-            testCtrlr = Controller(self.testRoot, self.testLogger,  # noqa: F841 E501
+                patch(self.joystickClass):
+            testCtrlr = Controller(self.testLogger,  # noqa: F841 E501
                                    self.testIdxes[0], self.testNames[0])
             mockedConfigFile.assert_called_once_with(expectedPath)
             mockedConfigFile().read.assert_called_once()
+
+    def test_initFramework(self):
+        """
+        The initFramework method must initialize the pygame framework.
+        """
+        with patch(self.pygamePkg) as mockedPygame:
+            mockedPygame.JOYAXISMOTION = 0
+            mockedPygame.JOYBUTTONDOWN = 1
+            mockedPygame.JOYBUTTONUP = 2,
+            mockedPygame.JOYHATMOTION = 3
+            expectedEvents = [mockedPygame.JOYAXISMOTION,
+                              mockedPygame.JOYBUTTONDOWN,
+                              mockedPygame.JOYBUTTONUP,
+                              mockedPygame.JOYHATMOTION]
+            Controller.initFramework()
+            mockedPygame.init.assert_called_once()
+            mockedPygame.event.set_allowed.assert_called_once_with(expectedEvents)  # noqa: E501
 
     def test_listConnected(self):
         """
@@ -158,7 +176,7 @@ class TestController(TestCase):
         """
         with patch.object(Controller, '_listConnected'), \
                 patch.object(Controller, '_filterUnsupported'), \
-                patch('pkgs.controller.controller.os.listdir') as mockedListDir:
+                patch('pkgs.controller.controller.os.listdir') as mockedListDir:    # noqa: E501
             Controller.listControllers()
             mockedListDir.assert_called_once_with(Controller.CONFIG_ROOT_DIR)
 
@@ -174,7 +192,7 @@ class TestController(TestCase):
                 as mockedListConnected, \
                 patch.object(Controller, '_filterUnsupported') \
                 as mockedFilterUnsupported, \
-                patch('pkgs.controller.controller.os.listdir') as mockedListSupported:
+                patch('pkgs.controller.controller.os.listdir') as mockedListSupported:  # noqa: E501
             mockedListConnected.return_value = self.testNames
             mockedListSupported.return_value = testSupported
             Controller.listControllers()
