@@ -98,12 +98,16 @@ class CtrlrModel(QStandardItemModel):
 
     def _removeControllers(self, removeList: tuple) -> None:
         """
-        Removed unconnected controllers.
+        Removed the old controllers.
 
         Params:
             removeList:         The list of controllers to remove.
         """
-        pass
+        if self._controllers['active'].getName() in removeList:
+            self._controllers['active'] = None
+        for ctrlr in self._controllers['list']:
+            if ctrlr.getName() in removeList:
+                self._controllers['list'].remove(ctrlr)
 
     def _updateCtrlrList(self, appLogger) -> None:
         """

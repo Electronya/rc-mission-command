@@ -118,32 +118,18 @@ class TestCtrlrModel(TestCase):
                 self.assertTrue(mockedCtrlr in
                                 self.ctrlrMdl._controllers['list'])
 
-    def test_initCtrlrsListCtrlrs(self):
+    def test_removeControllers(self):
         """
-        The initControllers method must list the available controllers.
+        The _removeControllers method must reset the active controller
+        if it has been removed and remove the old controllers.
         """
-        with patch(self.ctrlr) as mockedCtrlr, \
-                patch.object(mockedCtrlr, 'initFramework'), \
-                patch.object(mockedCtrlr, 'listControllers') \
-                as mockedListCtrlrs:
-            mockedListCtrlrs.return_value = self.testCtrlrList
-            self.ctrlrMdl._updateCtrlrList(self.testLogger)
-            mockedListCtrlrs.assert_called_once()
-
-    def test_initCtrlrsCreateCtrlrs(self):
-        """
-        The initControllers method must instanciate a Controller for each
-        available controllers.
-        """
-        expectedCalls = []
-        for ctrlrName in self.testCtrlrList:
-            expectedCalls.append(call(self.testLogger,
-                                      self.testCtrlrList[ctrlrName],
-                                      ctrlrName))
-        with patch(self.ctrlr) as mockedCtrlr, \
-                patch.object(mockedCtrlr, 'initFramework'), \
-                patch.object(mockedCtrlr, 'listControllers') \
-                as mockedListCtrlrs:
-            mockedListCtrlrs.return_value = self.testCtrlrList
-            self.ctrlrMdl._updateCtrlrList(self.testLogger)
-            mockedCtrlr.assert_has_calls(expectedCalls)
+        first = 0
+        last = len(self.testCtrlrList) - 1
+        ctrlrNames = list(self.testCtrlrList.keys())
+        oldCtrlrs = (ctrlrNames[first], ctrlrNames[last])
+        expectedCtrlrList = self.ctrlrMdl._controllers['list'].copy()
+        expectedCtrlrList.remove(self.ctrlrMdl._controllers['list'][first])
+        expectedCtrlrList.remove(self.ctrlrMdl._controllers['list'][last])
+        self.ctrlrMdl._removeControllers(oldCtrlrs)
+        self.assertEqual(self.ctrlrMdl._controllers['active'], None)
+        self.assertEqual(self.ctrlrMdl._controllers['list'], expectedCtrlrList)
