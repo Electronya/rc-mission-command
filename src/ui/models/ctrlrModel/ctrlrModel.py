@@ -38,7 +38,7 @@ class CtrlrModel(QStandardItemModel):
         # self._ctrlrSelect.setModel(self)
         self._controllers = {'active': None, 'list': []}
         Controller.initFramework()
-        self._updateCtrlrList(appLogger)
+        self._updateCtrlrList()
 
     def _listCurrentCtrlrs(self) -> tuple:
         """
@@ -52,33 +52,34 @@ class CtrlrModel(QStandardItemModel):
             currentNames.append(ctrlr.getName())
         return tuple(currentNames)
 
-    def _filterAddedCtrlrs(self, currentList: tuple, newList: tuple) -> tuple:
+    def _filterAddedCtrlrs(self, newList: tuple) -> tuple:
         """
         Filter the added controllers.
 
         Params:
-            currentList:    The current list of controllers.
             newList:        The new list of controllers.
 
         Return:
             The list of controllers to add.
         """
+        currentList = map(lambda ctrlr: ctrlr.getName(),
+                          self._controllers['list'])
         addedCtrlrs = filter(lambda newCtrlr: newCtrlr not in currentList,
                              newList)
         return tuple(addedCtrlrs)
 
-    def _filterRemovedCtrlrs(self, currentList: tuple,
-                             newList: tuple) -> tuple:
+    def _filterRemovedCtrlrs(self, newList: tuple) -> tuple:
         """
         Filter the controllers to be removed.
 
         Params:
-            currentList:    The current list of controllers.
             newList:        The new list of controllers.
 
         Return:
             The list of controllers to remove.
         """
+        currentList = map(lambda ctrlr: ctrlr.getName(),
+                          self._controllers['list'])
         removedCtrls = filter(lambda oldCtrlr: oldCtrlr not in newList,
                               currentList)
         return tuple(removedCtrls)
@@ -88,7 +89,7 @@ class CtrlrModel(QStandardItemModel):
         Add the new controllers.
 
         Params:
-            availableCtrlrs:    The availabble controllers.
+            availableCtrlrs:    The available controllers.
             addList:            The list of controllers to add.
         """
         for ctrlr in addList:
@@ -109,22 +110,16 @@ class CtrlrModel(QStandardItemModel):
             if ctrlr.getName() in removeList:
                 self._controllers['list'].remove(ctrlr)
 
-    def _updateCtrlrList(self, appLogger) -> None:
+    def _updateCtrlrList(self) -> None:
         """
         Update the controller list.
-
-        Params:
-            appLogger:  The application logger.
         """
         self._logger.info('updating controller list...')
-        ctrlrList = Controller.listControllers()
-        controllers = []
-        for ctrlName in ctrlrList:
-            controllers.append(Controller(appLogger,
-                                          ctrlrList[ctrlName],
-                                          ctrlName))
-        self._controllers = {'active': controllers[0] if len(controllers) else None,    # noqa: E501
-                             'list': controllers}
+        connectedCtrlrs = Controller.listControllers()
+        addedCtrls = self._filterAddedCtrlrs(tuple(connectedCtrlrs))
+        self._addControllers(connectedCtrlrs, addedCtrls)
+        removedCtrlrs = self._filterRemovedCtrlrs(tuple(connectedCtrlrs))
+        self._removeControllers(removedCtrlrs)
         self._logger.info('controller list updated')
 
     # def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:

@@ -21,18 +21,17 @@ class TestCtrlrModel(TestCase):
         self.testLogger = Mock()
         self.testCtrlrList = {'test controller 1': 0, 'test controller 2': 1,
                               'test controller 3': 2, 'test controller 4': 3}
+        self.mockedCtrlrs = self._setUpMockedCtrlrs(self.testCtrlrList)
         self._setUpMockedWidgets()
         with patch(self.ctrlr) as mockedCtrlr, \
                 patch.object(mockedCtrlr, 'initFramework'), \
-                patch.object(mockedCtrlr, 'listControllers') \
-                as mockedListCtrlrs:
-            mockedCtrlr.side_effect = \
-                self._setUpMockedCtrlrs(self.testCtrlrList)
-            mockedListCtrlrs.return_value = self.testCtrlrList
+                patch.object(CtrlrModel, '_updateCtrlrList'):
             self.ctrlrMdl = CtrlrModel(self.testLogger, self.calBtn,
                                        self.ctrlrSelect, self.refreshBtn,
                                        self.wheelIcon, self.thrtlBar,
                                        self.brkBar)
+            self.ctrlrMdl._controllers['active'] = self.mockedCtrlrs[0]
+            self.ctrlrMdl._controllers['list'] = self.mockedCtrlrs
 
     def _setUpMockedCtrlrs(self, ctrlrList: dict):
         """
@@ -74,7 +73,7 @@ class TestCtrlrModel(TestCase):
 
     def test_listCurrentCtrlrs(self):
         """
-        The _listCurrentCtrlrs mehod must return the list of
+        The _listCurrentCtrlrs method must return the list of
         current controller names.
         """
         testResult = self.ctrlrMdl._listCurrentCtrlrs()
@@ -87,8 +86,7 @@ class TestCtrlrModel(TestCase):
         """
         addedCtrlrs = {'new controller 1': 6, 'new controller 2': 7}
         newList = {**self.testCtrlrList, **addedCtrlrs}
-        testResult = self.ctrlrMdl._filterAddedCtrlrs(tuple(self.testCtrlrList),    # noqa: E501
-                                                      newList)
+        testResult = self.ctrlrMdl._filterAddedCtrlrs(newList)
         self.assertEqual(testResult, tuple(addedCtrlrs.keys()))
 
     def test_filterRemovedCtrlrs(self):
@@ -100,8 +98,7 @@ class TestCtrlrModel(TestCase):
         newList = self.testCtrlrList.copy()
         for ctrlr in removedCtrlrs:
             del newList[ctrlr]
-        testResult = self.ctrlrMdl._filterRemovedCtrlrs(tuple(self.testCtrlrList),  # noqa: E501
-                                                        newList)
+        testResult = self.ctrlrMdl._filterRemovedCtrlrs(newList)
         self.assertEqual(testResult, removedCtrlrs)
 
     def test_addControllers(self):
@@ -133,3 +130,70 @@ class TestCtrlrModel(TestCase):
         self.ctrlrMdl._removeControllers(oldCtrlrs)
         self.assertEqual(self.ctrlrMdl._controllers['active'], None)
         self.assertEqual(self.ctrlrMdl._controllers['list'], expectedCtrlrList)
+
+    def test_updateCtrlrListListConnected(self):
+        """
+        The _updateCtrlrList method must list the currently
+        connected controllers.
+        """
+        with patch(f"{self.ctrlr}.listControllers") \
+                as mockedListCtrlrs:
+            mockedListCtrlrs.return_value = {}
+            self.ctrlrMdl._updateCtrlrList()
+            mockedListCtrlrs.assert_called_once()
+
+    def test_updateCtrlrListFilterAdd(self):
+        """
+        The _updateCtrlrList method must filter the
+        newly added controllers.
+        """
+        with patch(f"{self.ctrlr}.listControllers") as mockedCtrlList, \
+                patch.object(self.ctrlrMdl, '_filterAddedCtrlrs') \
+                as mockedFilterAdded:
+            mockedCtrlList.return_value = self.testCtrlrList
+            self.ctrlrMdl._updateCtrlrList()
+            mockedFilterAdded. \
+                assert_called_once_with(tuple(self.testCtrlrList))
+
+    def test_updateCtrlrListAddNew(self):
+        """
+        The _updateCtrlrList method must add the new controllers.
+        """
+        newCtrlrs = {"new controller 1": 5, "new controller 2": 6}
+        newCtrlrList = {**self.testCtrlrList, **newCtrlrs}
+        with patch(f"{self.ctrlr}.listControllers") as mockedCtrlList, \
+                patch.object(self.ctrlrMdl, '_addControllers') \
+                as mockedAddCtrlrs:
+            mockedCtrlList.return_value = newCtrlrList
+            print(self.ctrlrMdl._controllers['list'])
+            self.ctrlrMdl._updateCtrlrList()
+            mockedAddCtrlrs.assert_called_once_with(newCtrlrList,
+                                                    tuple(newCtrlrs))
+
+    def test_updateCtrlrListFilterRemove(self):
+        """
+        The _updateCtrlrList method must filter the
+        removed controllers.
+        """
+        with patch(f"{self.ctrlr}.listControllers") as mockedCtrlrList, \
+                patch.object(self.ctrlrMdl, '_filterRemovedCtrlrs') \
+                as mockedFilterRemove:
+            mockedCtrlrList.return_value = self.testCtrlrList
+            self.ctrlrMdl._updateCtrlrList()
+            mockedFilterRemove. \
+                assert_called_once_with(tuple(self.testCtrlrList))
+
+    def test_updateCtrlrListRemoveOld(self):
+        """
+        The _updateCtrlrList method must remove the old controllers.
+        """
+        ctrlrs2Remove = ['test controller 2', 'test controller 4']
+        newCtrlrList = self.testCtrlrList.copy()
+        for ctrlr2Remove in ctrlrs2Remove:
+            del newCtrlrList[ctrlr2Remove]
+        with patch(f"{self.ctrlr}.listControllers") as mockedCtrlrList, \
+                patch.object(self.ctrlrMdl, '_removeControllers') \
+                as mockedRemoveCtrlr:
+            mockedCtrlrList.return_value = newCtrlrList
+            self.ctrlrMdl._updateCtrlrList()
+            mockedRemoveCtrlr.assert_called_once_with(tuple(ctrlrs2Remove))
