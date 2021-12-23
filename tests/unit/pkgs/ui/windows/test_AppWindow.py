@@ -6,7 +6,7 @@ import sys
 
 sys.path.append(os.path.abspath('./src'))
 
-from ui.windows import AppWindow    # noqa: E402
+from pkgs.ui.windows import AppWindow    # noqa: E402
 
 
 class TestAppWindow(TestCase):
@@ -14,7 +14,7 @@ class TestAppWindow(TestCase):
     AppWindow test cases.
     """
     def setUp(self) -> None:
-        self.QMainwindow = 'ui.windows.appWindow.qtw.QMainWindow.__init__'
+        self.QMainwindow = 'pkgs.ui.windows.appWindow.qtw.QMainWindow.__init__'
         self.logger = Mock()
         with patch(self.QMainwindow), \
                 patch.object(AppWindow, 'setupUi'), \

@@ -104,7 +104,8 @@ class CtrlrModel(QStandardItemModel):
         Params:
             removeList:         The list of controllers to remove.
         """
-        if self._controllers['active'].getName() in removeList:
+        if self._controllers['active'] and \
+                self._controllers['active'].getName() in removeList:
             self._controllers['active'] = None
         for ctrlr in self._controllers['list']:
             if ctrlr.getName() in removeList:
@@ -122,14 +123,14 @@ class CtrlrModel(QStandardItemModel):
         self._removeControllers(removedCtrlrs)
         self._logger.info('controller list updated')
 
-    # def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
-    #     """
-    #     Get the number of row.
+    def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
+        """
+        Get the number of row.
 
-    #     Return:
-    #         The number of row.
-    #     """
-    #     return len(self._controllers['list'])
+        Return:
+            The number of row.
+        """
+        return len(self._controllers['list'])
 
     # def columnCount(self, parent: QModelIndex = QModelIndex()) -> int:
     #     """

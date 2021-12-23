@@ -6,7 +6,7 @@ import sys
 
 sys.path.append(os.path.abspath('./src'))
 
-from ui.models.ctrlrModel import CtrlrModel     # noqa: E402
+from pkgs.ui.models.ctrlrModel import CtrlrModel     # noqa: E402
 
 
 class TestCtrlrModel(TestCase):
@@ -17,7 +17,7 @@ class TestCtrlrModel(TestCase):
         """
         Test cases setup.
         """
-        self.ctrlr = 'ui.models.ctrlrModel.ctrlrModel.Controller'
+        self.ctrlr = 'pkgs.ui.models.ctrlrModel.ctrlrModel.Controller'
         self.testLogger = Mock()
         self.testCtrlrList = {'test controller 1': 0, 'test controller 2': 1,
                               'test controller 3': 2, 'test controller 4': 3}

@@ -6,7 +6,7 @@ import sys
 
 sys.path.append(os.path.abspath('./src'))
 
-from ui.appComposer import AppComposer      # noqa: E402
+from pkgs.ui.appComposer import AppComposer      # noqa: E402
 
 
 class TestAppComposer(TestCase):
@@ -14,9 +14,9 @@ class TestAppComposer(TestCase):
     AppComposer class test cases.
     """
     def setUp(self) -> None:
-        self.QAppClass = 'ui.appComposer.QApplication'
-        self.AppWindowClass = 'ui.appComposer.AppWindow'
-        self.sys = 'ui.appComposer.sys'
+        self.QAppClass = 'pkgs.ui.appComposer.QApplication'
+        self.AppWindowClass = 'pkgs.ui.appComposer.AppWindow'
+        self.sys = 'pkgs.ui.appComposer.sys'
         self.logger = Mock()
         self.QApplication = Mock()
         self.AppWindow = Mock()
