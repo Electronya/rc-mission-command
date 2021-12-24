@@ -34,7 +34,4 @@ class AppWindow(qtw.QMainWindow, Ui_MainWindow):
         """
         Initialize the controller model.
         """
-        self._ctrlrModel = CtrlrModel(logger, self.ctrlrCalBtn,
-                                      self.ctrlrSelect, self.ctrlRefreshBtn,
-                                      self.ctrlrWheelIcon, self.ctrlrThrlBar,
-                                      self.ctrlrBrkBar)
+        self._ctrlrModel = CtrlrModel(logger)

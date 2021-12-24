@@ -1,44 +1,29 @@
-from PySide2.QtCore import QModelIndex
-from PySide2.QtGui import QStandardItemModel
-from PySide2.QtWidgets import QComboBox, QGraphicsView, \
-    QProgressBar, QPushButton
+from PySide2.QtCore import QObject, Signal
+from PySide2.QtGui import QStandardItem, QStandardItemModel
 
 from pkgs.controller import Controller
 
 
-class CtrlrModel(QStandardItemModel):
+class CtrlrModel(QObject):
     """
     Controller model.
     """
-    def __init__(self, appLogger: object, calBtn: QPushButton,
-                 ctrlrSelect: QComboBox, refreshBtn: QPushButton,
-                 wheelIcon: QGraphicsView, thrtlBar: QProgressBar,
-                 brkBar: QProgressBar) -> None:
+    def __init__(self, appLogger: object) -> None:
         """
         Constructor.
 
         Params:
             appLogger:      The application logger.
-            calBtn:         The calibration button.
-            ctrlrSelect:    The controller selection combo box.
-            refreshBtn:     The controller list refresh button.
-            wheelIcon:      The wheel icon.
-            thrtlBar:       The throttle bar.
-            brkBar:         The brake bar.
         """
-        super(CtrlrModel, self).__init__(0, 1)
+        QObject.__init__(self)
         self._appLogger = appLogger
         self._logger = appLogger.getLogger('CTRL_MODEL')
-        self._calibBtn = calBtn
-        self._ctrlrSelect = ctrlrSelect
-        self._refreshBtn = refreshBtn
-        self._wheelIcon = wheelIcon
-        self._thrtlBar = thrtlBar
-        self._brkBar = brkBar
-        # self._ctrlrSelect.setModel(self)
+        self._logger.info('initializing...')
         self._controllers = {'active': None, 'list': []}
+        self.model = QStandardItemModel(0, 1)
         Controller.initFramework()
-        self._updateCtrlrList()
+        self.updateCtrlrList()
+        self._logger.info('initialized')
 
     def _listCurrentCtrlrs(self) -> tuple:
         """
@@ -111,7 +96,16 @@ class CtrlrModel(QStandardItemModel):
             if ctrlr.getName() in removeList:
                 self._controllers['list'].remove(ctrlr)
 
-    def _updateCtrlrList(self) -> None:
+    def _updateModel(self) -> None:
+        """
+        Update the controller combobox model.
+        """
+        self.model.clear()
+        for ctrlr in self._controllers['list']:
+            item = QStandardItem(ctrlr.getName())
+            self.model.appendRow(item)
+
+    def updateCtrlrList(self) -> None:
         """
         Update the controller list.
         """
@@ -121,25 +115,5 @@ class CtrlrModel(QStandardItemModel):
         self._addControllers(connectedCtrlrs, addedCtrls)
         removedCtrlrs = self._filterRemovedCtrlrs(tuple(connectedCtrlrs))
         self._removeControllers(removedCtrlrs)
+        self._updateModel()
         self._logger.info('controller list updated')
-
-    def rowCount(self, parent: QModelIndex = QModelIndex()) -> int:
-        """
-        Get the number of row.
-
-        Return:
-            The number of row.
-        """
-        return len(self._controllers['list'])
-
-    # def columnCount(self, parent: QModelIndex = QModelIndex()) -> int:
-    #     """
-    #     Get the number of column.
-
-    #     Return:
-    #         The number of column.
-    #     """
-    #     return 1
-
-    # def data(self, index: QModelIndex, role: int = ...) -> Any:
-    #     return super().data(index, role=role)

@@ -18,20 +18,20 @@ class TestCtrlrModel(TestCase):
         Test cases setup.
         """
         self.ctrlr = 'pkgs.ui.models.ctrlrModel.ctrlrModel.Controller'
+        self.QStdItem = 'pkgs.ui.models.ctrlrModel.ctrlrModel.QStandardItem'
+        self.QStdItemModel = 'pkgs.ui.models.ctrlrModel.ctrlrModel.QStandardItemModel'   # noqa: E501
         self.testLogger = Mock()
         self.testCtrlrList = {'test controller 1': 0, 'test controller 2': 1,
                               'test controller 3': 2, 'test controller 4': 3}
         self.mockedCtrlrs = self._setUpMockedCtrlrs(self.testCtrlrList)
-        self._setUpMockedWidgets()
+        self.mockedStdItemModel = Mock()
         with patch(self.ctrlr) as mockedCtrlr, \
                 patch.object(mockedCtrlr, 'initFramework'), \
-                patch.object(CtrlrModel, '_updateCtrlrList'):
-            self.ctrlrMdl = CtrlrModel(self.testLogger, self.calBtn,
-                                       self.ctrlrSelect, self.refreshBtn,
-                                       self.wheelIcon, self.thrtlBar,
-                                       self.brkBar)
+                patch.object(CtrlrModel, 'updateCtrlrList'):
+            self.ctrlrMdl = CtrlrModel(self.testLogger)
             self.ctrlrMdl._controllers['active'] = self.mockedCtrlrs[0]
             self.ctrlrMdl._controllers['list'] = self.mockedCtrlrs
+            self.ctrlrMdl.model = self.mockedStdItemModel
 
     def _setUpMockedCtrlrs(self, ctrlrList: dict):
         """
@@ -48,27 +48,18 @@ class TestCtrlrModel(TestCase):
             mockedCtrlrs.append(mockedCtrlr)
         return mockedCtrlrs
 
-    def _setUpMockedWidgets(self):
-        """
-        Setup the mocked widgets.
-        """
-        self.calBtn = Mock(),
-        self.ctrlrSelect = Mock()
-        self.refreshBtn = Mock()
-        self.wheelIcon = Mock()
-        self.thrtlBar = Mock()
-        self.brkBar = Mock()
-
     def test_constructorInitCtrlrs(self):
         """
-        The constructor must initialize the controller framework
-        and update the controller list.
+        The constructor must initialize the controller framework,
+        create the combobox model and update the controller list.
         """
         with patch(f"{self.ctrlr}.initFramework") as mockedinitFmk, \
-                patch.object(CtrlrModel, '_updateCtrlrList') \
+                patch(self.QStdItemModel) as mockedQStdItemMdl, \
+                patch.object(CtrlrModel, 'updateCtrlrList') \
                 as mockedInitCtrlrs:
-            CtrlrModel(self.testLogger, None, None, None, None, None, None)
+            CtrlrModel(self.testLogger)
             mockedinitFmk.assert_called_once()
+            mockedQStdItemMdl.assert_called_once_with(0, 1)
             mockedInitCtrlrs.assert_called_once()
 
     def test_listCurrentCtrlrs(self):
@@ -131,69 +122,111 @@ class TestCtrlrModel(TestCase):
         self.assertEqual(self.ctrlrMdl._controllers['active'], None)
         self.assertEqual(self.ctrlrMdl._controllers['list'], expectedCtrlrList)
 
+    def test_updateModelClear(self):
+        """
+        The _updateModel method must clear the model.
+        """
+        with patch(self.QStdItem):
+            self.ctrlrMdl._updateModel()
+            self.mockedStdItemModel.clear.assert_called_once()
+
+    def test_updateModelItem(self):
+        """
+        The _updateModel method must create and add items
+        for each controllers.
+        """
+        mockedItems = []
+        itemCalls = []
+        addItemCalls = []
+        for ctrlr in self.testCtrlrList:
+            mockedItems.append(ctrlr)
+            itemCalls.append(call(ctrlr))
+            addItemCalls.append(call(ctrlr))
+        with patch(self.QStdItem) as mockedStdItem:
+            mockedStdItem.side_effect = mockedItems
+            self.ctrlrMdl._updateModel()
+            mockedStdItem.assert_has_calls(itemCalls)
+            self.ctrlrMdl.model.appendRow.assert_has_calls(addItemCalls)
+
     def test_updateCtrlrListListConnected(self):
         """
-        The _updateCtrlrList method must list the currently
+        The updateCtrlrList method must list the currently
         connected controllers.
         """
-        with patch(f"{self.ctrlr}.listControllers") \
+        with patch.object(self.ctrlrMdl, '_updateModel'), \
+                patch(f"{self.ctrlr}.listControllers") \
                 as mockedListCtrlrs:
             mockedListCtrlrs.return_value = {}
-            self.ctrlrMdl._updateCtrlrList()
+            self.ctrlrMdl.updateCtrlrList()
             mockedListCtrlrs.assert_called_once()
 
     def test_updateCtrlrListFilterAdd(self):
         """
-        The _updateCtrlrList method must filter the
+        The updateCtrlrList method must filter the
         newly added controllers.
         """
-        with patch(f"{self.ctrlr}.listControllers") as mockedCtrlList, \
+        with patch.object(self.ctrlrMdl, '_updateModel'), \
+                patch(f"{self.ctrlr}.listControllers") as mockedCtrlList, \
                 patch.object(self.ctrlrMdl, '_filterAddedCtrlrs') \
                 as mockedFilterAdded:
             mockedCtrlList.return_value = self.testCtrlrList
-            self.ctrlrMdl._updateCtrlrList()
+            self.ctrlrMdl.updateCtrlrList()
             mockedFilterAdded. \
                 assert_called_once_with(tuple(self.testCtrlrList))
 
     def test_updateCtrlrListAddNew(self):
         """
-        The _updateCtrlrList method must add the new controllers.
+        The updateCtrlrList method must add the new controllers.
         """
         newCtrlrs = {"new controller 1": 5, "new controller 2": 6}
         newCtrlrList = {**self.testCtrlrList, **newCtrlrs}
-        with patch(f"{self.ctrlr}.listControllers") as mockedCtrlList, \
+        with patch.object(self.ctrlrMdl, '_updateModel'), \
+                patch(f"{self.ctrlr}.listControllers") as mockedCtrlList, \
                 patch.object(self.ctrlrMdl, '_addControllers') \
                 as mockedAddCtrlrs:
             mockedCtrlList.return_value = newCtrlrList
             print(self.ctrlrMdl._controllers['list'])
-            self.ctrlrMdl._updateCtrlrList()
+            self.ctrlrMdl.updateCtrlrList()
             mockedAddCtrlrs.assert_called_once_with(newCtrlrList,
                                                     tuple(newCtrlrs))
 
     def test_updateCtrlrListFilterRemove(self):
         """
-        The _updateCtrlrList method must filter the
+        The updateCtrlrList method must filter the
         removed controllers.
         """
-        with patch(f"{self.ctrlr}.listControllers") as mockedCtrlrList, \
+        with patch.object(self.ctrlrMdl, '_updateModel'), \
+                patch(f"{self.ctrlr}.listControllers") as mockedCtrlrList, \
                 patch.object(self.ctrlrMdl, '_filterRemovedCtrlrs') \
                 as mockedFilterRemove:
             mockedCtrlrList.return_value = self.testCtrlrList
-            self.ctrlrMdl._updateCtrlrList()
+            self.ctrlrMdl.updateCtrlrList()
             mockedFilterRemove. \
                 assert_called_once_with(tuple(self.testCtrlrList))
 
     def test_updateCtrlrListRemoveOld(self):
         """
-        The _updateCtrlrList method must remove the old controllers.
+        The updateCtrlrList method must remove the old controllers.
         """
         ctrlrs2Remove = ['test controller 2', 'test controller 4']
         newCtrlrList = self.testCtrlrList.copy()
         for ctrlr2Remove in ctrlrs2Remove:
             del newCtrlrList[ctrlr2Remove]
-        with patch(f"{self.ctrlr}.listControllers") as mockedCtrlrList, \
+        with patch.object(self.ctrlrMdl, '_updateModel'), \
+                patch(f"{self.ctrlr}.listControllers") as mockedCtrlrList, \
                 patch.object(self.ctrlrMdl, '_removeControllers') \
                 as mockedRemoveCtrlr:
             mockedCtrlrList.return_value = newCtrlrList
-            self.ctrlrMdl._updateCtrlrList()
+            self.ctrlrMdl.updateCtrlrList()
             mockedRemoveCtrlr.assert_called_once_with(tuple(ctrlrs2Remove))
+
+    def test_updateCtrlrListUpdateModel(self):
+        """
+        The updateCtrlrList method must update the selection combobox.
+        """
+        with patch.object(self.ctrlrMdl, '_updateModel') \
+                as mockedUpdateModel, \
+                patch(f"{self.ctrlr}.listControllers") as mockedCtrlrList:
+            mockedCtrlrList.return_value = self.testCtrlrList
+            self.ctrlrMdl.updateCtrlrList()
+            mockedUpdateModel.assert_called_once()
