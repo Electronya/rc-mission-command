@@ -70,26 +70,52 @@ class TestCtrlrsCtrlr(TestCase):
         The _initWidgets method must connect the calibration button
         to the calibration slots.
         """
-        self.ctrlrsCtrl._initWidgets()
-        self.mockedCalBtn.clicked.connect. \
-            assert_called_once_with(self.mockedCtrlrModel.calibrateCtrlr)
+        with patch.object(self.ctrlrsCtrl, '_initWheelWidgets'):
+            self.ctrlrsCtrl._initWidgets()
+            self.mockedCalBtn.clicked.connect. \
+                assert_called_once_with(self.mockedCtrlrModel.calibrateCtrlr)
 
     def test_initWidgetsSelect(self):
         """
         The _initWidgets method must set the combobox model and connect
         the selection change to the activate controller slot.
         """
-        self.ctrlrsCtrl._initWidgets()
-        self.mockedCtrlrSelect.setModel. \
-            assert_called_once_with(self.mockedCtrlrModel.model)
-        self.mockedCtrlrSelect.currentTextChanged.connect. \
-            assert_called_once_with(self.mockedCtrlrModel.activateCtrlr)
+        with patch.object(self.ctrlrsCtrl, '_initWheelWidgets'):
+            self.ctrlrsCtrl._initWidgets()
+            self.mockedCtrlrSelect.setModel. \
+                assert_called_once_with(self.mockedCtrlrModel.model)
+            self.mockedCtrlrSelect.currentTextChanged.connect. \
+                assert_called_once_with(self.mockedCtrlrModel.activateCtrlr)
 
     def test_initWidgetsRefreshBtn(self):
         """
         The _initWidgets method must connect the refresh button
         to the update controller list slot.
         """
-        self.ctrlrsCtrl._initWidgets()
-        self.mockedRefreshBtn.clicked.connect. \
-            assert_called_once_with(self.mockedCtrlrModel.updateCtrlrList)
+        with patch.object(self.ctrlrsCtrl, '_initWheelWidgets'):
+            self.ctrlrsCtrl._initWidgets()
+            self.mockedRefreshBtn.clicked.connect. \
+                assert_called_once_with(self.mockedCtrlrModel.updateCtrlrList)
+
+    def test_initWidgetsWheel(self):
+        """
+        The _initWidgets method must initialize the wheel icon widgets.
+        """
+        with patch.object(self.ctrlrsCtrl, '_initWheelWidgets') \
+                as mockedInitWheelWidgets:
+            self.ctrlrsCtrl._initWidgets()
+            mockedInitWheelWidgets.assert_called_once()
+
+    def test_initWidgetsClearAndColorBars(self):
+        """
+        The _initWidgets must clear and set the color
+        of the throttle and brake bars.
+        """
+        with patch.object(self.ctrlrsCtrl, '_initWheelWidgets'):
+            self.ctrlrsCtrl._initWidgets()
+            self.mockedThrtlBar.setValue.assert_called_once_with(0)
+            self.mockedThrtlBar.setStyleSheet. \
+                assert_called_once_with(self.ctrlrsCtrl.THRTL_STYLESHEET)
+            self.mockedBrkBar.setValue.assert_called_once_with(0)
+            self.mockedBrkBar.setStyleSheet. \
+                assert_called_once_with(self.ctrlrsCtrl.BRAKE_STYLESHEET)
