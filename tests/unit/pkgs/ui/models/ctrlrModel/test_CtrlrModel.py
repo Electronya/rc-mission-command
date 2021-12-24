@@ -148,6 +148,16 @@ class TestCtrlrModel(TestCase):
             mockedStdItem.assert_has_calls(itemCalls)
             self.ctrlrMdl.model.appendRow.assert_has_calls(addItemCalls)
 
+    def test_activateCtrlr(self):
+        """
+        The activateCtrlr methode must activate the controller with
+        the given name.
+        """
+        ctrlrIdx = 3
+        self.ctrlrMdl.activateCtrlr(tuple(self.testCtrlrList.keys())[ctrlrIdx])
+        self.assertEqual(self.ctrlrMdl._controllers['active'],
+                         self.mockedCtrlrs[ctrlrIdx])
+
     def test_updateCtrlrListListConnected(self):
         """
         The updateCtrlrList method must list the currently

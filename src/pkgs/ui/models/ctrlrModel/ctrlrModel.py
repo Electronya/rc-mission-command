@@ -105,10 +105,25 @@ class CtrlrModel(QObject):
             item = QStandardItem(ctrlr.getName())
             self.model.appendRow(item)
 
-    def calibrate(self):
+    def calibrateCtrlr(self) -> None:
         """
         Calibrate the active controller.
+        TODO: Setup the calibraton.
         """
+        self._logger.info(f"calibrating controller "
+                          f"{self._controllers['active'].getName()}")
+
+    def activateCtrlr(self, ctrlrName: str) -> None:
+        """
+        Activate controller.
+
+        Params:
+            ctrlrName:      The name of the controller to activate.
+        """
+        self._logger.info(f"activating controller {ctrlrName}")
+        activeCtrlr = filter(lambda ctrlr: ctrlrName == ctrlr.getName(),
+                             self._controllers['list'])
+        self._controllers['active'] = tuple(activeCtrlr)[0]
 
     def updateCtrlrList(self) -> None:
         """

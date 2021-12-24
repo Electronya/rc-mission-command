@@ -40,4 +40,6 @@ class CtrlrsCtrlr():
         """
         Initialize the widgets.
         """
-        self._calBtn.clicked.connect(self._model.calibrate)
+        self._calBtn.clicked.connect(self._model.calibrateCtrlr)
+        self._selectCombo.setModel(self._model.model)
+        self._selectCombo.currentTextChanged.connect(self._model.activateCtrlr)

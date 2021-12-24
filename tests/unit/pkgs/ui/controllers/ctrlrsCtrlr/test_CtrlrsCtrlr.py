@@ -72,4 +72,15 @@ class TestCtrlrsCtrlr(TestCase):
         """
         self.ctrlrsCtrl._initWidgets()
         self.mockedCalBtn.clicked.connect. \
-            assert_called_once_with(self.mockedCtrlrModel.calibrate)
+            assert_called_once_with(self.mockedCtrlrModel.calibrateCtrlr)
+
+    def test_initWidgetsSelect(self):
+        """
+        The _initWidgets method must set the combobox model and connect
+        the selection change to the activate controller slot.
+        """
+        self.ctrlrsCtrl._initWidgets()
+        self.mockedCtrlrSelect.setModel. \
+            assert_called_once_with(self.mockedCtrlrModel.model)
+        self.mockedCtrlrSelect.currentTextChanged.connect. \
+            assert_called_once_with(self.mockedCtrlrModel.activateCtrlr)
