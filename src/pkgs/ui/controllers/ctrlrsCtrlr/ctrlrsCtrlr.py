@@ -43,3 +43,4 @@ class CtrlrsCtrlr():
         self._calBtn.clicked.connect(self._model.calibrateCtrlr)
         self._selectCombo.setModel(self._model.model)
         self._selectCombo.currentTextChanged.connect(self._model.activateCtrlr)
+        self._refreshBtn.clicked.connect(self._model.updateCtrlrList)

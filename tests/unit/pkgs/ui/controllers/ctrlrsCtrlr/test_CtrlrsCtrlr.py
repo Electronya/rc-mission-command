@@ -84,3 +84,12 @@ class TestCtrlrsCtrlr(TestCase):
             assert_called_once_with(self.mockedCtrlrModel.model)
         self.mockedCtrlrSelect.currentTextChanged.connect. \
             assert_called_once_with(self.mockedCtrlrModel.activateCtrlr)
+
+    def test_initWidgetsRefreshBtn(self):
+        """
+        The _initWidgets method must connect the refresh button
+        to the update controller list slot.
+        """
+        self.ctrlrsCtrl._initWidgets()
+        self.mockedRefreshBtn.clicked.connect. \
+            assert_called_once_with(self.mockedCtrlrModel.updateCtrlrList)
