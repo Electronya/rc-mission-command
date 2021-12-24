@@ -1,7 +1,7 @@
 import PySide2.QtWidgets as qtw
 
 from .appWindow_auto import Ui_MainWindow
-from ..models.ctrlrModel import CtrlrModel
+from ..controllers.ctrlrsCtrlr import CtrlrsCtrlr
 
 
 class AppWindow(qtw.QMainWindow, Ui_MainWindow):
@@ -19,19 +19,22 @@ class AppWindow(qtw.QMainWindow, Ui_MainWindow):
         self._logger = appLogger.getLogger('APP_WINDOW')
         self._logger.debug('loading UI...')
         self.setupUi(self)
-        self._initModels(appLogger)
+        self._initCtrlrs(appLogger)
 
-    def _initModels(self, logger: object) -> None:
+    def _initCtrlrs(self, logger: object) -> None:
         """
         Initialize the UI models.
 
         Params:
             logger:     The application logger.
         """
-        self._initCtrlrModel(logger)
+        self._initCtrlrsCtrlr(logger)
 
-    def _initCtrlrModel(self, logger: object) -> None:
+    def _initCtrlrsCtrlr(self, logger: object) -> None:
         """
-        Initialize the controller model.
+        Initialize the controllers controller.
         """
-        self._ctrlrModel = CtrlrModel(logger)
+        self._ctrlrsCtrlr = CtrlrsCtrlr(logger, self.ctrlrCalBtn,
+                                        self.ctrlrSelect, self.ctrlRefreshBtn,
+                                        self.ctrlrWheelIcon, self.ctrlrThrlBar,
+                                        self.ctrlrBrkBar)

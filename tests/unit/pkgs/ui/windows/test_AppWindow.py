@@ -18,7 +18,7 @@ class TestAppWindow(TestCase):
         self.logger = Mock()
         with patch(self.QMainwindow), \
                 patch.object(AppWindow, 'setupUi'), \
-                patch.object(AppWindow, '_initModels'):
+                patch.object(AppWindow, '_initCtrlrs'):
             self.testAppWindow = AppWindow(self.logger)
 
     def test_constructorSetupUi(self) -> None:
@@ -27,7 +27,7 @@ class TestAppWindow(TestCase):
         """
         with patch(self.QMainwindow), \
                 patch.object(AppWindow, 'setupUi') as mockedSetupUi, \
-                patch.object(AppWindow, '_initModels'):
+                patch.object(AppWindow, '_initCtrlrs'):
             testAppWindow = AppWindow(self.logger)
             mockedSetupUi.assert_called_once_with(testAppWindow)
 
@@ -37,15 +37,15 @@ class TestAppWindow(TestCase):
         """
         with patch(self.QMainwindow), \
                 patch.object(AppWindow, 'setupUi'), \
-                patch.object(AppWindow, '_initModels') as mockedInitModels:
+                patch.object(AppWindow, '_initCtrlrs') as mockedInitCtrlrs:
             AppWindow(self.logger)
-            mockedInitModels.assert_called_once_with(self.logger)
+            mockedInitCtrlrs.assert_called_once_with(self.logger)
 
-    def test_initModelsCtrlrModel(self):
+    def test_initCtrlrsCtrlrsCtrlr(self):
         """
-        The _initModels method must initialize the controller model.
+        The _initCtrlrs method must initialize the controllers controller.
         """
-        with patch.object(self.testAppWindow, '_initCtrlrModel') \
+        with patch.object(self.testAppWindow, '_initCtrlrsCtrlr') \
                 as mockedInitCtrlModel:
-            self.testAppWindow._initModels(self.logger)
+            self.testAppWindow._initCtrlrs(self.logger)
             mockedInitCtrlModel.assert_called_once_with(self.logger)

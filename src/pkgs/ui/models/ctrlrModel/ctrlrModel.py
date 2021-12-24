@@ -105,6 +105,11 @@ class CtrlrModel(QObject):
             item = QStandardItem(ctrlr.getName())
             self.model.appendRow(item)
 
+    def calibrate(self):
+        """
+        Calibrate the active controller.
+        """
+
     def updateCtrlrList(self) -> None:
         """
         Update the controller list.
