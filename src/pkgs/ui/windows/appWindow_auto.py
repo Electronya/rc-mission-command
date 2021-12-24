@@ -48,11 +48,11 @@ class Ui_MainWindow(object):
         self.ctrlrGroupBex.setObjectName(u"ctrlrGroupBex")
         self.gridLayout = QGridLayout(self.ctrlrGroupBex)
         self.gridLayout.setObjectName(u"gridLayout")
-        self.ctrlrWheelGraphView = QGraphicsView(self.ctrlrGroupBex)
-        self.ctrlrWheelGraphView.setObjectName(u"ctrlrWheelGraphView")
-        self.ctrlrWheelGraphView.setEnabled(False)
+        self.ctrlrWheelIcon = QGraphicsView(self.ctrlrGroupBex)
+        self.ctrlrWheelIcon.setObjectName(u"ctrlrWheelIcon")
+        self.ctrlrWheelIcon.setEnabled(False)
 
-        self.gridLayout.addWidget(self.ctrlrWheelGraphView, 1, 0, 2, 1)
+        self.gridLayout.addWidget(self.ctrlrWheelIcon, 1, 0, 2, 1)
 
         self.ctrlrSelect = QComboBox(self.ctrlrGroupBex)
         self.ctrlrSelect.setObjectName(u"ctrlrSelect")
@@ -73,19 +73,19 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addWidget(self.ctrlRefreshBtn, 0, 2, 1, 1)
 
-        self.thrlBar = QProgressBar(self.ctrlrGroupBex)
-        self.thrlBar.setObjectName(u"thrlBar")
-        self.thrlBar.setEnabled(False)
-        self.thrlBar.setValue(24)
+        self.ctrlrThrlBar = QProgressBar(self.ctrlrGroupBex)
+        self.ctrlrThrlBar.setObjectName(u"ctrlrThrlBar")
+        self.ctrlrThrlBar.setEnabled(False)
+        self.ctrlrThrlBar.setValue(24)
 
-        self.gridLayout.addWidget(self.thrlBar, 1, 1, 1, 2)
+        self.gridLayout.addWidget(self.ctrlrThrlBar, 1, 1, 1, 2)
 
-        self.brkBar = QProgressBar(self.ctrlrGroupBex)
-        self.brkBar.setObjectName(u"brkBar")
-        self.brkBar.setEnabled(False)
-        self.brkBar.setValue(24)
+        self.ctrlrBrkBar = QProgressBar(self.ctrlrGroupBex)
+        self.ctrlrBrkBar.setObjectName(u"ctrlrBrkBar")
+        self.ctrlrBrkBar.setEnabled(False)
+        self.ctrlrBrkBar.setValue(24)
 
-        self.gridLayout.addWidget(self.brkBar, 2, 1, 1, 2)
+        self.gridLayout.addWidget(self.ctrlrBrkBar, 2, 1, 1, 2)
 
         self.gridLayout.setColumnStretch(0, 1)
         self.gridLayout.setColumnStretch(1, 3)

@@ -6,7 +6,7 @@ import sys
 
 sys.path.append(os.path.abspath('./src'))
 
-from ui.windows import AppWindow
+from pkgs.ui.windows import AppWindow    # noqa: E402
 
 
 class TestAppWindow(TestCase):
@@ -14,8 +14,12 @@ class TestAppWindow(TestCase):
     AppWindow test cases.
     """
     def setUp(self) -> None:
-        self.QMainwindow = 'ui.windows.appWindow.qtw.QMainWindow.__init__'
+        self.QMainwindow = 'pkgs.ui.windows.appWindow.qtw.QMainWindow.__init__'
         self.logger = Mock()
+        with patch(self.QMainwindow), \
+                patch.object(AppWindow, 'setupUi'), \
+                patch.object(AppWindow, '_initModels'):
+            self.testAppWindow = AppWindow(self.logger)
 
     def test_constructorSetupUi(self) -> None:
         """
@@ -36,3 +40,12 @@ class TestAppWindow(TestCase):
                 patch.object(AppWindow, '_initModels') as mockedInitModels:
             AppWindow(self.logger)
             mockedInitModels.assert_called_once_with(self.logger)
+
+    def test_initModelsCtrlrModel(self):
+        """
+        The _initModels method must initialize the controller model.
+        """
+        with patch.object(self.testAppWindow, '_initCtrlrModel') \
+                as mockedInitCtrlModel:
+            self.testAppWindow._initModels(self.logger)
+            mockedInitCtrlModel.assert_called_once_with(self.logger)

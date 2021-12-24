@@ -4,7 +4,7 @@ from logger import initLogger
 from pkgs.controller import Controller
 import pkgs.mqttClient as client
 
-from ui import AppComposer
+from pkgs.ui import AppComposer
 
 # App constants
 _CLIENT_ID = 'commander'
