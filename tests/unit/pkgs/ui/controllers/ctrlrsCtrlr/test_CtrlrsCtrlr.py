@@ -17,9 +17,13 @@ class TestCtrlrsCtrlr(TestCase):
         """
         Test cases setup.
         """
-        self.ctrlrModel = 'pkgs.ui.controllers.ctrlrsCtrlr.ctrlrsCtrlr.CtrlrModel'  # noqa: E501
+        self.ctrlrModel = 'pkgs.ui.controllers.ctrlrsCtrlr.ctrlrsCtrlr.CtrlrModel'          # noqa: E501
+        self.graphicScene = 'pkgs.ui.controllers.ctrlrsCtrlr.ctrlrsCtrlr.QGraphicsScene'    # noqa: E501
+        self.graphSvgItem = 'pkgs.ui.controllers.ctrlrsCtrlr.ctrlrsCtrlr.QGraphicsSvgItem'        # noqa: E501
         self.mockedLogger = Mock()
         self.mockedCtrlrModel = Mock()
+        self.mockedGraphScene = Mock()
+        self.mockedGraphSvgItem = Mock()
         self._setUpMockedWidgets()
         with patch(self.ctrlrModel) as mockedCtrlrMdl, \
                 patch.object(CtrlrsCtrlr, '_initWidgets'):
@@ -27,7 +31,7 @@ class TestCtrlrsCtrlr(TestCase):
             self.ctrlrsCtrl = CtrlrsCtrlr(self.mockedLogger, self.mockedCalBtn,
                                           self.mockedCtrlrSelect,
                                           self.mockedRefreshBtn,
-                                          self.mockedWheelIcon,
+                                          self.mockedWheelView,
                                           self.mockedThrtlBar,
                                           self.mockedBrkBar)
 
@@ -38,7 +42,7 @@ class TestCtrlrsCtrlr(TestCase):
         self.mockedCalBtn = Mock()
         self.mockedCtrlrSelect = Mock()
         self.mockedRefreshBtn = Mock()
-        self.mockedWheelIcon = Mock()
+        self.mockedWheelView = Mock()
         self.mockedThrtlBar = Mock()
         self.mockedBrkBar = Mock()
 
@@ -46,10 +50,11 @@ class TestCtrlrsCtrlr(TestCase):
         """
         The constructor must instantiate the model.
         """
-        with patch(self.ctrlrModel) as mockedCtrlrMdl:
+        with patch(self.ctrlrModel) as mockedCtrlrMdl, \
+                patch.object(CtrlrsCtrlr, '_initWidgets'):
             CtrlrsCtrlr(self.mockedLogger, self.mockedCalBtn,
                         self.mockedCtrlrSelect, self.mockedRefreshBtn,
-                        self.mockedWheelIcon, self.mockedThrtlBar,
+                        self.mockedWheelView, self.mockedThrtlBar,
                         self.mockedBrkBar)
             mockedCtrlrMdl.assert_called_once_with(self.mockedLogger)
 
@@ -61,17 +66,18 @@ class TestCtrlrsCtrlr(TestCase):
                 patch.object(CtrlrsCtrlr, '_initWidgets') as mockedInitWidgets:
             CtrlrsCtrlr(self.mockedLogger, self.mockedCalBtn,
                         self.mockedCtrlrSelect, self.mockedRefreshBtn,
-                        self.mockedWheelIcon, self.mockedThrtlBar,
+                        self.mockedWheelView, self.mockedThrtlBar,
                         self.mockedBrkBar)
             mockedInitWidgets.assert_called_once()
 
     def test_initWidgetsCalBtn(self):
         """
         The _initWidgets method must connect the calibration button
-        to the calibration slots.
+        to the calibration slots and disable it.
         """
         with patch.object(self.ctrlrsCtrl, '_initWheelWidgets'):
             self.ctrlrsCtrl._initWidgets()
+            self.mockedCalBtn.setEnabled.assert_called_once_with(False)
             self.mockedCalBtn.clicked.connect. \
                 assert_called_once_with(self.mockedCtrlrModel.calibrateCtrlr)
 
@@ -108,7 +114,7 @@ class TestCtrlrsCtrlr(TestCase):
 
     def test_initWidgetsClearAndColorBars(self):
         """
-        The _initWidgets must clear and set the color
+        The _initWidgets method must clear and set the color
         of the throttle and brake bars.
         """
         with patch.object(self.ctrlrsCtrl, '_initWheelWidgets'):
@@ -119,3 +125,23 @@ class TestCtrlrsCtrlr(TestCase):
             self.mockedBrkBar.setValue.assert_called_once_with(0)
             self.mockedBrkBar.setStyleSheet. \
                 assert_called_once_with(self.ctrlrsCtrl.BRAKE_STYLESHEET)
+
+    def test_initWheelWidgetsCreateScene(self):
+        """
+        The _initWheelWidgets method must create the graphic scene
+        and add the wheel icon to it.
+        """
+        with patch(self.graphicScene) as mockedGraphScene, \
+                patch(self.graphSvgItem) as mockedGraphSvgItem:
+            mockedGraphScene.return_value = self.mockedGraphScene
+            mockedGraphSvgItem.return_value = self.mockedGraphSvgItem
+            self.ctrlrsCtrl._initWheelWidgets()
+            mockedGraphSvgItem. \
+                assert_called_once_with(self.ctrlrsCtrl.WHEEL_ICON)
+            self.mockedGraphSvgItem.setScale. \
+                assert_called_once_with(self.ctrlrsCtrl.WHEEL_ICON_SCALE)
+            mockedGraphScene.assert_called_once()
+            self.mockedGraphScene.addItem. \
+                assert_called_once_with(self.mockedGraphSvgItem)
+            self.mockedWheelView.setScene. \
+                assert_called_once_with(self.mockedGraphScene)

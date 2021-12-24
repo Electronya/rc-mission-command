@@ -1,4 +1,5 @@
 
+from PySide2.QtSvg import QGraphicsSvgItem
 from PySide2.QtWidgets import QComboBox, QGraphicsView, \
     QGraphicsScene, QProgressBar, QPushButton
 
@@ -11,6 +12,8 @@ class CtrlrsCtrlr():
     """
     THRTL_STYLESHEET = 'QProgressBar::chunk {background-color: green;}'
     BRAKE_STYLESHEET = 'QProgressBar::chunk {background-color: red;}'
+    WHEEL_ICON = ':/controller/icons/steering-wheel.svg'
+    WHEEL_ICON_SCALE = 0.12
 
     def __init__(self, logger: object, calibrate: QPushButton,
                  select: QComboBox, refresh: QPushButton,
@@ -45,6 +48,7 @@ class CtrlrsCtrlr():
         Initialize the widgets.
         """
         self._calBtn.clicked.connect(self._model.calibrateCtrlr)
+        self._calBtn.setEnabled(False)
         self._selectCombo.setModel(self._model.model)
         self._selectCombo.currentTextChanged.connect(self._model.activateCtrlr)
         self._refreshBtn.clicked.connect(self._model.updateCtrlrList)
@@ -58,3 +62,8 @@ class CtrlrsCtrlr():
         """
         Initialize the wheel widgets
         """
+        icon = QGraphicsSvgItem(self.WHEEL_ICON)
+        icon.setScale(self.WHEEL_ICON_SCALE)
+        scene = QGraphicsScene()
+        scene.addItem(icon)
+        self._wheelView.setScene(scene)
