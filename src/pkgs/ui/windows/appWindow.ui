@@ -44,30 +44,30 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QGroupBox" name="ctrlrGroupBex">
+        <widget class="QGroupBox" name="joystickGroupBex">
          <property name="title">
-          <string>Controller</string>
+          <string>Joystick</string>
          </property>
          <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0" columnstretch="1,3,0">
           <item row="1" column="0" rowspan="2">
-           <widget class="QGraphicsView" name="ctrlrWheelIcon">
+           <widget class="QGraphicsView" name="joystickWheelIcon">
             <property name="enabled">
              <bool>false</bool>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QComboBox" name="ctrlrSelect"/>
+           <widget class="QComboBox" name="joystickSelect"/>
           </item>
           <item row="0" column="0">
-           <widget class="QPushButton" name="ctrlrCalBtn">
+           <widget class="QPushButton" name="joystickCalBtn">
             <property name="text">
              <string>Calibrate</string>
             </property>
            </widget>
           </item>
           <item row="0" column="2">
-           <widget class="QPushButton" name="ctrlRefreshBtn">
+           <widget class="QPushButton" name="joystickRefreshBtn">
             <property name="text">
              <string/>
             </property>
@@ -84,7 +84,7 @@
            </widget>
           </item>
           <item row="1" column="1" colspan="2">
-           <widget class="QProgressBar" name="ctrlrThrlBar">
+           <widget class="QProgressBar" name="joystickThrlBar">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -94,7 +94,7 @@
            </widget>
           </item>
           <item row="2" column="1" colspan="2">
-           <widget class="QProgressBar" name="ctrlrBrkBar">
+           <widget class="QProgressBar" name="joystickBrkBar">
             <property name="enabled">
              <bool>false</bool>
             </property>

@@ -5,7 +5,7 @@ import pygame as pg
 from pygame import event, joystick
 
 
-class Controller:
+class Joystick:
     """
     Class implementing the controller function.
     """
@@ -94,13 +94,13 @@ class Controller:
         return filteredCtrlrs
 
     @classmethod
-    def listControllers(cls) -> dict:
+    def listAvailable(cls) -> dict:
         """
-        List the connected and supported controller.
+        List the available joystick.
 
         Return:
-            A Dictionary listing the connected and supported controller.
-            The keys is the controller name and the value is its index.
+            A Dictionary listing the available joystick.
+            The keys is the joystick name and the value is its index.
         """
         connected = cls._listConnected()
         supported = (f.replace('.json', '')
@@ -169,7 +169,7 @@ class Controller:
 
     def _getAxesMap(self) -> list:
         """
-        Get the controller axis mapping.
+        Get the joystick axis mapping.
 
         Return:
             The list containing the map of the axis.
@@ -178,7 +178,7 @@ class Controller:
 
     def _getButtonsMap(self) -> list:
         """
-        Get the controller buttons mapping.
+        Get the joystick buttons mapping.
 
         Return:
             The list containing the map of the buttons.
@@ -187,7 +187,7 @@ class Controller:
 
     def _getHatsMap(self) -> list:
         """
-        Get the controller hats mapping.
+        Get the joystick hats mapping.
 
         Return:
             The list containing the map of the hats.
@@ -196,7 +196,7 @@ class Controller:
 
     def _getFuncMap(self) -> dict:
         """
-        Get the controller function mapping.
+        Get the joystick function mapping.
 
         Return:
             A dictionary containing the map of the functions.
@@ -255,7 +255,7 @@ class Controller:
 
     def _calibrate(self, calibSeqNumber: int) -> None:
         """
-        Calibrate the controller.
+        Calibrate the joystick.
 
         Params:
             calibSeqNumber: calibration sequence number.
@@ -278,7 +278,7 @@ class Controller:
         Get the joystick name.
 
         Return:
-            The name of the controller.
+            The name of the joystick.
         """
         return self._joystick.get_name()
 
@@ -286,22 +286,22 @@ class Controller:
         """
         Get the joystick index
         Return:
-            The index of the controller.
+            The index of the joystick.
         """
         return self._idx
 
     def getType(self) -> str:
         """
-        Get the controller type.
+        Get the joystick type.
 
         Return:
-            The controller type.
+            The joystick type.
         """
         return self._config[self.TYPE_KEY]
 
     def processEvents(self):
         """
-        Process the controller events.
+        Process the joystick events.
         """
         if self._isCalibrated:
             for ev in event.get():
@@ -328,7 +328,7 @@ class Controller:
 
     def quit(self) -> None:
         """
-        Uninitialize the controller.
+        Uninitialized the joystick.
         """
-        self._logger.info('unitializing controller')
+        self._logger.info('unitializing joystick')
         self._joystick.quit()

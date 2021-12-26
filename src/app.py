@@ -1,7 +1,7 @@
 import pygame
 
 from logger import initLogger
-from pkgs.controller import Controller
+from pkgs.joystick import Joystick
 import pkgs.mqttClient as client
 
 from pkgs.ui import AppComposer

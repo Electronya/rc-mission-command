@@ -18,7 +18,7 @@ class TestAppWindow(TestCase):
         self.logger = Mock()
         with patch(self.QMainwindow), \
                 patch.object(AppWindow, 'setupUi'), \
-                patch.object(AppWindow, '_initCtrlrs'):
+                patch.object(AppWindow, '_initUI'):
             self.testAppWindow = AppWindow(self.logger)
 
     def test_constructorSetupUi(self) -> None:
@@ -27,25 +27,25 @@ class TestAppWindow(TestCase):
         """
         with patch(self.QMainwindow), \
                 patch.object(AppWindow, 'setupUi') as mockedSetupUi, \
-                patch.object(AppWindow, '_initCtrlrs'):
+                patch.object(AppWindow, '_initUI'):
             testAppWindow = AppWindow(self.logger)
             mockedSetupUi.assert_called_once_with(testAppWindow)
 
-    def test_constructorInitModels(self) -> None:
+    def test_constructorInitUI(self) -> None:
         """
-        The constructor must initialize the UI models.
+        The constructor must initialize the UI submodules.
         """
         with patch(self.QMainwindow), \
                 patch.object(AppWindow, 'setupUi'), \
-                patch.object(AppWindow, '_initCtrlrs') as mockedInitCtrlrs:
+                patch.object(AppWindow, '_initUI') as mockedInitUI:
             AppWindow(self.logger)
-            mockedInitCtrlrs.assert_called_once_with(self.logger)
+            mockedInitUI.assert_called_once_with(self.logger)
 
-    def test_initCtrlrsCtrlrsCtrlr(self):
+    def test_initUiJoystickCtrlr(self):
         """
-        The _initCtrlrs method must initialize the controllers controller.
+        The _initUI method must initialize the controllers controller.
         """
-        with patch.object(self.testAppWindow, '_initCtrlrsCtrlr') \
-                as mockedInitCtrlModel:
-            self.testAppWindow._initCtrlrs(self.logger)
-            mockedInitCtrlModel.assert_called_once_with(self.logger)
+        with patch.object(self.testAppWindow, '_initJoystickCtrlr') \
+                as mockedInitJoystickCtrlr:
+            self.testAppWindow._initUI(self.logger)
+            mockedInitJoystickCtrlr.assert_called_once_with(self.logger)

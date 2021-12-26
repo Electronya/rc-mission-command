@@ -3,10 +3,10 @@ from PySide2.QtSvg import QGraphicsSvgItem
 from PySide2.QtWidgets import QComboBox, QGraphicsView, \
     QGraphicsScene, QProgressBar, QPushButton
 
-from ...models.ctrlrModel import CtrlrModel
+from ...models.joystickModel import JoystickModel
 
 
-class CtrlrsCtrlr():
+class JoystickCtrlr():
     """
     The controllers widget controller.
     """
@@ -39,7 +39,7 @@ class CtrlrsCtrlr():
         self._wheelView = wheel
         self._thrtlBar = thrtlBar
         self._brakeBar = brkBar
-        self._model = CtrlrModel(logger)
+        self._model = JoystickModel(logger)
         self._initWidgets()
         self._logger.info('intialized')
 
@@ -47,11 +47,11 @@ class CtrlrsCtrlr():
         """
         Initialize the widgets.
         """
-        self._calBtn.clicked.connect(self._model.calibrateCtrlr)
-        self._calBtn.setEnabled(False)
+        self._calBtn.clicked.connect(self._model.calibrateJoystick)
         self._selectCombo.setModel(self._model.model)
-        self._selectCombo.currentTextChanged.connect(self._model.activateCtrlr)
-        self._refreshBtn.clicked.connect(self._model.updateCtrlrList)
+        self._selectCombo.currentTextChanged. \
+            connect(self._model.activateJoystick)
+        self._refreshBtn.clicked.connect(self._model.updateJoystickList)
         self._initWheelWidgets()
         self._thrtlBar.setValue(0)
         self._thrtlBar.setStyleSheet(self.THRTL_STYLESHEET)

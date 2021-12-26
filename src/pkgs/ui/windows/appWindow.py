@@ -1,7 +1,7 @@
 import PySide2.QtWidgets as qtw
 
 from .appWindow_auto import Ui_MainWindow
-from ..controllers.ctrlrsCtrlr import CtrlrsCtrlr
+from ..controllers.joystickCtrlr import JoystickCtrlr
 
 
 class AppWindow(qtw.QMainWindow, Ui_MainWindow):
@@ -19,22 +19,24 @@ class AppWindow(qtw.QMainWindow, Ui_MainWindow):
         self._logger = appLogger.getLogger('APP_WINDOW')
         self._logger.debug('loading UI...')
         self.setupUi(self)
-        self._initCtrlrs(appLogger)
+        self._initUI(appLogger)
 
-    def _initCtrlrs(self, logger: object) -> None:
+    def _initUI(self, logger: object) -> None:
         """
         Initialize the UI models.
 
         Params:
             logger:     The application logger.
         """
-        self._initCtrlrsCtrlr(logger)
+        self._initJoystickCtrlr(logger)
 
-    def _initCtrlrsCtrlr(self, logger: object) -> None:
+    def _initJoystickCtrlr(self, logger: object) -> None:
         """
-        Initialize the controllers controller.
+        Initialize the joystick controller.
         """
-        self._ctrlrsCtrlr = CtrlrsCtrlr(logger, self.ctrlrCalBtn,
-                                        self.ctrlrSelect, self.ctrlRefreshBtn,
-                                        self.ctrlrWheelIcon, self.ctrlrThrlBar,
-                                        self.ctrlrBrkBar)
+        self._joystickCtrlr = JoystickCtrlr(logger, self.joystickCalBtn,
+                                            self.joystickSelect,
+                                            self.joystickRefreshBtn,
+                                            self.joystickWheelIcon,
+                                            self.joystickThrlBar,
+                                            self.joystickBrkBar)
