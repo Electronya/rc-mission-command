@@ -36,7 +36,6 @@ class AppWindow(qtw.QMainWindow, Ui_MainWindow):
         """
         self._joystickCtrlr = JoystickCtrlr(logger, self.joystickCalBtn,
                                             self.joystickSelect,
-                                            self.joystickRefreshBtn,
                                             self.joystickWheelIcon,
                                             self.joystickThrlBar,
                                             self.joystickBrkBar)

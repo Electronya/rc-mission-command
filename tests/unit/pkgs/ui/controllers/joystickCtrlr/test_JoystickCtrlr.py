@@ -31,7 +31,6 @@ class TestJoystickCtrlr(TestCase):
             self.joystickCtrl = JoystickCtrlr(self.mockedLogger,
                                               self.mockedCalBtn,
                                               self.mockedJoystickSelect,
-                                              self.mockedRefreshBtn,
                                               self.mockedWheelView,
                                               self.mockedThrtlBar,
                                               self.mockedBrkBar)
@@ -54,9 +53,8 @@ class TestJoystickCtrlr(TestCase):
         with patch(self.joystickModelCls) as mockedCtrlrMdl, \
                 patch.object(JoystickCtrlr, '_initWidgets'):
             JoystickCtrlr(self.mockedLogger, self.mockedCalBtn,
-                          self.mockedJoystickSelect, self.mockedRefreshBtn,
-                          self.mockedWheelView, self.mockedThrtlBar,
-                          self.mockedBrkBar)
+                          self.mockedJoystickSelect, self.mockedWheelView,
+                          self.mockedThrtlBar, self.mockedBrkBar)
             mockedCtrlrMdl.assert_called_once_with(self.mockedLogger)
 
     def test_constructorInitWidgets(self):
@@ -67,9 +65,8 @@ class TestJoystickCtrlr(TestCase):
                 patch.object(JoystickCtrlr, '_initWidgets') \
                 as mockedInitWidgets:
             JoystickCtrlr(self.mockedLogger, self.mockedCalBtn,
-                          self.mockedJoystickSelect, self.mockedRefreshBtn,
-                          self.mockedWheelView, self.mockedThrtlBar,
-                          self.mockedBrkBar)
+                          self.mockedJoystickSelect, self.mockedWheelView,
+                          self.mockedThrtlBar, self.mockedBrkBar)
             mockedInitWidgets.assert_called_once()
 
     def test_initWidgetsCalBtn(self):
@@ -93,16 +90,6 @@ class TestJoystickCtrlr(TestCase):
                 assert_called_once_with(self.mockedJoystickModel.model)
             self.mockedJoystickSelect.currentTextChanged.connect. \
                 assert_called_once_with(self.mockedJoystickModel.activateJoystick)      # noqa: E501
-
-    def test_initWidgetsRefreshBtn(self):
-        """
-        The _initWidgets method must connect the refresh button
-        to the update controller list slot.
-        """
-        with patch.object(self.joystickCtrl, '_initWheelWidgets'):
-            self.joystickCtrl._initWidgets()
-            self.mockedRefreshBtn.clicked.connect. \
-                assert_called_once_with(self.mockedJoystickModel.updateJoystickList)    # noqa: E501
 
     def test_initWidgetsWheel(self):
         """

@@ -20,6 +20,17 @@ class TestAppWindow(TestCase):
                 patch.object(AppWindow, 'setupUi'), \
                 patch.object(AppWindow, '_initUI'):
             self.testAppWindow = AppWindow(self.logger)
+        self._setUpMockedWidgets()
+
+    def _setUpMockedWidgets(self):
+        """
+        Setup the mocked widgets.
+        """
+        self.testAppWindow.joystickCalBtn = Mock()
+        self.testAppWindow.joystickSelect = Mock()
+        self.testAppWindow.joystickWheelIcon = Mock()
+        self.testAppWindow.joystickThrlBar = Mock()
+        self.testAppWindow.joystickBrkBar = Mock()
 
     def test_constructorSetupUi(self) -> None:
         """
@@ -43,9 +54,10 @@ class TestAppWindow(TestCase):
 
     def test_initUiJoystickCtrlr(self):
         """
-        The _initUI method must initialize the controllers controller.
+        The _initUI method must initialize the joysticks controller.
         """
         with patch.object(self.testAppWindow, '_initJoystickCtrlr') \
                 as mockedInitJoystickCtrlr:
             self.testAppWindow._initUI(self.logger)
-            mockedInitJoystickCtrlr.assert_called_once_with(self.logger)
+            mockedInitJoystickCtrlr. \
+                assert_called_once_with(self.logger)

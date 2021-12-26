@@ -16,9 +16,8 @@ class JoystickCtrlr():
     WHEEL_ICON_SCALE = 0.12
 
     def __init__(self, logger: object, calibrate: QPushButton,
-                 select: QComboBox, refresh: QPushButton,
-                 wheel: QGraphicsView, thrtlBar: QProgressBar,
-                 brkBar: QProgressBar) -> None:
+                 select: QComboBox, wheel: QGraphicsView,
+                 thrtlBar: QProgressBar, brkBar: QProgressBar) -> None:
         """
         Constructor.
 
@@ -31,11 +30,10 @@ class JoystickCtrlr():
             thrtlBar:   The throttle position bar.
             brkBar:     The brake position bar.
         """
-        self._logger = logger.getLogger('CTRLRS-CTRLR')
+        self._logger = logger.getLogger('JOYSTICK-CTRLR')
         self._logger.info('intializing...')
         self._calBtn = calibrate
         self._selectCombo = select
-        self._refreshBtn = refresh
         self._wheelView = wheel
         self._thrtlBar = thrtlBar
         self._brakeBar = brkBar
@@ -51,7 +49,6 @@ class JoystickCtrlr():
         self._selectCombo.setModel(self._model.model)
         self._selectCombo.currentTextChanged. \
             connect(self._model.activateJoystick)
-        self._refreshBtn.clicked.connect(self._model.updateJoystickList)
         self._initWheelWidgets()
         self._thrtlBar.setValue(0)
         self._thrtlBar.setStyleSheet(self.THRTL_STYLESHEET)

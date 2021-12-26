@@ -64,15 +64,6 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addWidget(self.joystickCalBtn, 0, 0, 1, 1)
 
-        self.joystickRefreshBtn = QPushButton(self.joystickGroupBex)
-        self.joystickRefreshBtn.setObjectName(u"joystickRefreshBtn")
-        icon1 = QIcon()
-        icon1.addFile(u":/controller/icons/reload.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.joystickRefreshBtn.setIcon(icon1)
-        self.joystickRefreshBtn.setIconSize(QSize(20, 20))
-
-        self.gridLayout.addWidget(self.joystickRefreshBtn, 0, 2, 1, 1)
-
         self.joystickThrlBar = QProgressBar(self.joystickGroupBex)
         self.joystickThrlBar.setObjectName(u"joystickThrlBar")
         self.joystickThrlBar.setEnabled(False)
@@ -140,9 +131,9 @@ class Ui_MainWindow(object):
 
         self.connectionBtn = QPushButton(self.commGroupBox)
         self.connectionBtn.setObjectName(u"connectionBtn")
-        icon2 = QIcon()
-        icon2.addFile(u":/communication/icons/disconnected.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.connectionBtn.setIcon(icon2)
+        icon1 = QIcon()
+        icon1.addFile(u":/communication/icons/disconnected.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.connectionBtn.setIcon(icon1)
         self.connectionBtn.setIconSize(QSize(32, 32))
 
         self.gridLayout_2.addWidget(self.connectionBtn, 0, 2, 4, 1)
@@ -200,7 +191,6 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"RC Mission Commander", None))
         self.joystickGroupBex.setTitle(QCoreApplication.translate("MainWindow", u"Joystick", None))
         self.joystickCalBtn.setText(QCoreApplication.translate("MainWindow", u"Calibrate", None))
-        self.joystickRefreshBtn.setText("")
         self.unitsGroupBox.setTitle(QCoreApplication.translate("MainWindow", u"Units", None))
         self.commGroupBox.setTitle(QCoreApplication.translate("MainWindow", u"Communication", None))
         self.brokerPortLabel.setText(QCoreApplication.translate("MainWindow", u"Port", None))
