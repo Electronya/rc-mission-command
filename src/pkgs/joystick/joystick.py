@@ -7,9 +7,9 @@ from pygame import event, joystick
 
 class Joystick:
     """
-    Class implementing the controller function.
+    Class implementing the joystick function.
     """
-    CONFIG_ROOT_DIR = './src/pkgs/controller/configs/'
+    CONFIG_ROOT_DIR = './src/pkgs/joystick/configs/'
     TYPE_KEY = 'type'
     CTRLS_KEY = 'controls'
     AXES_KEY = 'axes'
@@ -30,9 +30,9 @@ class Joystick:
         Params:
             dispatcher:     The application event dispatcher.
             logger:         The application logger.
-            idx:            The index of the controller from 0 to
+            idx:            The index of the joystick from 0 to
                             pygame.joystick.get_count().
-            name:           The controller name.
+            name:           The joystick name.
             ndigit:         The digit number for the axis precision.
                             Default: 2.
         """
@@ -40,7 +40,7 @@ class Joystick:
         self._idx = idx
         self._ndigit = ndigit
         self._isCalibrated = False
-        self._logger.info(f"creating controller {name}")
+        self._logger.info(f"creating joystick {name}")
         self._joystick = joystick.Joystick(idx)
         self._joystick.init()
         filename = f"{name.lower().replace(' ', '_')}.json"
@@ -60,13 +60,13 @@ class Joystick:
     @classmethod
     def _listConnected(cls) -> tuple:
         """
-        List the connected controller.
+        List the connected joystick.
 
         Params:
             logger:     The logger.
 
         Returns:
-            The list of connected controller.
+            The list of connected joystick.
         """
         connected = []
         for ctrlrId in range(joystick.get_count()):
@@ -77,14 +77,14 @@ class Joystick:
     @classmethod
     def _filterUnsupported(cls, connected: tuple, supported: tuple) -> dict:
         """
-        Filter the unsupported controller.
+        Filter the unsupported joystick.
 
         Params:
-            connected:  The list of connected controller.
-            supported:  The list of supported controller.
+            connected:  The list of connected joystick.
+            supported:  The list of supported joystick.
 
         Return:
-            A dictionary listing the filtered controllers
+            A dictionary listing the filtered joysticks
         """
         filteredCtrlrs = {}
         for idx, ctrlrName in enumerate(connected):
