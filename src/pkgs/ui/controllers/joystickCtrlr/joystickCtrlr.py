@@ -1,12 +1,13 @@
 
+from PySide2.QtCore import QObject, Signal
 from PySide2.QtSvg import QGraphicsSvgItem
 from PySide2.QtWidgets import QComboBox, QGraphicsView, \
-    QGraphicsScene, QProgressBar, QPushButton
+    QGraphicsScene, QMessageBox, QProgressBar, QPushButton
 
 from ...models.joystickModel import JoystickModel
 
 
-class JoystickCtrlr():
+class JoystickCtrlr(QObject):
     """
     The controllers widget controller.
     """
@@ -14,6 +15,8 @@ class JoystickCtrlr():
     BRAKE_STYLESHEET = 'QProgressBar::chunk {background-color: red;}'
     WHEEL_ICON = ':/controller/icons/steering-wheel.svg'
     WHEEL_ICON_SCALE = 0.12
+
+    error = Signal(QMessageBox.Icon, Exception)
 
     def __init__(self, logger: object, calibrate: QPushButton,
                  select: QComboBox, wheel: QGraphicsView,
@@ -30,6 +33,7 @@ class JoystickCtrlr():
             thrtlBar:   The throttle position bar.
             brkBar:     The brake position bar.
         """
+        QObject.__init__(self)
         self._logger = logger.getLogger('JOYSTICK-CTRLR')
         self._logger.info('intializing...')
         self._calBtn = calibrate
@@ -41,7 +45,7 @@ class JoystickCtrlr():
         self._initWidgets()
         self._logger.info('intialized')
 
-    def _initWidgets(self):
+    def _initWidgets(self) -> None:
         """
         Initialize the widgets.
         """
@@ -55,7 +59,7 @@ class JoystickCtrlr():
         self._brakeBar.setValue(0)
         self._brakeBar.setStyleSheet(self.BRAKE_STYLESHEET)
 
-    def _initWheelWidgets(self):
+    def _initWheelWidgets(self) -> None:
         """
         Initialize the wheel widgets
         """
@@ -64,3 +68,13 @@ class JoystickCtrlr():
         scene = QGraphicsScene()
         scene.addItem(icon)
         self._wheelView.setScene(scene)
+
+    def areJoystickAvailable(self) -> None:
+        """
+        Check if there is an available joystick.
+        """
+        availableCount = self._model.model.rowCount()
+        if availableCount == 0:
+            self._logger.error(f"available joystick count: {availableCount}")
+            self.error.emit(QMessageBox.Critical,
+                            Exception('No joystick are available.'))

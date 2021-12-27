@@ -61,6 +61,9 @@
           </item>
           <item row="0" column="0">
            <widget class="QPushButton" name="joystickCalBtn">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Calibrate</string>
             </property>

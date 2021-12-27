@@ -61,6 +61,7 @@ class Ui_MainWindow(object):
 
         self.joystickCalBtn = QPushButton(self.joystickGroupBex)
         self.joystickCalBtn.setObjectName(u"joystickCalBtn")
+        self.joystickCalBtn.setEnabled(False)
 
         self.gridLayout.addWidget(self.joystickCalBtn, 0, 0, 1, 1)
 

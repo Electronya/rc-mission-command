@@ -1,3 +1,5 @@
+import sys
+
 import PySide2.QtWidgets as qtw
 
 from .appWindow_auto import Ui_MainWindow
@@ -39,3 +41,21 @@ class AppWindow(qtw.QMainWindow, Ui_MainWindow):
                                             self.joystickWheelIcon,
                                             self.joystickThrlBar,
                                             self.joystickBrkBar)
+        self._joystickCtrlr.error. \
+            connect(lambda lvl, error: self._createErrorMsgBox(lvl, error))
+        self._joystickCtrlr.areJoystickAvailable()
+
+    def _createErrorMsgBox(self, lvl: qtw.QMessageBox.Icon,
+                           error: Exception) -> None:
+        """
+        Create a error message box.
+        """
+        self._logger.error(f"error: {str(error)}")
+        msgBox = qtw.QMessageBox(self)
+        msgBox.setWindowTitle('Error!!')
+        msgBox.setText(str(error))
+        msgBox.setIcon(lvl)
+        if lvl == qtw.QMessageBox.Critical:
+            self._logger.debug('connecting to button clicked for critical')
+            msgBox.buttonClicked.connect(lambda i: sys.exit(1))
+        msgBox.exec_()
