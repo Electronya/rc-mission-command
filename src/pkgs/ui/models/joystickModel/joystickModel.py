@@ -1,5 +1,4 @@
-from os import name
-from PySide2.QtCore import QObject, Signal
+from PySide2.QtCore import QObject, Signal, Slot
 from PySide2.QtGui import QStandardItem, QStandardItemModel
 
 from pkgs.joystick import Joystick
@@ -106,6 +105,7 @@ class JoystickModel(QObject):
             item = QStandardItem(joystick.getName())
             self.model.appendRow(item)
 
+    @Slot()
     def calibrateJoystick(self) -> None:
         """
         Calibrate the active joystick.
@@ -114,6 +114,7 @@ class JoystickModel(QObject):
         self._logger.info(f"calibrating joystick "
                           f"{self._joysticks['active'].getName()}")
 
+    @Slot()
     def activateJoystick(self, joystickName: str) -> None:
         """
         Activate joystick.

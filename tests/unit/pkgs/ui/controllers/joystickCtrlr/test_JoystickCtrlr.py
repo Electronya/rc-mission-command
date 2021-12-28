@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest.mock import Mock, call, patch
+from unittest.mock import Mock, patch
 
 import os
 import sys

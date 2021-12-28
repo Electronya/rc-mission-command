@@ -1,5 +1,6 @@
 import sys
 
+import PySide2.QtCore as qtc
 import PySide2.QtWidgets as qtw
 
 from .appWindow_auto import Ui_MainWindow
@@ -45,6 +46,7 @@ class AppWindow(qtw.QMainWindow, Ui_MainWindow):
             connect(lambda lvl, error: self._createErrorMsgBox(lvl, error))
         self._joystickCtrlr.areJoystickAvailable()
 
+    @qtc.Slot(qtw.QMessageBox.Icon, Exception)
     def _createErrorMsgBox(self, lvl: qtw.QMessageBox.Icon,
                            error: Exception) -> None:
         """
