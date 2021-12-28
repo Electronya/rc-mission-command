@@ -1,8 +1,10 @@
 import json
 import os
 
+from PySide2.QtCore import QObject, Signal, Slot
+
 import pygame as pg
-from pygame import event, joystick
+from pygame import joystick
 
 
 class Joystick:
@@ -36,7 +38,7 @@ class Joystick:
             ndigit:         The digit number for the axis precision.
                             Default: 2.
         """
-        self._logger = logger.getLogger(f"CTRL_{idx}")
+        self._logger = logger.getLogger(f"JOYSTICK_{idx}")
         self._idx = idx
         self._ndigit = ndigit
         self._isCalibrated = False
@@ -303,28 +305,6 @@ class Joystick:
         """
         Process the joystick events.
         """
-        if self._isCalibrated:
-            for ev in event.get():
-                if event.type == pg.JOYAXISMOTION:
-                    self._logger.debug(f"processing joystick "
-                                       "{event.instance_id} "
-                                       f"axis {event.axis} with "
-                                       f"value {event.value}")
-                    self._process_axis(event.instance_id, event.axis)
-                if event.type == pg.JOYBUTTONDOWN:
-                    self._logger.debug(f"processing joystick "
-                                       "{event.instance_id} "
-                                       f"button {event.button} down")
-                    self._processButtonDown(event.instance_id, event.button)
-                if event.type == pg.JOYBUTTONUP:
-                    self._logger.debug(f"processing joystick "
-                                       "{event.instance_id} "
-                                       f"button {event.button} up")
-                if event.type == pg.JOYHATMOTION:
-                    self._logger.debug(f"processing joystick "
-                                       "{event.instance_id} "
-                                       f"hat {event.hat} with value "
-                                       f"{event.value}")
 
     def quit(self) -> None:
         """

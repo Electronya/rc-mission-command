@@ -451,25 +451,6 @@ class TestJoystick(TestCase):
         self.assertEqual(testResult,
                          self.testJoystick._config[Joystick.TYPE_KEY])
 
-    def test_processEventsNotCalibrated(self):
-        """
-        The processEvents method must not process event if not calibrated.
-        """
-        with patch('pkgs.joystick.joystick.event') as mockedEvent:
-            self.testJoystick.processEvents()
-            mockedEvent.get.assert_not_called()
-
-    def test_processEventPygameEvent(self):
-        """
-        The processEvents method must fetch the pygame events.
-        """
-        self.testJoystick._isCalibrated = True
-        with patch('pkgs.joystick.joystick.event') as mockedEvent:
-            print(mockedEvent)
-            mockedEvent.return_value = []
-            self.testJoystick.processEvents()
-            mockedEvent.get.assert_called_once()
-
     def test_quit(self):
         """
         The quit method must call the quit method of its joystick.
