@@ -1,5 +1,3 @@
-import time
-
 import pygame as pg
 import pygame.event as pgEvent
 from PySide2.QtCore import QObject, QRunnable, Signal, Slot
@@ -22,7 +20,6 @@ class JoystickProcessor(QRunnable):
     Params:
         logger:     The joystick logger.
     """
-    FRAME_PERIOD = 0.01
 
     def __init__(self, logger: object) -> None:
         super().__init__()
@@ -57,4 +54,3 @@ class JoystickProcessor(QRunnable):
                                    f"hat {ev.hat} with value "
                                    f"{ev.value}")
                 self.signals.hatMotion.emit(ev.hat, ev.value)
-        time.sleep(self.FRAME_PERIOD)

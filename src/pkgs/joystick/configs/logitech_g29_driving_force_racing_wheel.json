@@ -1,33 +1,25 @@
 {
     "type": "steering wheel",
-    "controls": {
-        "axes": [
-            "steering",
-            "throttle",
-            "brake"
-        ],
-        "buttons": [
-            "x",
-            "square",
-            "circle",
-            "triangle",
-            "r1",
-            "l1",
-            "r2",
-            "l2",
-            "select",
-            "start",
-            "paddle_right",
-            "paddle_left"
-        ],
-        "hats": [
-            "dpad"
-        ]
-    },
-    "functions": {
-        "steering": "steering",
-        "throttle": "throttle",
-        "brake": "brake",
-        "x": "reverse"
-    }
+    "axes": [
+        "steering",
+        "throttle",
+        "brake"
+    ],
+    "buttons": [
+        "x",
+        "square",
+        "circle",
+        "triangle",
+        "r1",
+        "l1",
+        "r2",
+        "l2",
+        "select",
+        "start",
+        "paddle_right",
+        "paddle_left"
+    ],
+    "hats": [
+        "dpad"
+    ]
 }

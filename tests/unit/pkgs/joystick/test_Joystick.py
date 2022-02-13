@@ -1,3 +1,4 @@
+from typing import Callable
 from unittest import TestCase
 from unittest.mock import Mock, mock_open, patch
 
@@ -18,7 +19,14 @@ class TestJoystick(TestCase):
         Test cases setup.
         """
         self.pygamePkg = 'pkgs.joystick.joystick.pg'
+        self.threadPoolClass = 'pkgs.joystick.joystick.QThreadPool'
+        self.timerClass = 'pkgs.joystick.joystick.QTimer'
+        self.mockedTimer = Mock()
         self.joystickClass = 'pkgs.joystick.joystick.joystick.Joystick'
+        self.joystickSignalsClass = 'pkgs.joystick.joystick.JoystickSignals'
+        self.joystickProcessorClass = \
+            'pkgs.joystick.joystick.JoystickProcessor'
+        self.mockedProcessor = Mock()
         self.testLogger = Mock()
         self.testNames = ('test ctrlr 1', 'test ctrlr 2', 'test ctrlr 3')
         self.testIdxes = (0, 1, 2)
@@ -34,6 +42,7 @@ class TestJoystick(TestCase):
                 patch(self.joystickClass) as mockedJoystick:
             mockedJoystick.return_value = self.testJoysticks[0]
             self.testJoystick = Joystick(self.testLogger, 0, self.testNames[0])
+        self.testJoystick._processTimer = self.mockedTimer
         self._setSteeringValues()
         self._setThrottleValues()
         self._setBrakeValues()
@@ -92,8 +101,8 @@ class TestJoystick(TestCase):
         """
         self.testJoysticks[0].reset_mock()
         with patch('builtins.open', mock_open(read_data=self.testConfig)), \
-                patch(self.joystickClass) \
-                as mockedJoystick:
+                patch(self.joystickClass) as mockedJoystick, \
+                patch.object(Joystick, '_setupProcessor'):
             mockedJoystick.return_value = self.testJoysticks[0]
             Joystick(self.testLogger, self.testIdxes[0], self.testNames[0])
             mockedJoystick.assert_called_once_with(self.testIdxes[0])
@@ -106,11 +115,33 @@ class TestJoystick(TestCase):
         expectedPath = os.path.join(Joystick.CONFIG_ROOT_DIR,
                                     f"{self.testNames[0].replace(' ', '_')}.json")  # noqa: E501
         with patch('builtins.open', mock_open(read_data=self.testConfig)) \
-                as mockedConfigFile, \
-                patch(self.joystickClass):
+                as mockedConfigFile, patch(self.joystickClass), \
+                patch.object(Joystick, '_setupProcessor'):
             Joystick(self.testLogger, self.testIdxes[0], self.testNames[0])
             mockedConfigFile.assert_called_once_with(expectedPath)
             mockedConfigFile().read.assert_called_once()
+
+    def test_constructorSignals(self):
+        """
+        The constructor must instantiate the JoystickSignals.
+        """
+        with patch('builtins.open', mock_open(read_data=self.testConfig)), \
+                patch(self.joystickClass), \
+                patch(self.joystickSignalsClass) as mockedSignals, \
+                patch.object(Joystick, '_setupProcessor'):
+            Joystick(self.testLogger, self.testIdxes[0], self.testNames[0])
+            mockedSignals.assert_called_once()
+
+    def test_constructorSetupProcessor(self):
+        """
+        The constructor must setup the joystick's processor.
+        """
+        with patch('builtins.open', mock_open(read_data=self.testConfig)), \
+                patch(self.joystickClass), \
+                patch(self.joystickSignalsClass), \
+                patch.object(Joystick, '_setupProcessor') as mockedSetuProc:
+            Joystick(self.testLogger, self.testIdxes[0], self.testNames[0])
+            mockedSetuProc.assert_called_once()
 
     def test_initFramework(self):
         """
@@ -214,218 +245,133 @@ class TestJoystick(TestCase):
             testResult = Joystick.listAvailable()
             self.assertEqual(testResult, expectedList)
 
-    def test_saveSteeringLeft(self):
+    def test_calculateModifier(self):
         """
-        The _saveSteeringLeft must save the fully left steering axis.
+        The _calculateModifier method must calculate the modifier value
+        based on the passed min, max and actual value.
         """
-        expectedAxisIdx = self.testJoystick._getAxesMap().index('steering')
-        expectedAxisValue = -0.97
-        self.testJoysticks[0].get_axis.return_value = expectedAxisValue
-        self.testJoystick._saveSteeringLeft()
-        self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)
-        self.assertEqual(self.testJoystick._steeringLeft,
-                         abs(expectedAxisValue))
+        testValSets = (
+            {'limits': {'min': -1.75, 'max': 1.75}, 'val': -0.6, 'result': -0.34},  # noqa: E501
+            {'limits': {'min': -1.75, 'max': 1.75}, 'val': 1.1, 'result': 0.63},    # noqa: E501
+            {'limits': {'min': 0, 'max': 1.25}, 'val': 0.65, 'result': 0.52},
+            {'limits': {'min': 1.25, 'max': 2.0}, 'val': 1.99, 'result': 0.99},
+        )
+        for valSet in testValSets:
+            self.assertEqual(self.testJoystick
+                             ._calculateModifier(valSet['limits'],
+                                                 valSet['val']),
+                             valSet['result'])
 
-    def test_saveSteeringRight(self):
+    def test_processAxisSignal(self):
         """
-        The _saveSteeringRight must save the fully right steering axis.
+        The _processAxisSignal method must emit the axis motion signal
+        with the axis modifier.
         """
-        expectedAxisIdx = self.testJoystick._getAxesMap().index('steering')
-        expectedAxisValue = -0.43
-        self.testJoysticks[0].get_axis.return_value = expectedAxisValue
-        self.testJoystick._saveSteeringRight()
-        self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)
-        self.assertEqual(self.testJoystick._steeringRight,
-                         abs(expectedAxisValue))
+        expectedType = self.testJoystick._config[Joystick.TYPE_KEY]
+        expectedMod = 0.2
+        testPosition = 0.4
+        with patch.object(self.testJoystick, 'signals') as mockedSignals, \
+                patch.object(self.testJoystick, '_calculateModifier') \
+                as mockedCalcMod:
+            mockedCalcMod.return_value = expectedMod
+            self.testJoystick._processAxisSignal(self.testIdxes[0],
+                                                 testPosition)
+            mockedCalcMod.assert_called_once_with(self.testJoystick._axes[0],
+                                                  testPosition)
+            mockedSignals.axisMotion.emit. \
+                assert_called_once_with(expectedType,
+                                        self.testIdxes[0],
+                                        expectedMod)
 
-    def test_saveThrottleOff(self):
+    def test_processHatSignal(self):
         """
-        The _saveThrottleOff must save the fully off throttle axis.
+        The _processHatSignal method must emit the axis motion signal
+        with the axis modifier.
         """
-        expectedAxisIdx = self.testJoystick._getAxesMap().index('throttle')
-        expectedAxisValue = -0.27
-        self.testJoysticks[0].get_axis.return_value = expectedAxisValue
-        self.testJoystick._saveThrottleOff()
-        self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)
-        self.assertEqual(self.testJoystick._throttleOff,
-                         abs(expectedAxisValue))
+        expectedType = self.testJoystick._config[Joystick.TYPE_KEY]
+        expectedMod = 0.2
+        testPosition = 0.4
+        with patch.object(self.testJoystick, 'signals') as mockedSignals, \
+                patch.object(self.testJoystick, '_calculateModifier') \
+                as mockedCalcMod:
+            mockedCalcMod.return_value = expectedMod
+            self.testJoystick._processHatSignal(self.testIdxes[0],
+                                                testPosition)
+            mockedCalcMod.assert_called_once_with(self.testJoystick._axes[0],
+                                                  testPosition)
+            mockedSignals.hatMotion.emit \
+                .assert_called_once_with(expectedType,
+                                         self.testIdxes[0],
+                                         expectedMod)
 
-    def test_saveThrottleFull(self):
+    def test_processBtnDownSignal(self):
         """
-        The _saveThrottleFull must save the fully on throttle axis.
+        The _processBtnDownSignal method must emit the button down
+        signal.
         """
-        expectedAxisIdx = self.testJoystick._getAxesMap().index('throttle')
-        expectedAxisValue = -0.78
-        self.testJoysticks[0].get_axis.return_value = expectedAxisValue
-        self.testJoystick._saveThrottleFull()
-        self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)
-        self.assertEqual(self.testJoystick._throttleFull,
-                         abs(expectedAxisValue))
+        expectedType = self.testJoystick._config[Joystick.TYPE_KEY]
+        with patch.object(self.testJoystick, 'signals') as mockedSignals:
+            self.testJoystick._processBtnDownSignal(self.testIdxes[0])
+            mockedSignals.buttonDown.emit. \
+                assert_called_once_with(expectedType, self.testIdxes[0])
 
-    def test_saveBrakeOff(self):
+    def test_processBtnUpSignal(self):
         """
-        The _saveBrakeOff must save the fully off brake axis.
+        The _processBtnUpSignal method must emit the button up
+        signal.
         """
-        expectedAxisIdx = self.testJoystick._getAxesMap().index('brake')
-        expectedAxisValue = -0.10
-        self.testJoysticks[0].get_axis.return_value = expectedAxisValue
-        self.testJoystick._saveBrakeOff()
-        self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)
-        self.assertEqual(self.testJoystick._brakeOff,
-                         abs(expectedAxisValue))
+        expectedType = self.testJoystick._config[Joystick.TYPE_KEY]
+        with patch.object(self.testJoystick, 'signals') as mockedSignals:
+            self.testJoystick._processBtnUpSignal(self.testIdxes[0])
+            mockedSignals.buttonUp.emit. \
+                assert_called_once_with(expectedType, self.testIdxes[0])
 
-    def test_saveBrakeFull(self):
+    def test_setupProcessorThreadPool(self):
         """
-        The _saveBrakeFull must save the fully on brake axis.
+        The _setupProcessor must get the thread pool instance.
         """
-        expectedAxisIdx = self.testJoystick._getAxesMap().index('brake')
-        expectedAxisValue = -0.86
-        self.testJoysticks[0].get_axis.return_value = expectedAxisValue
-        self.testJoystick._saveBrakeFull()
-        self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)
-        self.assertEqual(self.testJoystick._brakeFull,
-                         abs(expectedAxisValue))
+        with patch(self.threadPoolClass) as mockedThread, \
+                patch(self.joystickProcessorClass), \
+                patch(self.timerClass):
+            self.testJoystick._setupProcessor()
+            mockedThread.globalInstance.assert_called_once()
 
-    def test_getAxesMap(self):
+    def test_setupProcessorWorker(self):
         """
-        The _getAxesMap method must return the joystick axes mapping.
+        The _setupProcessor must create the JoystickProcessor worker and
+        connect to its signals.
         """
-        testResult = self.testJoystick._getAxesMap()
-        self.assertEqual(testResult,
-                         self.testJoystick._config[Joystick.CTRLS_KEY][Joystick.AXES_KEY])    # noqa: E501
+        with patch(self.threadPoolClass), \
+                patch(self.joystickProcessorClass) as mockedProc, \
+                patch(self.timerClass):
+            mockedProc.return_value = self.mockedProcessor
+            self.testJoystick._setupProcessor()
+            axisArgs, _ = \
+                self.mockedProcessor.signals.axisMotion.connect.call_args
+            self.assertTrue(isinstance(axisArgs[0], Callable))
+            axisArgs, _ = \
+                self.mockedProcessor.signals.hatMotion.connect.call_args
+            self.assertTrue(isinstance(axisArgs[0], Callable))
+            axisArgs, _ = \
+                self.mockedProcessor.signals.buttonDown.connect.call_args
+            self.assertTrue(isinstance(axisArgs[0], Callable))
+            axisArgs, _ = \
+                self.mockedProcessor.signals.buttonUp.connect.call_args
+            self.assertTrue(isinstance(axisArgs[0], Callable))
 
-    def test_getButtonsMap(self):
+    def test_setupProcessorTimer(self):
         """
-        The _getButtonsMap method must return the joystick buttons mapping.
+        The _setupProcessor method must create the timer and
+        connect to its timeout signal.
         """
-        testResult = self.testJoystick._getButtonsMap()
-        self.assertEqual(testResult,
-                         self.testJoystick._config[Joystick.CTRLS_KEY][Joystick.BTNS_KEY])    # noqa: E501
-
-    def test_getHatsMap(self):
-        """
-        The _getHatsMap method must return the joystick hats mapping.
-        """
-        testResult = self.testJoystick._getHatsMap()
-        self.assertEqual(testResult,
-                         self.testJoystick._config[Joystick.CTRLS_KEY][Joystick.HATS_KEY])    # noqa: E501
-
-    def test_getFuncMap(self):
-        """
-        The _getFuncMap method must return the joystick functions mapping.
-        """
-        testResult = self.testJoystick._getFuncMap()
-        self.assertEqual(testResult,
-                         self.testJoystick._config[Joystick.FUNC_KEY])
-
-    def test_getSterringModifier(self):
-        """
-        The _getSterringModifier must return the sterring modifer.
-        """
-        expectedAxisIdx = self.testJoystick._getAxesMap().index(Joystick.STRG_KEY)       # noqa: E501
-        for idx, value in enumerate(self.steeringAxisValues):
-            self.testJoysticks[0].get_axis.return_value = value
-            testResult = self.testJoystick._getSteeringModifier()
-            self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)     # noqa: E501
-            self.testJoysticks[0].get_axis.reset_mock()
-            self.assertEqual(testResult, self.expectedSteeringMod[idx])
-
-    def test_getThrottleModifier(self):
-        """
-        The _getThrottleModifier must return the throttle modifier.
-        """
-        expectedAxisIdx = self.testJoystick._getAxesMap().index(Joystick.THRTL_KEY)      # noqa: E501
-        for idx, value in enumerate(self.throttleAxisValues):
-            self.testJoysticks[0].get_axis.return_value = value
-            testResult = self.testJoystick._getThrottleModifier()
-            self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)     # noqa: E501
-            self.testJoysticks[0].get_axis.reset_mock()
-            self.assertEqual(testResult, self.expectedThrottleMod[idx])
-
-    def test_getBrakeModifier(self):
-        """
-        The _getBrakeModifier must return the brake modifier.
-        """
-        expectedAxisIdx = self.testJoystick._getAxesMap().index(Joystick.BRK_KEY)        # noqa: E501
-        for idx, value in enumerate(self.brakeAxisValues):
-            self.testJoysticks[0].get_axis.return_value = value
-            testResult = self.testJoystick._getBrakeModifier()
-            self.testJoysticks[0].get_axis.assert_called_once_with(expectedAxisIdx)     # noqa: E501
-            self.testJoysticks[0].get_axis.reset_mock()
-            self.assertEqual(testResult, self.expectedBrakeMod[idx])
-
-    def test_calibrateSaveStrgLeft(self):
-        """
-        The calibrate method must save the steering left calibration
-        value when the calibration sequence is 0 and advance to the
-        next sequence.
-        """
-        testCalibSeqNumber = 0
-        with patch.object(self.testJoystick, '_saveSteeringLeft') \
-                as mockedSave:
-            self.testJoystick._calibrate(testCalibSeqNumber)
-            mockedSave.assert_called_once()
-
-    def test_calibrateSaveStrgRight(self):
-        """
-        The _calibrate method must save the steering right calibration
-        value when the calibration sequence is 1 and advance to the
-        next sequence.
-        """
-        testCalibSeqNumber = 1
-        with patch.object(self.testJoystick, '_saveSteeringRight') \
-                as mockedSave:
-            self.testJoystick._calibrate(testCalibSeqNumber)
-            mockedSave.assert_called_once()
-
-    def test_calibrateSaveThrtlOff(self):
-        """
-        The _calibrate method must save the throttle off calibration
-        value when the calibration sequence is 2 and advance to the
-        next sequence.
-        """
-        testCalibSeqNumber = 2
-        with patch.object(self.testJoystick, '_saveThrottleOff') \
-                as mockedSave:
-            self.testJoystick._calibrate(testCalibSeqNumber)
-            mockedSave.assert_called_once()
-
-    def test_calibrateSaveThrtlFull(self):
-        """
-        The _calibrate method must save the throttle full calibration
-        value when the calibration sequence is 3 and advance to the
-        next sequence.
-        """
-        testCalibSeqNumber = 3
-        with patch.object(self.testJoystick, '_saveThrottleFull') \
-                as mockedSave:
-            self.testJoystick._calibrate(testCalibSeqNumber)
-            mockedSave.assert_called_once()
-
-    def test_calibrateSaveBrkOff(self):
-        """
-        The _calibrate method must save the brake off calibration
-        value when the calibration sequence is 4 and advance to the
-        next sequence.
-        """
-        testCalibSeqNumber = 4
-        with patch.object(self.testJoystick, '_saveBrakeOff') \
-                as mockedSave:
-            self.testJoystick._calibrate(testCalibSeqNumber)
-            mockedSave.assert_called_once()
-
-    def test_calibrateSaveBrkFull(self):
-        """
-        The _calibrate method must save the brake full calibration
-        value when the calibration sequence is 5 and set the _isCalibratedFlag
-        to true.
-        """
-        testCalibSeqNumber = 5
-        with patch.object(self.testJoystick, '_saveBrakeFull') \
-                as mockedSave:
-            self.testJoystick._calibrate(testCalibSeqNumber)
-            mockedSave.assert_called_once()
-            self.assertTrue(self.testJoystick._isCalibrated)
+        with patch(self.threadPoolClass), \
+                patch(self.joystickProcessorClass), \
+                patch(self.timerClass) as mockedTimer:
+            mockedTimer.return_value = self.mockedTimer
+            self.testJoystick._setupProcessor()
+            timeoutArgs, _ = \
+                self.mockedTimer.timeout.connect.call_args
+            self.assertTrue(isinstance(timeoutArgs[0], Callable))
 
     def test_getName(self):
         """
@@ -450,6 +396,22 @@ class TestJoystick(TestCase):
         testResult = self.testJoystick.getType()
         self.assertEqual(testResult,
                          self.testJoystick._config[Joystick.TYPE_KEY])
+
+    def test_activate(self):
+        """
+        The activate method must start the processor timer.
+        """
+        self.testJoystick.activate()
+        self.mockedTimer.start. \
+            assert_called_once_with(self.testJoystick.FRAME_PERIOD_MS)
+
+    def test_deactivate(self):
+        """
+        The deactivate method must stop the processor timer.
+        """
+        self.testJoystick.deactivate()
+        self.mockedTimer.stop \
+            .assert_called_once()
 
     def test_quit(self):
         """
