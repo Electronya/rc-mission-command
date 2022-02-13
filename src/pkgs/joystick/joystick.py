@@ -14,7 +14,7 @@ class JoystickSignals(QObject):
     The Driving wheel signals class.
     """
     axisMotion = Signal(str, int, float)
-    hatMotion = Signal(str, int, float)
+    hatMotion = Signal(str, int, tuple)
     buttonDown = Signal(str, int)
     buttonUp = Signal(str, int)
 
@@ -166,20 +166,18 @@ class Joystick(QObject):
         self.signals \
             .axisMotion.emit(self._config[self.TYPE_KEY], idx, modifier)
 
-    def _processHatSignal(self, idx, position) -> None:
+    def _processHatSignal(self, idx, vals) -> None:
         """
         Process hat signals.
 
         Params:
             idx:        The hat index.
-            position:   The hat position.
+            vals:       The hat x and y values.
         """
         self._logger.debug(f"processing hat {idx} signal with "
-                           f"position: {position}")
-        modifier = self._calculateModifier(self._hats[idx], position)
-        self._logger.info(f"new hat{idx} modifier: {modifier}")
+                           f"position: {vals}")
         self.signals \
-            .hatMotion.emit(self._config[self.TYPE_KEY], idx, modifier)
+            .hatMotion.emit(self._config[self.TYPE_KEY], idx, vals)
 
     def _processBtnDownSignal(self, idx):
         """
@@ -203,23 +201,28 @@ class Joystick(QObject):
         self.signals \
             .buttonUp.emit(self._config[self.TYPE_KEY], idx)
 
+    def _startProcessing(self):
+        """
+        Start the processing worker.
+        """
+        worker = JoystickProcessor(self._logger)
+        worker.signals.axisMotion \
+            .connect(lambda idx, val: self._processAxisSignal(idx, val))
+        worker.signals.hatMotion \
+            .connect(lambda idx, val: self._processHatSignal(idx, val))
+        worker.signals.buttonDown \
+            .connect(lambda idx: self._processBtnDownSignal(idx))
+        worker.signals.buttonUp \
+            .connect(lambda idx: self._processBtnUpSignal(idx))
+        self._threadPool.start(worker)
+
     def _setupProcessor(self):
         """
         Setup the joystick event processor.
         """
         self._threadPool = QThreadPool.globalInstance()
-        self._worker = JoystickProcessor(self._logger)
-        self._worker.signals.axisMotion \
-            .connect(lambda idx, val: self._processAxisSignal(idx, val))
-        self._worker.signals.hatMotion \
-            .connect(lambda idx, val: self._processHatSignal(idx, val))
-        self._worker.signals.buttonDown \
-            .connect(lambda idx: self._processBtnDownSignal(idx))
-        self._worker.signals.buttonUp \
-            .connect(lambda idx: self._processBtnUpSignal(idx))
         self._processTimer = QTimer(self)
-        self._processTimer.timeout \
-            .connect(lambda _: self._threadPool.start(self._worker))
+        self._processTimer.timeout.connect(self._startProcessing)
 
     def getName(self) -> str:
         """
@@ -252,12 +255,14 @@ class Joystick(QObject):
         """
         Activate the joystick.
         """
+        self._logger.info('activating')
         self._processTimer.start(self.FRAME_PERIOD_MS)
 
     def deactivate(self):
         """
         Deactivate the joystick.
         """
+        self._logger.info('deactivating')
         self._processTimer.stop()
 
     def quit(self) -> None:

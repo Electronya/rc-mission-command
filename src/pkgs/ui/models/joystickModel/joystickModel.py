@@ -17,12 +17,14 @@ class JoystickModel(QObject):
         """
         QObject.__init__(self)
         self._appLogger = appLogger
-        self._logger = appLogger.getLogger('CTRL_MODEL')
+        self._logger = appLogger.getLogger('JOYSTICK_MODEL')
         self._logger.info('initializing...')
         self._joysticks = {'active': None, 'list': []}
         self.model = QStandardItemModel(0, 1)
         Joystick.initFramework()
         self.updateJoystickList()
+        if len(self._joysticks['list']) > 0:
+            self.activateJoystick(self._joysticks['list'][0].getName())
         self._logger.info('initialized')
 
     def _listCurrentJoysticks(self) -> tuple:
@@ -127,6 +129,7 @@ class JoystickModel(QObject):
                               self._joysticks['list']))
         self._logger.debug(active)
         self._joysticks['active'] = active[0]
+        self._joysticks['active'].activate()
 
     def updateJoystickList(self) -> None:
         """

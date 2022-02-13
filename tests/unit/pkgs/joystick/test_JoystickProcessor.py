@@ -91,7 +91,7 @@ class TestJoystickProcessor(TestCase):
         mockedEvent.type = pg.JOYHATMOTION
         mockedEvent.instance_id = 0
         mockedEvent.hat = 3
-        mockedEvent.value = 0.9
+        mockedEvent.value = 1
         with patch(f"{self.pgEvent}.get") as mockedPgEventGet:
             mockedPgEventGet.return_value = [mockedEvent]
             self.joystickProcessor.run()

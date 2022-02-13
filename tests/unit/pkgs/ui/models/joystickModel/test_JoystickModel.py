@@ -30,7 +30,8 @@ class TestJoystickModel(TestCase):
         self.mockedStdItemModel = Mock()
         with patch(self.joystickCls) as mockedJoystick, \
                 patch.object(mockedJoystick, 'initFramework'), \
-                patch.object(JoystickModel, 'updateJoystickList'):
+                patch.object(JoystickModel, 'updateJoystickList'), \
+                patch.object(JoystickModel, 'activateJoystick'):
             self.joystickMdl = JoystickModel(self.testLogger)
             self.joystickMdl._joysticks['active'] = self.mockedJoysticks[0]
             self.joystickMdl._joysticks['list'] = self.mockedJoysticks

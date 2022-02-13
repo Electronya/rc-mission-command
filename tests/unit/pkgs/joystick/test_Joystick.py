@@ -20,6 +20,7 @@ class TestJoystick(TestCase):
         """
         self.pygamePkg = 'pkgs.joystick.joystick.pg'
         self.threadPoolClass = 'pkgs.joystick.joystick.QThreadPool'
+        self.threadPoolMock = Mock()
         self.timerClass = 'pkgs.joystick.joystick.QTimer'
         self.mockedTimer = Mock()
         self.joystickClass = 'pkgs.joystick.joystick.joystick.Joystick'
@@ -42,6 +43,7 @@ class TestJoystick(TestCase):
                 patch(self.joystickClass) as mockedJoystick:
             mockedJoystick.return_value = self.testJoysticks[0]
             self.testJoystick = Joystick(self.testLogger, 0, self.testNames[0])
+        self.testJoystick._threadPool = self.threadPoolMock
         self.testJoystick._processTimer = self.mockedTimer
         self._setSteeringValues()
         self._setThrottleValues()
@@ -290,7 +292,7 @@ class TestJoystick(TestCase):
         """
         expectedType = self.testJoystick._config[Joystick.TYPE_KEY]
         expectedMod = 0.2
-        testPosition = 0.4
+        testPosition = (1, -1)
         with patch.object(self.testJoystick, 'signals') as mockedSignals, \
                 patch.object(self.testJoystick, '_calculateModifier') \
                 as mockedCalcMod:
@@ -326,26 +328,14 @@ class TestJoystick(TestCase):
             mockedSignals.buttonUp.emit. \
                 assert_called_once_with(expectedType, self.testIdxes[0])
 
-    def test_setupProcessorThreadPool(self):
+    def test_startProcessingWorker(self):
         """
-        The _setupProcessor must get the thread pool instance.
-        """
-        with patch(self.threadPoolClass) as mockedThread, \
-                patch(self.joystickProcessorClass), \
-                patch(self.timerClass):
-            self.testJoystick._setupProcessor()
-            mockedThread.globalInstance.assert_called_once()
-
-    def test_setupProcessorWorker(self):
-        """
-        The _setupProcessor must create the JoystickProcessor worker and
+        The _startProcessing method must create the worker and
         connect to its signals.
         """
-        with patch(self.threadPoolClass), \
-                patch(self.joystickProcessorClass) as mockedProc, \
-                patch(self.timerClass):
+        with patch(self.joystickProcessorClass) as mockedProc:
             mockedProc.return_value = self.mockedProcessor
-            self.testJoystick._setupProcessor()
+            self.testJoystick._startProcessing()
             axisArgs, _ = \
                 self.mockedProcessor.signals.axisMotion.connect.call_args
             self.assertTrue(isinstance(axisArgs[0], Callable))
@@ -359,13 +349,32 @@ class TestJoystick(TestCase):
                 self.mockedProcessor.signals.buttonUp.connect.call_args
             self.assertTrue(isinstance(axisArgs[0], Callable))
 
+    def test_startProcessingStartWorker(self):
+        """
+        The _startProcessing method must start the processing worker.
+        """
+        with patch(self.joystickProcessorClass) as mockedProc:
+            mockedProc.return_value = self.mockedProcessor
+            self.testJoystick._startProcessing()
+            self.testJoystick._threadPool.start \
+                .assert_called_once_with(self.mockedProcessor)
+
+    def test_setupProcessorThreadPool(self):
+        """
+        The _setupProcessor must get the thread pool instance.
+        """
+        with patch(self.threadPoolClass) as mockedThread, \
+                patch(self.joystickProcessorClass), \
+                patch(self.timerClass):
+            self.testJoystick._setupProcessor()
+            mockedThread.globalInstance.assert_called_once()
+
     def test_setupProcessorTimer(self):
         """
         The _setupProcessor method must create the timer and
         connect to its timeout signal.
         """
         with patch(self.threadPoolClass), \
-                patch(self.joystickProcessorClass), \
                 patch(self.timerClass) as mockedTimer:
             mockedTimer.return_value = self.mockedTimer
             self.testJoystick._setupProcessor()

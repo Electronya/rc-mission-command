@@ -8,7 +8,7 @@ class JoystickProcessSignals(QObject):
     The joystick process signals.
     """
     axisMotion = Signal(int, float)
-    hatMotion = Signal(int, float)
+    hatMotion = Signal(int, tuple)
     buttonDown = Signal(int)
     buttonUp = Signal(int)
 
