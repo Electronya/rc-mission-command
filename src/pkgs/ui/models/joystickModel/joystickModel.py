@@ -8,6 +8,11 @@ class JoystickModel(QObject):
     """
     Controller model.
     """
+    axisMotion = Signal(str, int, float)
+    buttonDown = Signal(str, int)
+    buttonUp = Signal(str, int)
+    hatMotion = Signal(str, tuple)
+
     def __init__(self, appLogger: object) -> None:
         """
         Constructor.
@@ -127,9 +132,18 @@ class JoystickModel(QObject):
         self._logger.info(f"activating joystick {joystickName}")
         active = tuple(filter(lambda joystick: joystickName == joystick.getName(),  # noqa: E501
                               self._joysticks['list']))
-        self._logger.debug(active)
+        if self._joysticks['active'] is not None:
+            self._joysticks['active'].deactivate()
         self._joysticks['active'] = active[0]
         self._joysticks['active'].activate()
+        self._joysticks['active'].axisMotion \
+            .connect(lambda type, idx, mod: self.axisMotion.emit(type, idx, mod))   # noqa: E501
+        self._joysticks['active'].buttonDown \
+            .connect(lambda type, idx: self.buttonDown.emit(type, idx))             # noqa: E501
+        self._joysticks['active'].buttonUp \
+            .connect(lambda type, idx: self.buttonUp.emit(type, idx))               # noqa: E501
+        self._joysticks['active'].hatMotion \
+            .connect(lambda type, idx, vals: self.hatMotion.emit(type, idx, vals))  # noqa: E501
 
     def updateJoystickList(self) -> None:
         """

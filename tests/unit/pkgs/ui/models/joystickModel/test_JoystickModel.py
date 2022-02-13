@@ -153,7 +153,18 @@ class TestJoystickModel(TestCase):
             mockedStdItem.assert_has_calls(itemCalls)
             self.joystickMdl.model.appendRow.assert_has_calls(addItemCalls)
 
-    def test_activateJoystick(self):
+    def test_activateJoystickDeactivate(self):
+        """
+        The activateJoystick methode must deactivate the
+        currently active joystick.
+        """
+        joystickIdx = 3
+        oldJoystick = self.joystickMdl._joysticks['active']
+        self.joystickMdl. \
+            activateJoystick(tuple(self.testJoystickList.keys())[joystickIdx])
+        oldJoystick.deactivate.assert_called_once()
+
+    def test_activateJoystickActivate(self):
         """
         The activateJoystick methode must activate the joystick with
         the given name.
@@ -163,6 +174,24 @@ class TestJoystickModel(TestCase):
             activateJoystick(tuple(self.testJoystickList.keys())[joystickIdx])
         self.assertEqual(self.joystickMdl._joysticks['active'],
                          self.mockedJoysticks[joystickIdx])
+        self.mockedJoysticks[joystickIdx].activate.assert_called_once()
+
+    def test_activateJoystickSignals(self):
+        """
+        The activateJoystick methode must connect to the newly
+        active joystick signals.
+        """
+        joystickIdx = 3
+        self.joystickMdl. \
+            activateJoystick(tuple(self.testJoystickList.keys())[joystickIdx])
+        self.mockedJoysticks[joystickIdx].axisMotion \
+            .connect.assert_called_once
+        self.mockedJoysticks[joystickIdx].buttonDown \
+            .connect.assert_called_once()
+        self.mockedJoysticks[joystickIdx].buttonUp \
+            .connect.assert_called_once()
+        self.mockedJoysticks[joystickIdx].hatMotion \
+            .connect.assert_called_once()
 
     def test_updateJoystickListListConnected(self):
         """
