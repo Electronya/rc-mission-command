@@ -24,7 +24,6 @@ class TestJoystick(TestCase):
         self.timerClass = 'pkgs.joystick.joystick.QTimer'
         self.mockedTimer = Mock()
         self.joystickClass = 'pkgs.joystick.joystick.joystick.Joystick'
-        self.joystickSignalsClass = 'pkgs.joystick.joystick.JoystickSignals'
         self.joystickProcessorClass = \
             'pkgs.joystick.joystick.JoystickProcessor'
         self.mockedProcessor = Mock()
@@ -123,24 +122,12 @@ class TestJoystick(TestCase):
             mockedConfigFile.assert_called_once_with(expectedPath)
             mockedConfigFile().read.assert_called_once()
 
-    def test_constructorSignals(self):
-        """
-        The constructor must instantiate the JoystickSignals.
-        """
-        with patch('builtins.open', mock_open(read_data=self.testConfig)), \
-                patch(self.joystickClass), \
-                patch(self.joystickSignalsClass) as mockedSignals, \
-                patch.object(Joystick, '_setupProcessor'):
-            Joystick(self.testLogger, self.testIdxes[0], self.testNames[0])
-            mockedSignals.assert_called_once()
-
     def test_constructorSetupProcessor(self):
         """
         The constructor must setup the joystick's processor.
         """
         with patch('builtins.open', mock_open(read_data=self.testConfig)), \
                 patch(self.joystickClass), \
-                patch(self.joystickSignalsClass), \
                 patch.object(Joystick, '_setupProcessor') as mockedSetuProc:
             Joystick(self.testLogger, self.testIdxes[0], self.testNames[0])
             mockedSetuProc.assert_called_once()
@@ -272,7 +259,7 @@ class TestJoystick(TestCase):
         expectedType = self.testJoystick._config[Joystick.TYPE_KEY]
         expectedMod = 0.2
         testPosition = 0.4
-        with patch.object(self.testJoystick, 'signals') as mockedSignals, \
+        with patch.object(self.testJoystick, 'axisMotion') as mockedSignals, \
                 patch.object(self.testJoystick, '_calculateModifier') \
                 as mockedCalcMod:
             mockedCalcMod.return_value = expectedMod
@@ -280,31 +267,9 @@ class TestJoystick(TestCase):
                                                  testPosition)
             mockedCalcMod.assert_called_once_with(self.testJoystick._axes[0],
                                                   testPosition)
-            mockedSignals.axisMotion.emit. \
-                assert_called_once_with(expectedType,
-                                        self.testIdxes[0],
-                                        expectedMod)
-
-    def test_processHatSignal(self):
-        """
-        The _processHatSignal method must emit the axis motion signal
-        with the axis modifier.
-        """
-        expectedType = self.testJoystick._config[Joystick.TYPE_KEY]
-        expectedMod = 0.2
-        testPosition = (1, -1)
-        with patch.object(self.testJoystick, 'signals') as mockedSignals, \
-                patch.object(self.testJoystick, '_calculateModifier') \
-                as mockedCalcMod:
-            mockedCalcMod.return_value = expectedMod
-            self.testJoystick._processHatSignal(self.testIdxes[0],
-                                                testPosition)
-            mockedCalcMod.assert_called_once_with(self.testJoystick._axes[0],
-                                                  testPosition)
-            mockedSignals.hatMotion.emit \
-                .assert_called_once_with(expectedType,
-                                         self.testIdxes[0],
-                                         expectedMod)
+            mockedSignals.emit.assert_called_once_with(expectedType,
+                                                       self.testIdxes[0],
+                                                       expectedMod)
 
     def test_processBtnDownSignal(self):
         """
@@ -312,10 +277,10 @@ class TestJoystick(TestCase):
         signal.
         """
         expectedType = self.testJoystick._config[Joystick.TYPE_KEY]
-        with patch.object(self.testJoystick, 'signals') as mockedSignals:
+        with patch.object(self.testJoystick, 'buttonDown') as mockedSignals:
             self.testJoystick._processBtnDownSignal(self.testIdxes[0])
-            mockedSignals.buttonDown.emit. \
-                assert_called_once_with(expectedType, self.testIdxes[0])
+            mockedSignals.emit.assert_called_once_with(expectedType,
+                                                       self.testIdxes[0])
 
     def test_processBtnUpSignal(self):
         """
@@ -323,10 +288,24 @@ class TestJoystick(TestCase):
         signal.
         """
         expectedType = self.testJoystick._config[Joystick.TYPE_KEY]
-        with patch.object(self.testJoystick, 'signals') as mockedSignals:
+        with patch.object(self.testJoystick, 'buttonUp') as mockedSignals:
             self.testJoystick._processBtnUpSignal(self.testIdxes[0])
-            mockedSignals.buttonUp.emit. \
-                assert_called_once_with(expectedType, self.testIdxes[0])
+            mockedSignals.emit.assert_called_once_with(expectedType,
+                                                       self.testIdxes[0])
+
+    def test_processHatSignal(self):
+        """
+        The _processHatSignal method must emit the axis motion signal
+        with the axis modifier.
+        """
+        expectedType = self.testJoystick._config[Joystick.TYPE_KEY]
+        testPosition = (1, -1)
+        with patch.object(self.testJoystick, 'hatMotion') as mockedSignals:
+            self.testJoystick._processHatSignal(self.testIdxes[0],
+                                                testPosition)
+            mockedSignals.emit.assert_called_once_with(expectedType,
+                                                       self.testIdxes[0],
+                                                       testPosition)
 
     def test_startProcessingWorker(self):
         """

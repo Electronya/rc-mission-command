@@ -9,16 +9,6 @@ from pygame import joystick
 from .joystickProcessor import JoystickProcessor
 
 
-class JoystickSignals(QObject):
-    """
-    The Driving wheel signals class.
-    """
-    axisMotion = Signal(str, int, float)
-    hatMotion = Signal(str, int, tuple)
-    buttonDown = Signal(str, int)
-    buttonUp = Signal(str, int)
-
-
 class Joystick(QObject):
     """
     Class implementing the joystick function.
@@ -30,6 +20,11 @@ class Joystick(QObject):
     HATS_KEY = 'hats'
     CAL_SEQ = 6
     FRAME_PERIOD_MS = 10
+
+    axisMotion = Signal(str, int, float)
+    buttonDown = Signal(str, int)
+    buttonUp = Signal(str, int)
+    hatMotion = Signal(str, int, tuple)
 
     def __init__(self, logger: object, idx: int,
                  name: str, ndigit: int = 2) -> None:
@@ -65,7 +60,6 @@ class Joystick(QObject):
         self._hats = [{"min": 0.0, "max": 0.0}] * \
             len(self._config[self.HATS_KEY])
 
-        self.signals = JoystickSignals()
         self._setupProcessor()
 
     @classmethod
@@ -163,8 +157,27 @@ class Joystick(QObject):
                            f"position: {position}")
         modifier = self._calculateModifier(self._axes[idx], position)
         self._logger.info(f"new axis{idx} modifier: {modifier}")
-        self.signals \
-            .axisMotion.emit(self._config[self.TYPE_KEY], idx, modifier)
+        self.axisMotion.emit(self._config[self.TYPE_KEY], idx, modifier)
+
+    def _processBtnDownSignal(self, idx):
+        """
+        Process button down signals.
+
+        Params:
+            idx:        The button index.
+        """
+        self._logger.info(f"button {idx} is pressed")
+        self.buttonDown.emit(self._config[self.TYPE_KEY], idx)
+
+    def _processBtnUpSignal(self, idx):
+        """
+        Process button up signals.
+
+        Params:
+            idx:        The button index.
+        """
+        self._logger.info(f"button {idx} is depressed")
+        self.buttonUp.emit(self._config[self.TYPE_KEY], idx)
 
     def _processHatSignal(self, idx, vals) -> None:
         """
@@ -176,30 +189,7 @@ class Joystick(QObject):
         """
         self._logger.debug(f"processing hat {idx} signal with "
                            f"position: {vals}")
-        self.signals \
-            .hatMotion.emit(self._config[self.TYPE_KEY], idx, vals)
-
-    def _processBtnDownSignal(self, idx):
-        """
-        Process button down signals.
-
-        Params:
-            idx:        The button index.
-        """
-        self._logger.info(f"button {idx} is pressed")
-        self.signals \
-            .buttonDown.emit(self._config[self.TYPE_KEY], idx)
-
-    def _processBtnUpSignal(self, idx):
-        """
-        Process button up signals.
-
-        Params:
-            idx:        The button index.
-        """
-        self._logger.info(f"button {idx} is depressed")
-        self.signals \
-            .buttonUp.emit(self._config[self.TYPE_KEY], idx)
+        self.hatMotion.emit(self._config[self.TYPE_KEY], idx, vals)
 
     def _startProcessing(self):
         """
