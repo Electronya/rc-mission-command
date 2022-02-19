@@ -1,4 +1,5 @@
 import json
+from operator import index
 import os
 
 from PySide2.QtCore import QObject, QThreadPool, QTimer, Signal
@@ -18,13 +19,14 @@ class Joystick(QObject):
     AXES_KEY = 'axes'
     BTNS_KEY = 'buttons'
     HATS_KEY = 'hats'
-    CAL_SEQ = 6
+    CALIB_KEY = 'calibration'
     FRAME_PERIOD_MS = 10
 
     axisMotion = Signal(str, int, float)
     buttonDown = Signal(str, int)
     buttonUp = Signal(str, int)
     hatMotion = Signal(str, int, tuple)
+    calibration = Signal(str)
 
     def __init__(self, logger: object, idx: int,
                  name: str, ndigit: int = 2) -> None:
@@ -45,6 +47,7 @@ class Joystick(QObject):
         self._idx = idx
         self._ndigit = ndigit
         self._isCalibrated = False
+        self._calibSeq = 0
         self._logger.info(f"creating joystick {name}")
         self._joystick = joystick.Joystick(idx)
         self._joystick.init()
@@ -55,10 +58,6 @@ class Joystick(QObject):
 
         self._axes = [{"min": 0.0, "max": 0.0}] * \
             len(self._config[self.AXES_KEY])
-        self._buttons = [False] * \
-            len(self._config[self.BTNS_KEY])
-        self._hats = [{"min": 0.0, "max": 0.0}] * \
-            len(self._config[self.HATS_KEY])
 
         self._setupProcessor()
 
@@ -153,13 +152,14 @@ class Joystick(QObject):
             idx:        The axis index.
             position:   The axis position.
         """
-        self._logger.debug(f"processing axis {idx} signal with "
-                           f"position: {position}")
-        modifier = self._calculateModifier(self._axes[idx], position)
-        self._logger.info(f"new axis{idx} modifier: {modifier}")
-        self.axisMotion.emit(self._config[self.TYPE_KEY], idx, modifier)
+        if self._isCalibrated:
+            self._logger.debug(f"processing axis {idx} signal with "
+                               f"position: {position}")
+            modifier = self._calculateModifier(self._axes[idx], position)
+            self._logger.info(f"new axis{idx} modifier: {modifier}")
+            self.axisMotion.emit(self._config[self.TYPE_KEY], idx, modifier)
 
-    def _processBtnDownSignal(self, idx):
+    def _processBtnDownSignal(self, idx) -> None:
         """
         Process button down signals.
 
@@ -169,7 +169,7 @@ class Joystick(QObject):
         self._logger.info(f"button {idx} is pressed")
         self.buttonDown.emit(self._config[self.TYPE_KEY], idx)
 
-    def _processBtnUpSignal(self, idx):
+    def _processBtnUpSignal(self, idx) -> None:
         """
         Process button up signals.
 
@@ -191,7 +191,7 @@ class Joystick(QObject):
                            f"position: {vals}")
         self.hatMotion.emit(self._config[self.TYPE_KEY], idx, vals)
 
-    def _startProcessing(self):
+    def _startProcessing(self) -> None:
         """
         Start the processing worker.
         """
@@ -206,7 +206,7 @@ class Joystick(QObject):
             .connect(lambda idx: self._processBtnUpSignal(idx))
         self._threadPool.start(worker)
 
-    def _setupProcessor(self):
+    def _setupProcessor(self) -> None:
         """
         Setup the joystick event processor.
         """
@@ -241,19 +241,45 @@ class Joystick(QObject):
         """
         return self._config[self.TYPE_KEY]
 
-    def activate(self):
+    def activate(self) -> None:
         """
         Activate the joystick.
         """
         self._logger.info('activating')
         self._processTimer.start(self.FRAME_PERIOD_MS)
 
-    def deactivate(self):
+    def deactivate(self) -> None:
         """
         Deactivate the joystick.
         """
         self._logger.info('deactivating')
         self._processTimer.stop()
+
+    def calibrate(self) -> None:
+        """
+        Start the calibration sequence.
+        """
+        if not self._isCalibrated:
+            seq = self._config[self.CALIB_KEY][self._calibSeq]
+            self.calibration.emit(seq['msg'])
+            if 'axis' in seq:
+                axisPos = self._joystick.get_axis(seq['axis'])
+                self._logger.debug(f"saving axis {seq['axis']} "
+                                   f"{seq['limit']} as {axisPos}")
+                self._axes[seq['axis']][seq['limit']] = axisPos
+            self._calibSeq += 1
+            if self._calibSeq == len(self._config[self.CALIB_KEY]):
+                self._calibSeq = 0
+                self._isCalibrated = True
+
+    def isCalibrated(self) -> bool:
+        """
+        Check if the joystick is calibrated.
+
+        Return:
+            True if the joystick is calibrated, false otherwise.
+        """
+        return self._isCalibrated
 
     def quit(self) -> None:
         """

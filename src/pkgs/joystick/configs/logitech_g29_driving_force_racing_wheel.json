@@ -21,5 +21,14 @@
     ],
     "hats": [
         "dpad"
+    ],
+    "calibration": [
+        {"msg": "Move the steering to the left and click OK."},
+        {"msg": "Move the steering to the right and click OK.", "axis": 0, "limit": "min"},
+        {"msg": "Set the throttle to the off position and click OK.", "axis": 0, "limit": "max"},
+        {"msg": "Set the throttle to the full position and click OK.", "axis": 1, "limit": "min"},
+        {"msg": "Set the brake to the off position and click OK.", "axis": 1, "limit": "max"},
+        {"msg": "Set the brake to the full position and click OK.", "axis": 2, "limit": "min"},
+        {"msg": "Calibration done.", "axis": 2, "limit": "max"}
     ]
 }

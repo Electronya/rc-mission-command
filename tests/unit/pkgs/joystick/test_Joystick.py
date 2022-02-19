@@ -44,57 +44,6 @@ class TestJoystick(TestCase):
             self.testJoystick = Joystick(self.testLogger, 0, self.testNames[0])
         self.testJoystick._threadPool = self.threadPoolMock
         self.testJoystick._processTimer = self.mockedTimer
-        self._setSteeringValues()
-        self._setThrottleValues()
-        self._setBrakeValues()
-
-    def _setSteeringValues(self):
-        """
-        Set the test joystick steering axis test values.
-        """
-        self.testJoystick._steeringLeft = 1
-        self.testJoystick._steeringRight = 1
-        self.steeringAxisValues = [-1, -0.5, 0, 0.25, 1]
-        self.expectedSteeringMod = []
-        for value in self.steeringAxisValues:
-            if value < 0:
-                modifier = round(value / self.testJoystick._steeringLeft,
-                                 self.testJoystick._ndigit)
-                self.expectedSteeringMod.append(modifier)
-            else:
-                modifier = round(value / self.testJoystick._steeringRight,
-                                 self.testJoystick._ndigit)
-                self.expectedSteeringMod.append(modifier)
-
-    def _setThrottleValues(self):
-        """
-        Set the test joystick throttle/brake axis test values.
-        """
-        self.testJoystick._throttleOff = 1
-        self.testJoystick._throttleFull = 0
-        self.throttleAxisValues = [1, 0.835, 0.245, 0]
-        self.expectedThrottleMod = []
-        for value in self.throttleAxisValues:
-            tmpVal = self.testJoystick._throttleOff - value
-            throttleRange = self.testJoystick._throttleOff \
-                - self.testJoystick._throttleFull
-            modifier = round(tmpVal / throttleRange, self.testJoystick._ndigit)
-            self.expectedThrottleMod.append(modifier)
-
-    def _setBrakeValues(self):
-        """
-        Set the test joystick brake test values.
-        """
-        self.testJoystick._brakeOff = 1
-        self.testJoystick._brakeFull = 0
-        self.brakeAxisValues = [1.000, 0.727, 0.352, 0.000]
-        self.expectedBrakeMod = []
-        for value in self.brakeAxisValues:
-            tmpVal = self.testJoystick._brakeOff - value
-            brakeRange = self.testJoystick._brakeOff - \
-                self.testJoystick._brakeFull
-            modifier = round(tmpVal / brakeRange, self.testJoystick._ndigit)
-            self.expectedBrakeMod.append(modifier)
 
     def test_constructorInitJoystick(self):
         """
@@ -254,17 +203,20 @@ class TestJoystick(TestCase):
     def test_processAxisSignal(self):
         """
         The _processAxisSignal method must emit the axis motion signal
-        with the axis modifier.
+        with the axis modifier only when the joystick is calibrated.
         """
         expectedType = self.testJoystick._config[Joystick.TYPE_KEY]
         expectedMod = 0.2
         testPosition = 0.4
+        testCalibStates = [False, True]
         with patch.object(self.testJoystick, 'axisMotion') as mockedSignals, \
                 patch.object(self.testJoystick, '_calculateModifier') \
                 as mockedCalcMod:
-            mockedCalcMod.return_value = expectedMod
-            self.testJoystick._processAxisSignal(self.testIdxes[0],
-                                                 testPosition)
+            for calibState in testCalibStates:
+                mockedCalcMod.return_value = expectedMod
+                self.testJoystick._isCalibrated = calibState
+                self.testJoystick._processAxisSignal(self.testIdxes[0],
+                                                     testPosition)
             mockedCalcMod.assert_called_once_with(self.testJoystick._axes[0],
                                                   testPosition)
             mockedSignals.emit.assert_called_once_with(expectedType,
@@ -400,6 +352,58 @@ class TestJoystick(TestCase):
         self.testJoystick.deactivate()
         self.mockedTimer.stop \
             .assert_called_once()
+
+    def test_calibrateAlreadyDone(self):
+        """
+        The calibrate method must do nothing if the joystick
+        is already calibrated.
+        """
+        self.testJoystick._isCalibrated = True
+        expectedCalibSeq = self.testJoystick._calibSeq
+        with patch.object(self.testJoystick, 'calibration') as mockedCalib:
+            self.testJoystick.calibrate()
+            self.testJoystick._joystick.get_axis.assert_not_called()
+            mockedCalib.assert_not_called()
+            self.assertEqual(self.testJoystick._calibSeq, expectedCalibSeq)
+
+    def test_calibrateEmitSeqMngmt(self):
+        """
+        The calibrate method must emit the current sequence message,
+        increment the calibration seq, and reset it and set the calibration
+        flag when calibration is done.
+        """
+        for seq in self.testJoystick._config[Joystick.CALIB_KEY]:
+            with patch.object(self.testJoystick, 'calibration') as mockedCalib:
+                self.testJoystick.calibrate()
+                mockedCalib.emit.assert_called_once_with(seq['msg'])
+        self.assertTrue(self.testJoystick._isCalibrated)
+
+    def test_calibrateSaveAxesMinMax(self):
+        """
+        The calibrate method must save the minimum and maximum of the axes.
+        """
+        axesPos = (-1.5, 1.5, 0, 1.32, 0.75, 1.45)
+        self.testJoystick._joystick.get_axis.side_effect = axesPos
+        self.testJoystick._joystick.get_axis.side_effect = axesPos
+        for idx, seq in enumerate(self.testJoystick._config[Joystick.CALIB_KEY]):       # noqa: E501
+            with patch.object(self.testJoystick, 'calibration'):
+                self.testJoystick.calibrate()
+            if 'axis' in seq:
+                self.testJoystick._joystick.get_axis.assert_called_with(seq['axis'])    # noqa: E501
+                self.assertEqual(self.testJoystick._axes[seq['axis']][seq['limit']],    # noqa: E501
+                                 axesPos[idx - 1])
+
+    def test_isCalibrated(self):
+        """
+        The isCalibrated method must return the calibration status.
+        """
+        expectedStates = (True, False)
+        for expectedState in expectedStates:
+            self.testJoystick._isCalibrated = expectedState
+            if expectedState:
+                self.assertTrue(self.testJoystick.isCalibrated())
+            else:
+                self.assertFalse(self.testJoystick.isCalibrated())
 
     def test_quit(self):
         """

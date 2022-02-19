@@ -50,6 +50,7 @@ class JoystickCtrlr(QObject):
         Initialize the widgets.
         """
         self._calBtn.clicked.connect(self._model.calibrateJoystick)
+        self._calBtn.setEnabled(not self._model.isJoystickCalibrated())
         self._selectCombo.setModel(self._model.model)
         self._selectCombo.currentTextChanged. \
             connect(self._model.activateJoystick)

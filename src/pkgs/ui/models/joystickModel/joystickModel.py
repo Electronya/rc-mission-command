@@ -12,6 +12,7 @@ class JoystickModel(QObject):
     buttonDown = Signal(str, int)
     buttonUp = Signal(str, int)
     hatMotion = Signal(str, tuple)
+    calibration = Signal(str)
 
     def __init__(self, appLogger: object) -> None:
         """
@@ -116,10 +117,16 @@ class JoystickModel(QObject):
     def calibrateJoystick(self) -> None:
         """
         Calibrate the active joystick.
-        TODO: Setup the calibraton.
         """
         self._logger.info(f"calibrating joystick "
                           f"{self._joysticks['active'].getName()}")
+        self._joysticks['active'].calibrate()
+
+    def isJoystickCalibrated(self) -> None:
+        """
+        Check if the active joystick is calibrated.
+        """
+        return self._joysticks['active'].isCalibrated()
 
     @Slot()
     def activateJoystick(self, joystickName: str) -> None:
@@ -144,6 +151,8 @@ class JoystickModel(QObject):
             .connect(lambda type, idx: self.buttonUp.emit(type, idx))               # noqa: E501
         self._joysticks['active'].hatMotion \
             .connect(lambda type, idx, vals: self.hatMotion.emit(type, idx, vals))  # noqa: E501
+        self._joysticks['active'].calibration \
+            .connect(lambda msg: self.calibration.emit(msg))
 
     def updateJoystickList(self) -> None:
         """

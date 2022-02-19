@@ -153,6 +153,28 @@ class TestJoystickModel(TestCase):
             mockedStdItem.assert_has_calls(itemCalls)
             self.joystickMdl.model.appendRow.assert_has_calls(addItemCalls)
 
+    def test_calibrateJoystick(self):
+        """
+        The calibrateJoystick method must call the active joystick calibrate
+        method.
+        """
+        self.joystickMdl.calibrateJoystick()
+        self.joystickMdl._joysticks['active'].calibrate.assert_called_once()
+
+    def test_isJoystickCalibrated(self):
+        """
+        The isJoystickCalibrated method must return the calibration state
+        of the active joystick.
+        """
+        expectedStates = (True, False)
+        self.joystickMdl._joysticks['active'] \
+            .isCalibrated.side_effect = expectedStates
+        for expectedState in expectedStates:
+            if expectedState:
+                self.assertTrue(self.joystickMdl.isJoystickCalibrated())
+            else:
+                self.assertFalse(self.joystickMdl.isJoystickCalibrated())
+
     def test_activateJoystickDeactivate(self):
         """
         The activateJoystick methode must deactivate the
@@ -191,6 +213,8 @@ class TestJoystickModel(TestCase):
         self.mockedJoysticks[joystickIdx].buttonUp \
             .connect.assert_called_once()
         self.mockedJoysticks[joystickIdx].hatMotion \
+            .connect.assert_called_once()
+        self.mockedJoysticks[joystickIdx].calibration \
             .connect.assert_called_once()
 
     def test_updateJoystickListListConnected(self):

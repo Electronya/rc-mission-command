@@ -76,12 +76,17 @@ class TestJoystickCtrlr(TestCase):
     def test_initWidgetsCalBtn(self):
         """
         The _initWidgets method must connect the calibration button
-        to the calibration slots and disable it.
+        to the calibration slots and set its enable state base on
+        the joystick calibration state.
         """
+        expectedState = True
+        self.mockedJoystickModel \
+            .isJoystickCalibrated.return_value = expectedState
         with patch.object(self.joystickCtrlr, '_initWheelWidgets'):
             self.joystickCtrlr._initWidgets()
             self.mockedCalBtn.clicked.connect. \
                 assert_called_once_with(self.mockedJoystickModel.calibrateJoystick)     # noqa: E501
+            self.mockedCalBtn.setEnabled.assert_called_once_with(not expectedState)     # noqa: E501
 
     def test_initWidgetsSelect(self):
         """
