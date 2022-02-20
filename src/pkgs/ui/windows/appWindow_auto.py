@@ -88,10 +88,10 @@ class Ui_MainWindow(object):
         self.unitsGroupBox.setObjectName(u"unitsGroupBox")
         self.verticalLayout_2 = QVBoxLayout(self.unitsGroupBox)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.unitsListView = QListView(self.unitsGroupBox)
-        self.unitsListView.setObjectName(u"unitsListView")
+        self.treeView = QTreeView(self.unitsGroupBox)
+        self.treeView.setObjectName(u"treeView")
 
-        self.verticalLayout_2.addWidget(self.unitsListView)
+        self.verticalLayout_2.addWidget(self.treeView)
 
 
         self.verticalLayout.addWidget(self.unitsGroupBox)
@@ -100,25 +100,15 @@ class Ui_MainWindow(object):
         self.commGroupBox.setObjectName(u"commGroupBox")
         self.gridLayout_2 = QGridLayout(self.commGroupBox)
         self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.lineEdit_2 = QLineEdit(self.commGroupBox)
-        self.lineEdit_2.setObjectName(u"lineEdit_2")
-
-        self.gridLayout_2.addWidget(self.lineEdit_2, 2, 1, 1, 1)
-
-        self.brokerPortLabel = QLabel(self.commGroupBox)
-        self.brokerPortLabel.setObjectName(u"brokerPortLabel")
-
-        self.gridLayout_2.addWidget(self.brokerPortLabel, 1, 0, 1, 1)
-
         self.brokerHostnameLabel = QLabel(self.commGroupBox)
         self.brokerHostnameLabel.setObjectName(u"brokerHostnameLabel")
 
         self.gridLayout_2.addWidget(self.brokerHostnameLabel, 0, 0, 1, 1)
 
-        self.lineEdit = QLineEdit(self.commGroupBox)
-        self.lineEdit.setObjectName(u"lineEdit")
+        self.brokerPortLabel = QLabel(self.commGroupBox)
+        self.brokerPortLabel.setObjectName(u"brokerPortLabel")
 
-        self.gridLayout_2.addWidget(self.lineEdit, 0, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.brokerPortLabel, 1, 0, 1, 1)
 
         self.spinBox = QSpinBox(self.commGroupBox)
         self.spinBox.setObjectName(u"spinBox")
@@ -127,10 +117,10 @@ class Ui_MainWindow(object):
 
         self.gridLayout_2.addWidget(self.spinBox, 1, 1, 1, 1)
 
-        self.lineEdit_3 = QLineEdit(self.commGroupBox)
-        self.lineEdit_3.setObjectName(u"lineEdit_3")
+        self.lineEdit = QLineEdit(self.commGroupBox)
+        self.lineEdit.setObjectName(u"lineEdit")
 
-        self.gridLayout_2.addWidget(self.lineEdit_3, 3, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.lineEdit, 0, 1, 1, 1)
 
         self.connectionBtn = QPushButton(self.commGroupBox)
         self.connectionBtn.setObjectName(u"connectionBtn")
@@ -139,17 +129,7 @@ class Ui_MainWindow(object):
         self.connectionBtn.setIcon(icon1)
         self.connectionBtn.setIconSize(QSize(32, 32))
 
-        self.gridLayout_2.addWidget(self.connectionBtn, 0, 2, 4, 1)
-
-        self.mqttIdLabel = QLabel(self.commGroupBox)
-        self.mqttIdLabel.setObjectName(u"mqttIdLabel")
-
-        self.gridLayout_2.addWidget(self.mqttIdLabel, 2, 0, 1, 1)
-
-        self.mqttPasswordLabel = QLabel(self.commGroupBox)
-        self.mqttPasswordLabel.setObjectName(u"mqttPasswordLabel")
-
-        self.gridLayout_2.addWidget(self.mqttPasswordLabel, 3, 0, 1, 1)
+        self.gridLayout_2.addWidget(self.connectionBtn, 0, 3, 2, 1)
 
         self.gridLayout_2.setColumnStretch(0, 1)
 
@@ -196,12 +176,9 @@ class Ui_MainWindow(object):
         self.joystickCalBtn.setText(QCoreApplication.translate("MainWindow", u"Calibrate", None))
         self.unitsGroupBox.setTitle(QCoreApplication.translate("MainWindow", u"Units", None))
         self.commGroupBox.setTitle(QCoreApplication.translate("MainWindow", u"Communication", None))
-        self.lineEdit_2.setText(QCoreApplication.translate("MainWindow", u"commander", None))
-        self.brokerPortLabel.setText(QCoreApplication.translate("MainWindow", u"Port", None))
         self.brokerHostnameLabel.setText(QCoreApplication.translate("MainWindow", u"Broker", None))
+        self.brokerPortLabel.setText(QCoreApplication.translate("MainWindow", u"Port", None))
         self.connectionBtn.setText("")
-        self.mqttIdLabel.setText(QCoreApplication.translate("MainWindow", u"Client ID", None))
-        self.mqttPasswordLabel.setText(QCoreApplication.translate("MainWindow", u"Password", None))
         self.cmdTabs.setTabText(self.cmdTabs.indexOf(self.stateCmdTab), QCoreApplication.translate("MainWindow", u"State/Cmd", None))
         self.cmdTabs.setTabText(self.cmdTabs.indexOf(self.fpvTab), QCoreApplication.translate("MainWindow", u"FPV", None))
     # retranslateUi
