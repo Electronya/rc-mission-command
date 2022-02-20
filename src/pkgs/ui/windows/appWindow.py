@@ -42,8 +42,7 @@ class AppWindow(qtw.QMainWindow, Ui_MainWindow):
                                             self.joystickWheelIcon,
                                             self.joystickThrlBar,
                                             self.joystickBrkBar)
-        self._joystickCtrlr.error. \
-            connect(lambda lvl, error: self._createErrorMsgBox(lvl, error))
+        self._joystickCtrlr.error.connect(self._createErrorMsgBox)
         self._joystickCtrlr.areJoystickAvailable()
 
     @qtc.Slot(qtw.QMessageBox.Icon, Exception)

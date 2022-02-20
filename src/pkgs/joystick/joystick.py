@@ -1,8 +1,7 @@
 import json
-from operator import index
 import os
 
-from PySide2.QtCore import QObject, QThreadPool, QTimer, Signal
+from PySide2.QtCore import QObject, QThreadPool, QTimer, Signal, Slot
 
 import pygame as pg
 from pygame import joystick
@@ -144,6 +143,7 @@ class Joystick(QObject):
                              self._ndigit)
         return modifier
 
+    @Slot(int, float)
     def _processAxisSignal(self, idx, position) -> None:
         """
         Process axis signals.
@@ -159,6 +159,7 @@ class Joystick(QObject):
             self._logger.info(f"new axis{idx} modifier: {modifier}")
             self.axisMotion.emit(self._config[self.TYPE_KEY], idx, modifier)
 
+    @Slot(int)
     def _processBtnDownSignal(self, idx) -> None:
         """
         Process button down signals.
@@ -169,6 +170,7 @@ class Joystick(QObject):
         self._logger.info(f"button {idx} is pressed")
         self.buttonDown.emit(self._config[self.TYPE_KEY], idx)
 
+    @Slot(int)
     def _processBtnUpSignal(self, idx) -> None:
         """
         Process button up signals.
@@ -179,6 +181,7 @@ class Joystick(QObject):
         self._logger.info(f"button {idx} is depressed")
         self.buttonUp.emit(self._config[self.TYPE_KEY], idx)
 
+    @Slot(int, tuple)
     def _processHatSignal(self, idx, vals) -> None:
         """
         Process hat signals.
@@ -196,14 +199,10 @@ class Joystick(QObject):
         Start the processing worker.
         """
         worker = JoystickProcessor(self._logger)
-        worker.signals.axisMotion \
-            .connect(lambda idx, val: self._processAxisSignal(idx, val))
-        worker.signals.hatMotion \
-            .connect(lambda idx, val: self._processHatSignal(idx, val))
-        worker.signals.buttonDown \
-            .connect(lambda idx: self._processBtnDownSignal(idx))
-        worker.signals.buttonUp \
-            .connect(lambda idx: self._processBtnUpSignal(idx))
+        worker.signals.axisMotion.connect(self._processAxisSignal)
+        worker.signals.hatMotion.connect(self._processHatSignal)
+        worker.signals.buttonDown.connect(self._processBtnDownSignal)
+        worker.signals.buttonUp.connect(self._processBtnUpSignal)
         self._threadPool.start(worker)
 
     def _setupProcessor(self) -> None:

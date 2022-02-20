@@ -11,7 +11,7 @@ class JoystickModel(QObject):
     axisMotion = Signal(str, int, float)
     buttonDown = Signal(str, int)
     buttonUp = Signal(str, int)
-    hatMotion = Signal(str, tuple)
+    hatMotion = Signal(str, int, tuple)
     calibration = Signal(str)
 
     def __init__(self, appLogger: object) -> None:
@@ -128,7 +128,7 @@ class JoystickModel(QObject):
         """
         return self._joysticks['active'].isCalibrated()
 
-    @Slot()
+    @Slot(str)
     def activateJoystick(self, joystickName: str) -> None:
         """
         Activate joystick.
