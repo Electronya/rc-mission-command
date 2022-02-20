@@ -88,10 +88,10 @@ class Ui_MainWindow(object):
         self.unitsGroupBox.setObjectName(u"unitsGroupBox")
         self.verticalLayout_2 = QVBoxLayout(self.unitsGroupBox)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.treeView = QTreeView(self.unitsGroupBox)
-        self.treeView.setObjectName(u"treeView")
+        self.unitTree = QTreeView(self.unitsGroupBox)
+        self.unitTree.setObjectName(u"unitTree")
 
-        self.verticalLayout_2.addWidget(self.treeView)
+        self.verticalLayout_2.addWidget(self.unitTree)
 
 
         self.verticalLayout.addWidget(self.unitsGroupBox)
@@ -110,26 +110,26 @@ class Ui_MainWindow(object):
 
         self.gridLayout_2.addWidget(self.brokerPortLabel, 1, 0, 1, 1)
 
-        self.spinBox = QSpinBox(self.commGroupBox)
-        self.spinBox.setObjectName(u"spinBox")
-        self.spinBox.setMaximum(65535)
-        self.spinBox.setValue(1883)
+        self.portEntry = QSpinBox(self.commGroupBox)
+        self.portEntry.setObjectName(u"portEntry")
+        self.portEntry.setMaximum(65535)
+        self.portEntry.setValue(1883)
 
-        self.gridLayout_2.addWidget(self.spinBox, 1, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.portEntry, 1, 1, 1, 1)
 
-        self.lineEdit = QLineEdit(self.commGroupBox)
-        self.lineEdit.setObjectName(u"lineEdit")
+        self.brokerEntry = QLineEdit(self.commGroupBox)
+        self.brokerEntry.setObjectName(u"brokerEntry")
 
-        self.gridLayout_2.addWidget(self.lineEdit, 0, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.brokerEntry, 0, 1, 1, 1)
 
-        self.connectionBtn = QPushButton(self.commGroupBox)
-        self.connectionBtn.setObjectName(u"connectionBtn")
+        self.connectBtn = QPushButton(self.commGroupBox)
+        self.connectBtn.setObjectName(u"connectBtn")
         icon1 = QIcon()
         icon1.addFile(u":/communication/icons/disconnected.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.connectionBtn.setIcon(icon1)
-        self.connectionBtn.setIconSize(QSize(32, 32))
+        self.connectBtn.setIcon(icon1)
+        self.connectBtn.setIconSize(QSize(32, 32))
 
-        self.gridLayout_2.addWidget(self.connectionBtn, 0, 3, 2, 1)
+        self.gridLayout_2.addWidget(self.connectBtn, 0, 3, 2, 1)
 
         self.gridLayout_2.setColumnStretch(0, 1)
 
@@ -178,7 +178,7 @@ class Ui_MainWindow(object):
         self.commGroupBox.setTitle(QCoreApplication.translate("MainWindow", u"Communication", None))
         self.brokerHostnameLabel.setText(QCoreApplication.translate("MainWindow", u"Broker", None))
         self.brokerPortLabel.setText(QCoreApplication.translate("MainWindow", u"Port", None))
-        self.connectionBtn.setText("")
+        self.connectBtn.setText("")
         self.cmdTabs.setTabText(self.cmdTabs.indexOf(self.stateCmdTab), QCoreApplication.translate("MainWindow", u"State/Cmd", None))
         self.cmdTabs.setTabText(self.cmdTabs.indexOf(self.fpvTab), QCoreApplication.translate("MainWindow", u"FPV", None))
     # retranslateUi
