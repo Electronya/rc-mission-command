@@ -53,13 +53,16 @@ class TestJoystickCtrlr(TestCase):
         """
         The constructor must instantiate the model.
         """
+        mockedModel = Mock()
         with patch(self.joystickModelCls) as mockedCtrlrMdl, \
                 patch(self.qObject), \
                 patch.object(JoystickCtrlr, '_initWidgets'):
+            mockedCtrlrMdl.return_value = mockedModel
             JoystickCtrlr(self.mockedLogger, self.mockedCalBtn,
                           self.mockedJoystickSelect, self.mockedWheelView,
                           self.mockedThrtlBar, self.mockedBrkBar)
             mockedCtrlrMdl.assert_called_once_with(self.mockedLogger)
+            mockedModel.calibration.connect.assert_called_once()
 
     def test_constructorInitWidgets(self):
         """

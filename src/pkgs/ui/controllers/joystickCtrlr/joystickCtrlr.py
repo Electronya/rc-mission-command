@@ -42,6 +42,7 @@ class JoystickCtrlr(QObject):
         self._thrtlBar = thrtlBar
         self._brakeBar = brkBar
         self._model = JoystickModel(logger)
+        self._model.calibration.connect(self.createCalibMsgBox)
         self._initWidgets()
         self._logger.info('intialized')
 
@@ -51,9 +52,8 @@ class JoystickCtrlr(QObject):
         """
         self._calBtn.clicked.connect(self._model.calibrateJoystick)
         self._selectCombo.setModel(self._model.model)
-        self._selectCombo.currentTextChanged. \
-            connect(self._model.activateJoystick)
-        self._model.calibration.connect(self.createCalibMsgBox)
+        self._selectCombo.currentTextChanged \
+            .connect(self._model.activateJoystick)
         self._initWheelWidgets()
         self._thrtlBar.setValue(0)
         self._thrtlBar.setStyleSheet(self.THRTL_STYLESHEET)
