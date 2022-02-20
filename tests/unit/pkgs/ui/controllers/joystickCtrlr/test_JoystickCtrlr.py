@@ -21,6 +21,7 @@ class TestJoystickCtrlr(TestCase):
         self.qObject = 'pkgs.ui.controllers.joystickCtrlr.joystickCtrlr.QObject'                    # noqa: E501
         self.graphicScene = 'pkgs.ui.controllers.joystickCtrlr.joystickCtrlr.QGraphicsScene'        # noqa: E501
         self.graphSvgItem = 'pkgs.ui.controllers.joystickCtrlr.joystickCtrlr.QGraphicsSvgItem'      # noqa: E501
+        self.messageBox = 'pkgs.ui.controllers.joystickCtrlr.joystickCtrlr.QMessageBox'             # noqa: E501
         self.mockedLogger = Mock()
         self.mockedJoystickModel = Mock()
         self.mockedGraphScene = Mock()
@@ -76,8 +77,7 @@ class TestJoystickCtrlr(TestCase):
     def test_initWidgetsCalBtn(self):
         """
         The _initWidgets method must connect the calibration button
-        to the calibration slots and set its enable state base on
-        the joystick calibration state.
+        to the calibration slots.
         """
         expectedState = True
         self.mockedJoystickModel \
@@ -86,7 +86,6 @@ class TestJoystickCtrlr(TestCase):
             self.joystickCtrlr._initWidgets()
             self.mockedCalBtn.clicked.connect. \
                 assert_called_once_with(self.mockedJoystickModel.calibrateJoystick)     # noqa: E501
-            self.mockedCalBtn.setEnabled.assert_called_once_with(not expectedState)     # noqa: E501
 
     def test_initWidgetsSelect(self):
         """
@@ -143,15 +142,54 @@ class TestJoystickCtrlr(TestCase):
             self.mockedWheelView.setScene. \
                 assert_called_once_with(self.mockedGraphScene)
 
-    def test_areJoystickAvailable(self):
+    def test_areJoystickAvailableNoJoystick(self):
         """
         _areJoystickAvailable method must emit an error signal
-        only if there are no available joystick.
+        only if there are no available joystick and set the
+        calibration button enabled state base on the calibration
+        state of the active joystick.
         """
         retVals = [0, 1]
         self.mockedJoystickModel.model.rowCount.side_effect = retVals
+        self.mockedJoystickModel.isJoystickCalibrated \
+            .side_effect = (False, False)
         with patch.object(self.joystickCtrlr, 'error') as mockedErrSignal:
             for retVal in retVals:
                 print(retVal)
                 self.joystickCtrlr.areJoystickAvailable()
             mockedErrSignal.emit.assert_called_once()
+            self.mockedCalBtn.setEnabled.assert_called_once_with(not False)
+
+    def test_createCalibMsgBoxCreateMsgBx(self):
+        """
+        The createCalibMsgBox method must create and display
+        the calibration message box with the received message.
+        """
+        expectedMsg = 'test message'
+        mockedMsgBox = Mock()
+        with patch(self.messageBox) as mockedMsgBoxConst:
+            mockedMsgBoxConst.return_value = mockedMsgBox
+            self.joystickCtrlr.createCalibMsgBox(expectedMsg)
+            mockedMsgBoxConst.assert_called_once()
+            mockedMsgBox.setWindowTitle.assert_called_once()
+            mockedMsgBox.setText.assert_called_once_with(expectedMsg)
+            mockedMsgBox.setIcon.assert_called_once()
+            mockedMsgBox.exec_.assert_called_once()
+
+    def test_createCalibMsgBoxNextSequence(self):
+        """
+        The createCalibMsgBox method must go to the next
+        calibration sequence.
+        """
+        with patch(self.messageBox):
+            self.joystickCtrlr.createCalibMsgBox('TEST')
+            self.mockedJoystickModel.calibrateJoystick.assert_called_once()
+
+    def test_createCalibMsgBoxDone(self):
+        """
+        The createCalibMsgBox method must disable the calibration
+        button if the calibration process is done.
+        """
+        with patch(self.messageBox):
+            self.joystickCtrlr.createCalibMsgBox('hdhdh done oofid')
+            self.mockedCalBtn.setEnabled.assert_called_once_with(False)

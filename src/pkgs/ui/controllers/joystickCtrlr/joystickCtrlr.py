@@ -1,5 +1,5 @@
 
-from PySide2.QtCore import QObject, Signal
+from PySide2.QtCore import QObject, Signal, Slot
 from PySide2.QtSvg import QGraphicsSvgItem
 from PySide2.QtWidgets import QComboBox, QGraphicsView, \
     QGraphicsScene, QMessageBox, QProgressBar, QPushButton
@@ -50,10 +50,10 @@ class JoystickCtrlr(QObject):
         Initialize the widgets.
         """
         self._calBtn.clicked.connect(self._model.calibrateJoystick)
-        self._calBtn.setEnabled(not self._model.isJoystickCalibrated())
         self._selectCombo.setModel(self._model.model)
         self._selectCombo.currentTextChanged. \
             connect(self._model.activateJoystick)
+        self._model.calibration.connect(self.createCalibMsgBox)
         self._initWheelWidgets()
         self._thrtlBar.setValue(0)
         self._thrtlBar.setStyleSheet(self.THRTL_STYLESHEET)
@@ -79,3 +79,20 @@ class JoystickCtrlr(QObject):
             self._logger.error(f"available joystick count: {availableCount}")
             self.error.emit(QMessageBox.Critical,
                             Exception('No joystick are available.'))
+        else:
+            self._calBtn.setEnabled(not self._model.isJoystickCalibrated())
+
+    @Slot(str)
+    def createCalibMsgBox(self, msg: str) -> None:
+        """
+        Create the calibration message box.
+        """
+        msgBox = QMessageBox()
+        msgBox.setWindowTitle('Calibrating the joystick')
+        msgBox.setText(msg)
+        msgBox.setIcon(QMessageBox.Icon.Information)
+        msgBox.exec_()
+        if 'done' in msg:
+            self._calBtn.setEnabled(False)
+        else:
+            self._model.calibrateJoystick()

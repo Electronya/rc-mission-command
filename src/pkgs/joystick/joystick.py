@@ -260,17 +260,19 @@ class Joystick(QObject):
         Start the calibration sequence.
         """
         if not self._isCalibrated:
-            seq = self._config[self.CALIB_KEY][self._calibSeq]
-            self.calibration.emit(seq['msg'])
+            self._logger.debug(f"joystick {self.getName()} "
+                               f"calibartion sequence {self._calibSeq}")
+            self._calibSeq += 1
+            seq = self._config[self.CALIB_KEY][self._calibSeq - 1]
             if 'axis' in seq:
                 axisPos = self._joystick.get_axis(seq['axis'])
                 self._logger.debug(f"saving axis {seq['axis']} "
                                    f"{seq['limit']} as {axisPos}")
                 self._axes[seq['axis']][seq['limit']] = axisPos
-            self._calibSeq += 1
             if self._calibSeq == len(self._config[self.CALIB_KEY]):
                 self._calibSeq = 0
                 self._isCalibrated = True
+            self.calibration.emit(seq['msg'])
 
     def isCalibrated(self) -> bool:
         """
