@@ -122,6 +122,8 @@ class Ui_MainWindow(object):
 
         self.spinBox = QSpinBox(self.commGroupBox)
         self.spinBox.setObjectName(u"spinBox")
+        self.spinBox.setMaximum(65535)
+        self.spinBox.setValue(1883)
 
         self.gridLayout_2.addWidget(self.spinBox, 1, 1, 1, 1)
 
@@ -182,7 +184,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.cmdTabs.setCurrentIndex(1)
+        self.cmdTabs.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -194,6 +196,7 @@ class Ui_MainWindow(object):
         self.joystickCalBtn.setText(QCoreApplication.translate("MainWindow", u"Calibrate", None))
         self.unitsGroupBox.setTitle(QCoreApplication.translate("MainWindow", u"Units", None))
         self.commGroupBox.setTitle(QCoreApplication.translate("MainWindow", u"Communication", None))
+        self.lineEdit_2.setText(QCoreApplication.translate("MainWindow", u"commander", None))
         self.brokerPortLabel.setText(QCoreApplication.translate("MainWindow", u"Port", None))
         self.brokerHostnameLabel.setText(QCoreApplication.translate("MainWindow", u"Broker", None))
         self.connectionBtn.setText("")
