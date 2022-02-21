@@ -24,15 +24,11 @@ class TestCommCtrlr(TestCase):
         self.mockedLogger = Mock()
         self.mockedBrokerEntry = Mock()
         self.mockedPortEntry = Mock()
-        self.mockedClientEntry = Mock()
-        self.mockedPwdEntry = Mock()
         self.mockedConnectBtn = Mock()
         with patch.object(CommCtrlr, '_setupBrokerValidation'):
             self.commCtrlr = CommCtrlr(self.mockedLogger,
                                        self.mockedBrokerEntry,
                                        self.mockedPortEntry,
-                                       self.mockedClientEntry,
-                                       self.mockedPwdEntry,
                                        self.mockedConnectBtn)
 
     def test_constructorConnectBtn(self):
@@ -42,8 +38,7 @@ class TestCommCtrlr(TestCase):
         """
         with patch.object(CommCtrlr, '_setupBrokerValidation'):
             CommCtrlr(self.mockedLogger, self.mockedBrokerEntry,
-                      self.mockedPortEntry, self.mockedClientEntry,
-                      self.mockedPwdEntry, self.mockedConnectBtn)
+                      self.mockedPortEntry, self.mockedConnectBtn)
             self.mockedConnectBtn.clicked.connect \
                 .assert_called()
 
@@ -53,8 +48,7 @@ class TestCommCtrlr(TestCase):
         """
         with patch.object(CommCtrlr, '_setupBrokerValidation') as mockedValid:
             CommCtrlr(self.mockedLogger, self.mockedBrokerEntry,
-                      self.mockedPortEntry, self.mockedClientEntry,
-                      self.mockedPwdEntry, self.mockedConnectBtn)
+                      self.mockedPortEntry, self.mockedConnectBtn)
             mockedValid.assert_called_once()
 
     def test_setupBrokerValidation(self):

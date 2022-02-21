@@ -15,8 +15,7 @@ class CommCtrlr(QObject):
     error = Signal(str)
 
     def __init__(self, logger: object, brokerEntry: QLineEdit,
-                 portEntry: QSpinBox, clientEntry: QLineEdit,
-                 passwordEntry: QLineEdit, connectBtn: QPushButton) -> None:
+                 portEntry: QSpinBox, connectBtn: QPushButton) -> None:
         """
         The constructor.
 
@@ -24,8 +23,6 @@ class CommCtrlr(QObject):
             logger:         The application logger.
             brokerEntry:    The entry for the broker IP.
             portEntry:      The entry for the MQTT port.
-            clientEntry:    The entry for the MQTT client ID.
-            passwordEntry:  The entry for the MQTT password.
             connectBtn:     The connect button.
         """
         QObject.__init__(self)
@@ -34,8 +31,6 @@ class CommCtrlr(QObject):
         self._brokerEntry = brokerEntry
         self._setupBrokerValidation()
         self._portEntry = portEntry
-        self._clientEntry = clientEntry
-        self._pwdEntry = passwordEntry
         self._connectBtn = connectBtn
         self._connectBtn.clicked.connect(self._connectButtonCallback)
         self._isConnected = False
