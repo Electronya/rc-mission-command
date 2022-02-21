@@ -102,7 +102,7 @@ class JoystickCtrlr(QObject):
             modifier:   The steering modifier.
         """
         transform = QTransform()
-        transform.rotate(180 * modifier)
+        transform.rotate(90 * modifier)
         self._wheelView.setTransform(transform)
 
     def _updateThrottle(self, modifier: float) -> None:

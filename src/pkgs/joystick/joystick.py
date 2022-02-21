@@ -156,7 +156,7 @@ class Joystick(QObject):
             self._logger.debug(f"processing axis {idx} signal with "
                                f"position: {position}")
             modifier = self._calculateModifier(self._axes[idx], position)
-            self._logger.info(f"new axis{idx} modifier: {modifier}")
+            self._logger.debug(f"new axis{idx} modifier: {modifier}")
             self.axisMotion.emit(self._config[self.TYPE_KEY], idx, modifier)
 
     @Slot(int)
