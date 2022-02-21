@@ -4,6 +4,7 @@ import PySide2.QtCore as qtc
 import PySide2.QtWidgets as qtw
 
 from .appWindow_auto import Ui_MainWindow
+from ..controllers.commCtrlr import CommCtrlr
 from ..controllers.joystickCtrlr import JoystickCtrlr
 
 
@@ -36,6 +37,9 @@ class AppWindow(qtw.QMainWindow, Ui_MainWindow):
     def _initJoystickCtrlr(self, logger: object) -> None:
         """
         Initialize the joystick controller.
+
+        Params:
+            logger:     The application logger.
         """
         self._joystickCtrlr = JoystickCtrlr(logger, self.joystickCalBtn,
                                             self.joystickSelect,
@@ -44,6 +48,17 @@ class AppWindow(qtw.QMainWindow, Ui_MainWindow):
                                             self.joystickBrkBar)
         self._joystickCtrlr.error.connect(self._createErrorMsgBox)
         self._joystickCtrlr.areJoystickAvailable()
+
+    def _initCommCtrlr(self, logger: object) -> None:
+        """
+        Initialize the communication controller.
+
+        Params:
+            logger:     The application logger.
+        """
+        self._commCtrlr = CommCtrlr(logger, self.brokerEntry,
+                                    self.portEntry, self.connectBtn)
+        self._commCtrlr.error.connect(self._createErrorMsgBox)
 
     @qtc.Slot(qtw.QMessageBox.Icon, Exception)
     def _createErrorMsgBox(self, lvl: qtw.QMessageBox.Icon,

@@ -19,6 +19,7 @@ class TestAppWindow(TestCase):
         self.QMainwindow = 'pkgs.ui.windows.appWindow.qtw.QMainWindow.__init__'
         self.QMsgBoxCls = 'pkgs.ui.windows.appWindow.qtw.QMessageBox'
         self.joystickCtrlrCls = 'pkgs.ui.windows.appWindow.JoystickCtrlr'
+        self.commCtrlrCls = 'pkgs.ui.windows.appWindow.CommCtrlr'
         self.logger = Mock()
         with patch(self.QMainwindow), \
                 patch.object(AppWindow, 'setupUi'), \
@@ -35,6 +36,9 @@ class TestAppWindow(TestCase):
         self.testAppWindow.joystickWheelIcon = Mock()
         self.testAppWindow.joystickThrlBar = Mock()
         self.testAppWindow.joystickBrkBar = Mock()
+        self.testAppWindow.brokerEntry = Mock()
+        self.testAppWindow.portEntry = Mock()
+        self.testAppWindow.connectBtn = Mock()
 
     def test_constructorSetupUi(self) -> None:
         """
@@ -102,6 +106,28 @@ class TestAppWindow(TestCase):
             mockedJoystickCtrlrCls.return_value = mockedJoystickCtrlr
             self.testAppWindow._initJoystickCtrlr(self.logger)
             mockedJoystickCtrlr.areJoystickAvailable.assert_called_once()
+
+    def test_initCommCtrlrCreate(self):
+        """
+        The _initCommCtrlr method must create le communication controller.
+        """
+        with patch(self.commCtrlrCls) as mockedCommCtrlrCls:
+            self.testAppWindow._initCommCtrlr(self.logger)
+            mockedCommCtrlrCls \
+                .assert_called_once_with(self.logger,
+                                         self.testAppWindow.brokerEntry,
+                                         self.testAppWindow.portEntry,
+                                         self.testAppWindow.connectBtn)
+
+    def test_initCommCtrlrConnect(self):
+        """
+        The _initCommCtrlr method must error message box slot.
+        """
+        mockedCommCtrlr = Mock()
+        with patch(self.commCtrlrCls) as mockedCommCtrlrCls:
+            mockedCommCtrlrCls.return_value = mockedCommCtrlr
+            self.testAppWindow._initCommCtrlr(self.logger)
+            mockedCommCtrlr.error.connect.assert_called_once()
 
     def test_createErrorMsgBoxNewMsgBox(self):
         """
