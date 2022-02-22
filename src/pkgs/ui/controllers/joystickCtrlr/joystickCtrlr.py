@@ -15,6 +15,7 @@ class JoystickCtrlr(QObject):
     BRAKE_STYLESHEET = 'QProgressBar::chunk {background-color: red;}'
     WHEEL_ICON = ':/controller/icons/steering-wheel.svg'
     WHEEL_ICON_SCALE = 0.12
+    WHEEL_RANGE = 90
 
     error = Signal(QMessageBox.Icon, Exception)
 
@@ -102,7 +103,7 @@ class JoystickCtrlr(QObject):
             modifier:   The steering modifier.
         """
         transform = QTransform()
-        transform.rotate(90 * modifier)
+        transform.rotate(self.WHEEL_RANGE * modifier)
         self._wheelView.setTransform(transform)
 
     def _updateThrottle(self, modifier: float) -> None:

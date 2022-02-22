@@ -217,7 +217,8 @@ class TestJoystickCtrlr(TestCase):
                 mockedTransformConst.return_value = mockedTransform
                 self.joystickCtrlr._updateSteering(testMod)
                 mockedTransformConst.assert_called_once()
-                mockedTransform.rotate.assert_called_with(180 * testMod)
+                mockedTransform.rotate \
+                    .assert_called_with(self.joystickCtrlr.WHEEL_RANGE * testMod)   # noqa: E501
                 self.mockedWheelView.setTransform \
                     .assert_called_with(mockedTransform)
 
