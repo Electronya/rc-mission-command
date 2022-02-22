@@ -121,30 +121,42 @@ class Joystick(QObject):
                                                      tuple(supported))
         return connected_supported
 
-    def _calculateModifier(self, limits, val) -> float:
+    def _calculateSplitRangeMod(self, limits: dict, val: float) -> float:
         """
-        Calculate modifier.
+        Calculate split range axis modifier.
 
         Params:
-            limits:     The axis/hat limit values.
-            val:        The axis/hat actual value.
+            limits:     The axis limit values.
+            val:        The axis actual value.
 
         Return:
-            The axis/hat modifier.
+            The axis modifier.
         """
         modifier = 0.0
-        if limits['min'] < 0 and val < 0:
-            modifier = round(abs(val) / limits['min'], self._ndigit)
-        elif limits['min'] < 0 and val > 0:
-            modifier = round(val / limits['max'], self._ndigit)
+        middle = limits['min'] + ((limits['max'] - limits['min']) / 2)
+        if val < middle:
+            modifier = -1 * (abs(val) / abs(middle - limits['min']))
         else:
-            modifier = round(abs(limits['min'] - val) /
-                             (limits['max'] - limits['min']),
-                             self._ndigit)
+            modifier = val / (limits['max'] - middle)
         return modifier
 
+    def _calculateFullRangeInvertMod(self, limits: dict, val: float) -> float:
+        """
+        Calculate full range inverted modifier.
+
+        Params:
+            limits:     The axis limit values.
+            val:        The axis actual value.
+
+        Return:
+            The axis modifier.
+        """
+        fullRange = limits['max'] - limits['min']
+        modifier = abs(val - limits['min']) / fullRange
+        return 1 - modifier
+
     @Slot(int, float)
-    def _processAxisSignal(self, idx, position) -> None:
+    def _processAxisSignal(self, idx: int, position: float) -> None:
         """
         Process axis signals.
 
@@ -152,15 +164,18 @@ class Joystick(QObject):
             idx:        The axis index.
             position:   The axis position.
         """
+        calculators = {'steering': self._calculateSplitRangeMod,
+                       'throttle': self._calculateFullRangeInvertMod,
+                       'brake': self._calculateFullRangeInvertMod}
+        print(f"processing axis {idx}")
         if self._isCalibrated:
-            self._logger.debug(f"processing axis {idx} signal with "
-                               f"position: {position}")
-            modifier = self._calculateModifier(self._axes[idx], position)
+            modifier = calculators[self._config[self.AXES_KEY][idx]](self._axes[idx], position)     # noqa: E501
             self._logger.debug(f"new axis{idx} modifier: {modifier}")
-            self.axisMotion.emit(self._config[self.TYPE_KEY], idx, modifier)
+            self.axisMotion.emit(self._config[self.TYPE_KEY], idx,
+                                 round(modifier, self._ndigit))
 
     @Slot(int)
-    def _processBtnDownSignal(self, idx) -> None:
+    def _processBtnDownSignal(self, idx: int) -> None:
         """
         Process button down signals.
 
@@ -171,7 +186,7 @@ class Joystick(QObject):
         self.buttonDown.emit(self._config[self.TYPE_KEY], idx)
 
     @Slot(int)
-    def _processBtnUpSignal(self, idx) -> None:
+    def _processBtnUpSignal(self, idx: int) -> None:
         """
         Process button up signals.
 
@@ -182,7 +197,7 @@ class Joystick(QObject):
         self.buttonUp.emit(self._config[self.TYPE_KEY], idx)
 
     @Slot(int, tuple)
-    def _processHatSignal(self, idx, vals) -> None:
+    def _processHatSignal(self, idx: int, vals: int) -> None:
         """
         Process hat signals.
 
