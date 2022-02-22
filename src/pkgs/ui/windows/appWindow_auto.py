@@ -51,6 +51,8 @@ class Ui_MainWindow(object):
         self.joystickWheelIcon = QGraphicsView(self.joystickGroupBex)
         self.joystickWheelIcon.setObjectName(u"joystickWheelIcon")
         self.joystickWheelIcon.setEnabled(False)
+        self.joystickWheelIcon.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.joystickWheelIcon.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self.gridLayout.addWidget(self.joystickWheelIcon, 1, 0, 2, 1)
 
