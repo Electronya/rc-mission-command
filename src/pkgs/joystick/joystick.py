@@ -134,9 +134,13 @@ class Joystick(QObject):
         """
         modifier = 0.0
         middle = limits['min'] + ((limits['max'] - limits['min']) / 2)
+        self._logger.debug(f"calculating modifier with: val={val}, min={limits['min']}, "
+                           f"max={limits['max']} and middle={middle}")
         if val < middle:
+            self._logger.debug('val < middle')
             modifier = -1 * (abs(val) / abs(middle - limits['min']))
         else:
+            self._logger.debug('val > middle')
             modifier = val / (limits['max'] - middle)
         return modifier
 
@@ -151,6 +155,8 @@ class Joystick(QObject):
         Return:
             The axis modifier.
         """
+        self._logger.debug(f"calculating modifier with: val={val}, "
+                           f"min={limits['min']}, max={limits['max']}")
         fullRange = limits['max'] - limits['min']
         modifier = abs(val - limits['min']) / fullRange
         return 1 - modifier
