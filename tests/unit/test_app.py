@@ -13,24 +13,22 @@ class TestApp(TestCase):
     """
     The app module test cases.
     """
-    def test_appMainInitLogger(self):
+    def test_appMainInitLogging(self):
         """
-        The application main function must initialize the logger.
+        The application main function must initialize the logging module.
         """
-        with patch('app.initLogger') as mockedInitLogger, \
+        with patch('app.initLogging') as mockedInitLogging, \
                 patch('app.AppComposer'):
             app.main()
-            mockedInitLogger.assert_called_once()
+            mockedInitLogging.assert_called_once()
 
     def test_appMainAppComposer(self):
         """
-        The application main function must instaciated th AppComposer
+        The application main function must instantiated th AppComposer
         and run it.
         """
-        logger = object()
-        with patch('app.initLogger') as mockedInitLogger, \
-                patch('app.AppComposer') as mockedAppComp:
-            mockedInitLogger.return_value = logger
+        with patch('app.initLogging'), patch('app.AppComposer') \
+                as mockedAppComp:
             app.main()
-            mockedAppComp.assert_called_once_with(logger)
+            mockedAppComp.assert_called_once_with()
             mockedAppComp().run.assert_called_once()
