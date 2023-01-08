@@ -1,47 +1,125 @@
-import logging
+from argparse import Namespace
+from copy import deepcopy
 from unittest import TestCase
-from unittest.mock import patch
+from unittest.mock import call, Mock, mock_open, patch
 
 import os
 import sys
 
 sys.path.append(os.path.abspath('./src'))
 
-from logger import initLogger       # noqa: E402
+import logger as dut                    # noqa: E402
+from logger import _loggingSettings     # noqa: E402
 
 
 class TestLogger(TestCase):
     """
     The logger test cases.
     """
-    def setUp(self):
-        """
-        Test cases setup.
-        """
-        if 'APP_ENV' in os.environ:
-            del os.environ['APP_ENV']
+    def setUp(self) -> None:
+        self.loggingConfig = 'logger.logging.config'
+        self.argparsePkg = 'logger.argparse'
+        self.loggingMod = 'logger.logging'
+        self.appCmpts = ['app', 'app.composer', 'app.page.main']
+        self.testArg = Namespace()
+        self.testArg.app = None
 
-    def test_defaultLevel(self):
+    def test_getAppCmptNames(self) -> None:
         """
-        The initLogger function must set the logger level to info
-        if no APP_ENV is defined.
+        The _getAppCmptNames function must return the supported
+        application component names.
         """
-        with patch('logger.logging.basicConfig') as mockedBasicCfg:
-            initLogger()
-            mockedBasicCfg.assert_called_once_with(level=logging.INFO,
-                                                   format='%(asctime)s'
-                                                   ' %(levelname)s:'
-                                                   '%(name)s:%(message)s')
+        expectedRes = ['app', 'app.composer', 'app.windows.main']
+        testResult = dut._getAppCmptNames()
+        self.assertEqual(testResult, expectedRes, '_getAppCmptNames failed '
+                         'to return the supported app component names.')
 
-    def test_devLevel(self):
+    def test_parseArgumentsParserSetup(self) -> None:
         """
-        The initLogger function must set the logger level to debug
-        if the APP_ENV is defined as dev.
+        The _parseArguments function must setup the parser.
         """
-        with patch('logger.logging.basicConfig') as mockedBasicCfg:
-            os.environ['APP_ENV'] = 'dev'
-            initLogger()
-            mockedBasicCfg.assert_called_once_with(level=logging.DEBUG,
-                                                   format='%(asctime)s'
-                                                   ' %(levelname)s:'
-                                                   '%(name)s:%(message)s')
+        options = [{'short': '-a', 'long': '--app',
+                    'help': f"Set debug level for application components."
+                    f"\nUse the following component names : {self.appCmpts}."}]
+        expectedCalls = []
+        for option in options:
+            expectedCalls.append(call(option['short'], option['long'],
+                                      type=str, default=None,
+                                      help=option['help']))
+        mockedParser = Mock()
+        with patch(self.argparsePkg) as mockedArgParsePkg, \
+                patch('logger._getAppCmptNames') as mockedGetAppCmptNames:
+            mockedArgParsePkg.ArgumentParser.return_value = mockedParser
+            mockedGetAppCmptNames.return_value = self.appCmpts
+            dut._parseArguments()
+            mockedArgParsePkg.ArgumentParser.assert_called_once()
+            mockedParser.add_argument.assert_has_calls(expectedCalls)
+
+    def test_parseArgumentsParserReturnParsedArg(self) -> None:
+        """
+        The _parseArguments function must return the parsed arguments.
+        """
+        mockedParser = Mock()
+        expectedResult = Namespace()
+        with patch(self.argparsePkg) as mockedArgParsePkg, \
+                patch('logger._getAppCmptNames') as mockedGetAppCmptNames:
+            mockedArgParsePkg.ArgumentParser.return_value = mockedParser
+            mockedParser.parse_args.return_value = expectedResult
+            mockedGetAppCmptNames.return_value = self.appCmpts
+            testResult = dut._parseArguments()
+            mockedParser.parse_args.assert_called_once()
+            self.assertEqual(testResult, expectedResult, '_parseArguments '
+                             'failed to return the parsed arguments.')
+
+    def test_setInDebugModeNoDebug(self) -> None:
+        """
+        The _setInDebugMode function must not update the logging settings
+        when the list of debug logger is empty.
+        """
+        expectedResult = deepcopy(_loggingSettings)
+        loggersList = [self.testArg.app]
+        for loggers in loggersList:
+            dut._setInDebugMode(loggers)
+        self.assertEqual(_loggingSettings, expectedResult, '_setInDebugMode '
+                         'failed to not update the settings.')
+
+    def test_setInDebugModeDebug(self) -> None:
+        """
+        The _setInDebugMode must update the logging settings of the received
+        logger list.
+        """
+        expectedResult = deepcopy(_loggingSettings)
+        expectedResult['handlers']['console']['level'] = 'DEBUG'
+        expectedResult['loggers']['app.windows.main']['level'] = 'DEBUG'
+        self.testArg.app = 'app.windows.main'
+        loggersList = [self.testArg.app]
+        for loggers in loggersList:
+            dut._setInDebugMode(loggers)
+        self.assertEqual(_loggingSettings, expectedResult, '_updateSettings '
+                         'failed to update the settings.')
+
+    def test_updateSettings(self) -> None:
+        """
+        The _updateSettings function must set in debug mode the loggers
+        passed in the arguments.
+        """
+        expectedCalls = [call(self.testArg.app)]
+        with patch.object(dut, '_setInDebugMode') as mockedSetInDebugMode:
+            dut._updateSettings(self.testArg)
+        mockedSetInDebugMode.assert_has_calls(expectedCalls)
+
+    def test_initLogging(self) -> None:
+        """
+        The initLogging function must parse the passed arguments, update
+        the logging settings dictionary and initialize the logging module
+        with the updated settings.
+        """
+        with patch.object(dut, '_parseArguments') as mockedParseArg, \
+                patch.object(dut, '_updateSettings') as mockedUpdateSettings, \
+                patch(self.loggingMod) as mockedLoggingMod:
+            mockedParseArg.return_value = self.testArg
+            dut.initLogging()
+            mockedParseArg.assert_called_once()
+            mockedUpdateSettings.assert_called_once_with(self.testArg)
+            mockedLoggingMod.config.dictConfig. \
+                assert_called_once_with(_loggingSettings)
