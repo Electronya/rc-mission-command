@@ -1,3 +1,4 @@
+import logging
 import sys
 
 from PySide2.QtWidgets import QApplication
@@ -9,15 +10,15 @@ class AppComposer:
     """
     Application Composer.
     """
-    def __init__(self, logger: object) -> None:
+    def __init__(self) -> None:
         """
         Constructor.
         """
-        self._logger = logger.getLogger('APP_COMP')
+        self._logger = logging.getLogger('app.composer')
         self._logger.info('creating Qt app')
         self._app = QApplication(sys.argv)
         self._logger.debug('creating UI')
-        self._appWindow = AppWindow(logger)
+        self._appWindow = AppWindow()
 
     def run(self):
         """
