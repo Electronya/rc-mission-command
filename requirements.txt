@@ -1,11 +1,12 @@
 # Dev dependencies
-pytest==6.2.2
-coverage==5.4
-rope==0.18.0
-flake8==3.9.2
+pytest>=6.2.5
+pytest-cov>=3.0.0
+coverage>=5.4
+rope>=0.18.0
+flake8>=3.9.2
 
 # App dependencies
-paho-mqtt==1.5.1
-Pillow==8.2.0
-pygame==2.0.1
-PySide2==5.15.2
+paho-mqtt>=1.5.1
+Pillow>=8.2.0
+pygame>=2.0.1
+PySide2>=5.15.2
