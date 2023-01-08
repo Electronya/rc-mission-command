@@ -16,14 +16,16 @@ class TestAppWindow(TestCase):
     AppWindow test cases.
     """
     def setUp(self) -> None:
-        self.QMainwindow = 'pkgs.ui.windows.appWindow.qtw.QMainWindow.__init__'
+        self.QMainWindow = 'pkgs.ui.windows.appWindow.qtw.QMainWindow.__init__'
         self.QMsgBoxCls = 'pkgs.ui.windows.appWindow.qtw.QMessageBox'
         self.joystickCtrlrCls = 'pkgs.ui.windows.appWindow.JoystickCtrlr'
-        self.logger = Mock()
-        with patch(self.QMainwindow), \
-                patch.object(AppWindow, 'setupUi'), \
+        self.loggingMod = 'pkgs.ui.windows.appWindow.logging'
+        self.mockedLogger = Mock()
+        with patch(self.loggingMod) as mockedLoggingMod, \
+                patch(self.QMainWindow), patch.object(AppWindow, 'setupUi'), \
                 patch.object(AppWindow, '_initUI'):
-            self.testAppWindow = AppWindow(self.logger)
+            mockedLoggingMod.getLogger.return_value = self.mockedLogger
+            self.testAppWindow = AppWindow()
         self._setUpMockedWidgets()
 
     def _setUpMockedWidgets(self):
@@ -36,25 +38,37 @@ class TestAppWindow(TestCase):
         self.testAppWindow.joystickThrlBar = Mock()
         self.testAppWindow.joystickBrkBar = Mock()
 
+    def test_constructorGetLogger(self) -> None:
+        """
+        The constructor must get the main window logger.
+        """
+        with patch(self.loggingMod) as mockedLoggingMod, \
+                patch(self.QMainWindow), patch.object(AppWindow, 'setupUi'), \
+                patch.object(AppWindow, '_initUI'):
+            AppWindow()
+            mockedLoggingMod.getLogger \
+                .assert_called_once_with('app.windows.main')
+
     def test_constructorSetupUi(self) -> None:
         """
         The constructor must setup the UI.
         """
-        with patch(self.QMainwindow), \
+        with patch(self.QMainWindow), \
+                patch(self.QMainWindow), \
                 patch.object(AppWindow, 'setupUi') as mockedSetupUi, \
                 patch.object(AppWindow, '_initUI'):
-            testAppWindow = AppWindow(self.logger)
+            testAppWindow = AppWindow()
             mockedSetupUi.assert_called_once_with(testAppWindow)
 
     def test_constructorInitUI(self) -> None:
         """
         The constructor must initialize the UI submodules.
         """
-        with patch(self.QMainwindow), \
-                patch.object(AppWindow, 'setupUi'), \
+        with patch(self.QMainWindow), \
+                patch(self.QMainWindow), patch.object(AppWindow, 'setupUi'), \
                 patch.object(AppWindow, '_initUI') as mockedInitUI:
-            AppWindow(self.logger)
-            mockedInitUI.assert_called_once_with(self.logger)
+            AppWindow()
+            mockedInitUI.assert_called_once()
 
     def test_initUiJoystickCtrlr(self):
         """
@@ -62,9 +76,8 @@ class TestAppWindow(TestCase):
         """
         with patch.object(self.testAppWindow, '_initJoystickCtrlr') \
                 as mockedInitJoystickCtrlr:
-            self.testAppWindow._initUI(self.logger)
-            mockedInitJoystickCtrlr. \
-                assert_called_once_with(self.logger)
+            self.testAppWindow._initUI()
+            mockedInitJoystickCtrlr.assert_called_once()
 
     def test_initJoystickCtrlrCreate(self):
         """
@@ -72,10 +85,9 @@ class TestAppWindow(TestCase):
         joystick UI controller.
         """
         with patch(self.joystickCtrlrCls) as mockedJoystickCtrlr:
-            self.testAppWindow._initJoystickCtrlr(self.logger)
+            self.testAppWindow._initJoystickCtrlr()
             mockedJoystickCtrlr. \
-                assert_called_once_with(self.logger,
-                                        self.testAppWindow.joystickCalBtn,
+                assert_called_once_with(self.testAppWindow.joystickCalBtn,
                                         self.testAppWindow.joystickSelect,
                                         self.testAppWindow.joystickWheelIcon,
                                         self.testAppWindow.joystickThrlBar,
@@ -89,7 +101,7 @@ class TestAppWindow(TestCase):
         mockedJoystickCtrlr = Mock()
         with patch(self.joystickCtrlrCls) as mockedJoystickCtrlrCls:
             mockedJoystickCtrlrCls.return_value = mockedJoystickCtrlr
-            self.testAppWindow._initJoystickCtrlr(self.logger)
+            self.testAppWindow._initJoystickCtrlr()
             mockedJoystickCtrlr.error.connect.assert_called_once()
 
     def test_initJoystickCtrlrAvailable(self):
@@ -100,7 +112,7 @@ class TestAppWindow(TestCase):
         mockedJoystickCtrlr = Mock()
         with patch(self.joystickCtrlrCls) as mockedJoystickCtrlrCls:
             mockedJoystickCtrlrCls.return_value = mockedJoystickCtrlr
-            self.testAppWindow._initJoystickCtrlr(self.logger)
+            self.testAppWindow._initJoystickCtrlr()
             mockedJoystickCtrlr.areJoystickAvailable.assert_called_once()
 
     def test_createErrorMsgBoxNewMsgBox(self):

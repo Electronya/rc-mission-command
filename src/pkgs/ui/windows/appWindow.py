@@ -1,3 +1,4 @@
+import logging
 import sys
 
 import PySide2.QtCore as qtc
@@ -11,33 +12,27 @@ class AppWindow(qtw.QMainWindow, Ui_MainWindow):
     """
     The application main window.
     """
-    def __init__(self, appLogger: object) -> None:     # noqa: E501
+    def __init__(self) -> None:
         """
         Constructor.
-
-        Params:
-            appLoger:   The application logger.
         """
         super(AppWindow, self).__init__()
-        self._logger = appLogger.getLogger('APP_WINDOW')
-        self._logger.debug('loading UI...')
+        self._logger = logging.getLogger('app.windows.main')
+        self._logger.info('loading UI...')
         self.setupUi(self)
-        self._initUI(appLogger)
+        self._initUI()
 
-    def _initUI(self, logger: object) -> None:
+    def _initUI(self) -> None:
         """
         Initialize the UI models.
-
-        Params:
-            logger:     The application logger.
         """
-        self._initJoystickCtrlr(logger)
+        self._initJoystickCtrlr()
 
-    def _initJoystickCtrlr(self, logger: object) -> None:
+    def _initJoystickCtrlr(self) -> None:
         """
         Initialize the joystick controller.
         """
-        self._joystickCtrlr = JoystickCtrlr(logger, self.joystickCalBtn,
+        self._joystickCtrlr = JoystickCtrlr(self.joystickCalBtn,
                                             self.joystickSelect,
                                             self.joystickWheelIcon,
                                             self.joystickThrlBar,
