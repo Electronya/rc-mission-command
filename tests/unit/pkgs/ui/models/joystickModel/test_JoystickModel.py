@@ -20,7 +20,8 @@ class TestJoystickModel(TestCase):
         self.joystickCls = 'pkgs.ui.models.joystickModel.joystickModel.Joystick'                # noqa: E501
         self.QStdItem = 'pkgs.ui.models.joystickModel.joystickModel.QStandardItem'              # noqa: E501
         self.QStdItemModel = 'pkgs.ui.models.joystickModel.joystickModel.QStandardItemModel'    # noqa: E501
-        self.testLogger = Mock()
+        self.loggingMod = 'pkgs.ui.models.joystickModel.joystickModel.logging'
+        self.mockedLogger = Mock()
         self.testJoystickList = {'test controller 1': 0,
                                  'test controller 2': 1,
                                  'test controller 3': 2,
@@ -28,11 +29,13 @@ class TestJoystickModel(TestCase):
         self.mockedJoysticks = \
             self._setUpMockedJoysticks(self.testJoystickList)
         self.mockedStdItemModel = Mock()
-        with patch(self.joystickCls) as mockedJoystick, \
+        with patch(self.loggingMod) as mockedLoggingMod, \
+                patch(self.joystickCls) as mockedJoystick, \
                 patch.object(mockedJoystick, 'initFramework'), \
                 patch.object(JoystickModel, 'updateJoystickList'), \
                 patch.object(JoystickModel, 'activateJoystick'):
-            self.joystickMdl = JoystickModel(self.testLogger)
+            mockedLoggingMod.getLogger.return_value = self.mockedLogger
+            self.joystickMdl = JoystickModel()
             self.joystickMdl._joysticks['active'] = self.mockedJoysticks[0]
             self.joystickMdl._joysticks['list'] = self.mockedJoysticks
             self.joystickMdl.model = self.mockedStdItemModel
@@ -52,17 +55,31 @@ class TestJoystickModel(TestCase):
             mockedJoysticks.append(mocked)
         return mockedJoysticks
 
+    def test_constructorGetLogger(self) -> None:
+        """
+        The constructor must get the logger.
+        """
+        with patch(self.loggingMod) as mockedLoggingMod, \
+                patch(self.joystickCls) as mockedJoystick, \
+                patch.object(mockedJoystick, 'initFramework'), \
+                patch.object(JoystickModel, 'updateJoystickList'), \
+                patch.object(JoystickModel, 'activateJoystick'):
+            JoystickModel()
+            mockedLoggingMod.getLogger \
+                .assert_called_once_with('app.windows.ctrlr.model')
+
     def test_constructorInitJoysticks(self):
         """
         The constructor must initialize the joystick framework,
         create the combobox model and update the joystick list.
         """
-        with patch(f"{self.joystickCls}.initFramework") as mockedinitFmk, \
+        with patch(self.loggingMod), \
+                patch(f"{self.joystickCls}.initFramework") as mockedInitFmk, \
                 patch(self.QStdItemModel) as mockedQStdItemMdl, \
                 patch.object(JoystickModel, 'updateJoystickList') \
                 as mockedInitJoystickList:
-            JoystickModel(self.testLogger)
-            mockedinitFmk.assert_called_once()
+            JoystickModel()
+            mockedInitFmk.assert_called_once()
             mockedQStdItemMdl.assert_called_once_with(0, 1)
             mockedInitJoystickList.assert_called_once()
 

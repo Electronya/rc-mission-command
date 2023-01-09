@@ -1,3 +1,5 @@
+import logging
+
 from PySide2.QtCore import QObject, Signal, Slot
 from PySide2.QtGui import QStandardItem, QStandardItemModel
 
@@ -14,16 +16,12 @@ class JoystickModel(QObject):
     hatMotion = Signal(str, int, tuple)
     calibration = Signal(str)
 
-    def __init__(self, appLogger: object) -> None:
+    def __init__(self) -> None:
         """
         Constructor.
-
-        Params:
-            appLogger:      The application logger.
         """
         QObject.__init__(self)
-        self._appLogger = appLogger
-        self._logger = appLogger.getLogger('JOYSTICK_MODEL')
+        self._logger = logging.getLogger('app.windows.ctrlr.model')
         self._logger.info('initializing...')
         self._joysticks = {'active': None, 'list': []}
         self.model = QStandardItemModel(0, 1)
@@ -86,8 +84,7 @@ class JoystickModel(QObject):
             addList:            The list of joysticks to add.
         """
         for joystick in addList:
-            self._joysticks['list'].append(Joystick(self._appLogger,
-                                                    availables[joystick],
+            self._joysticks['list'].append(Joystick(availables[joystick],
                                                     joystick))
 
     def _removeJoysticks(self, removeList: tuple) -> None:
