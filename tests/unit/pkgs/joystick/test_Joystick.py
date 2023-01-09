@@ -27,7 +27,8 @@ class joystick(TestCase):
         self.joystickProcessorClass = \
             'pkgs.joystick.joystick.JoystickProcessor'
         self.mockedProcessor = Mock()
-        self.testLogger = Mock()
+        self.loggingMod = 'pkgs.joystick.joystick.logging'
+        self.mockedLogger = Mock()
         self.testNames = ('test ctrlr 1', 'test ctrlr 2', 'test ctrlr 3')
         self.testIdxes = (0, 1, 2)
         self.joysticks = []
@@ -38,23 +39,39 @@ class joystick(TestCase):
         with open('src/pkgs/joystick/configs/logitech_driving_force.json') \
                 as configFile:
             self.testConfig = configFile.read()
-        with patch('builtins.open', mock_open(read_data=self.testConfig)), \
+        with patch(self.loggingMod) as mockedLoggingMod, \
+                patch('builtins.open', mock_open(read_data=self.testConfig)), \
                 patch(self.joystickClass) as mockedJoystick:
+            mockedLoggingMod.getLogger.return_value = self.mockedLogger
             mockedJoystick.return_value = self.joysticks[0]
-            self.joystick = Joystick(self.testLogger, 0, self.testNames[0])
+            self.joystick = Joystick(0, self.testNames[0])
         self.joystick._threadPool = self.threadPoolMock
         self.joystick._processTimer = self.mockedTimer
+
+    def test_constructorGetLogger(self) -> None:
+        """
+        The constructor must get the logger.
+        """
+        with patch(self.loggingMod) as mockedLoggingMod, \
+                patch('builtins.open', mock_open(read_data=self.testConfig)), \
+                patch(self.joystickClass) as mockedJoystick, \
+                patch.object(Joystick, '_setupProcessor'):
+            mockedJoystick.return_value = self.joysticks[0]
+            Joystick(self.testIdxes[0], self.testNames[0])
+            mockedLoggingMod.getLogger \
+                .assert_called_once_with(f"joysticks.{self.testIdxes[0]}")
 
     def test_constructorInitJoystick(self):
         """
         The constructor must initialize the pygame joystick.
         """
         self.joysticks[0].reset_mock()
-        with patch('builtins.open', mock_open(read_data=self.testConfig)), \
+        with patch(self.loggingMod), \
+                patch('builtins.open', mock_open(read_data=self.testConfig)), \
                 patch(self.joystickClass) as mockedJoystick, \
                 patch.object(Joystick, '_setupProcessor'):
             mockedJoystick.return_value = self.joysticks[0]
-            Joystick(self.testLogger, self.testIdxes[0], self.testNames[0])
+            Joystick(self.testIdxes[0], self.testNames[0])
             mockedJoystick.assert_called_once_with(self.testIdxes[0])
             self.joysticks[0].init.assert_called_once()
 
@@ -64,10 +81,11 @@ class joystick(TestCase):
         """
         expectedPath = os.path.join(Joystick.CONFIG_ROOT_DIR,
                                     f"{self.testNames[0].replace(' ', '_')}.json")  # noqa: E501
-        with patch('builtins.open', mock_open(read_data=self.testConfig)) \
+        with patch(self.loggingMod), \
+                patch('builtins.open', mock_open(read_data=self.testConfig)) \
                 as mockedConfigFile, patch(self.joystickClass), \
                 patch.object(Joystick, '_setupProcessor'):
-            Joystick(self.testLogger, self.testIdxes[0], self.testNames[0])
+            Joystick(self.testIdxes[0], self.testNames[0])
             mockedConfigFile.assert_called_once_with(expectedPath)
             mockedConfigFile().read.assert_called_once()
 
@@ -75,11 +93,12 @@ class joystick(TestCase):
         """
         The constructor must setup the joystick's processor.
         """
-        with patch('builtins.open', mock_open(read_data=self.testConfig)), \
+        with patch(self.loggingMod), \
+                patch('builtins.open', mock_open(read_data=self.testConfig)), \
                 patch(self.joystickClass), \
-                patch.object(Joystick, '_setupProcessor') as mockedSetuProc:
-            Joystick(self.testLogger, self.testIdxes[0], self.testNames[0])
-            mockedSetuProc.assert_called_once()
+                patch.object(Joystick, '_setupProcessor') as mockedSetupProc:
+            Joystick(self.testIdxes[0], self.testNames[0])
+            mockedSetupProc.assert_called_once()
 
     def test_initFramework(self):
         """

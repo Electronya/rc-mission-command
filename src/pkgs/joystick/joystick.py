@@ -1,7 +1,9 @@
 import json
+import logging
 import os
 
 from PySide2.QtCore import QObject, QThreadPool, QTimer, Signal, Slot
+#test with Q3dAnalogInput
 
 import pygame as pg
 from pygame import joystick
@@ -27,14 +29,11 @@ class Joystick(QObject):
     hatMotion = Signal(str, int, tuple)
     calibration = Signal(str)
 
-    def __init__(self, logger: object, idx: int,
-                 name: str, ndigit: int = 2) -> None:
+    def __init__(self, idx: int, name: str, ndigit: int = 2) -> None:
         """
         Constructor.
 
         Params:
-            dispatcher:     The application event dispatcher.
-            logger:         The application logger.
             idx:            The index of the joystick from 0 to
                             pygame.joystick.get_count().
             name:           The joystick name.
@@ -42,7 +41,7 @@ class Joystick(QObject):
                             Default: 2.
         """
         QObject.__init__(self)
-        self._logger = logger.getLogger(f"JOYSTICK_{idx}")
+        self._logger = logging.getLogger(f"joysticks.{idx}")
         self._idx = idx
         self._ndigit = ndigit
         self._isCalibrated = False
