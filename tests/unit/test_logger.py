@@ -1,7 +1,7 @@
 from argparse import Namespace
 from copy import deepcopy
 from unittest import TestCase
-from unittest.mock import call, Mock, mock_open, patch
+from unittest.mock import call, Mock, patch
 
 import os
 import sys
@@ -29,7 +29,8 @@ class TestLogger(TestCase):
         The _getAppCmptNames function must return the supported
         application component names.
         """
-        expectedRes = ['app', 'app.composer', 'app.windows.main']
+        expectedRes = ['app', 'app.composer', 'app.windows.main',
+                       'app.windows.ctrlr', 'app.windows.ctrlr.model']
         testResult = dut._getAppCmptNames()
         self.assertEqual(testResult, expectedRes, '_getAppCmptNames failed '
                          'to return the supported app component names.')
@@ -91,7 +92,8 @@ class TestLogger(TestCase):
         expectedResult = deepcopy(_loggingSettings)
         expectedResult['handlers']['console']['level'] = 'DEBUG'
         expectedResult['loggers']['app.windows.main']['level'] = 'DEBUG'
-        self.testArg.app = 'app.windows.main'
+        expectedResult['loggers']['app.windows.ctrlr']['level'] = 'DEBUG'
+        self.testArg.app = 'app.windows.main,app.windows.ctrlr'
         loggersList = [self.testArg.app]
         for loggers in loggersList:
             dut._setInDebugMode(loggers)

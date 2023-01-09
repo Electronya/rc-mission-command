@@ -38,6 +38,14 @@ _loggingSettings = {
             'level': 'INFO',
             'handlers': ['console', 'file']
         },
+        'app.windows.ctrlr': {
+            'level': 'INFO',
+            'handlers': ['console', 'file']
+        },
+        'app.windows.ctrlr.model': {
+            'level': 'INFO',
+            'handlers': ['console', 'file']
+        },
     }
 }
 
