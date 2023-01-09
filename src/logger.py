@@ -15,40 +15,40 @@ _loggingSettings = {
             'formatter': 'default',
             'stream': 'ext://sys.stdout'
         },
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'formatter': 'default',
-            'filename': './logs/appLogs.log',
-            'when': 'midnight',
-            'interval': 1,
-            'backupCount': 30
-        }
+        # 'file': {
+        #     'level': 'INFO',
+        #     'class': 'logging.handlers.TimedRotatingFileHandler',
+        #     'formatter': 'default',
+        #     'filename': './logs/appLogs.log',
+        #     'when': 'midnight',
+        #     'interval': 1,
+        #     'backupCount': 30
+        # }
     },
     'loggers': {
         'app': {
             'level': 'INFO',
-            'handlers': ['console', 'file']
+            'handlers': ['console']
         },
         'app.composer': {
             'level': 'INFO',
-            'handlers': ['console', 'file']
+            'handlers': ['console']
         },
         'app.windows.main': {
             'level': 'INFO',
-            'handlers': ['console', 'file']
+            'handlers': ['console']
         },
         'app.windows.ctrlr': {
             'level': 'INFO',
-            'handlers': ['console', 'file']
+            'handlers': ['console']
         },
         'app.windows.ctrlr.model': {
             'level': 'INFO',
-            'handlers': ['console', 'file']
+            'handlers': ['console']
         },
         'joysticks': {
             'level': 'INFO',
-            'handlers': ['console', 'file']
+            'handlers': ['console']
         },
     }
 }
