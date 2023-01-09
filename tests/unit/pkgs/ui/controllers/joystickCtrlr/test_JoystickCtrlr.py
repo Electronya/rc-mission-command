@@ -23,17 +23,19 @@ class TestJoystickCtrlr(TestCase):
         self.graphSvgItem = 'pkgs.ui.controllers.joystickCtrlr.joystickCtrlr.QGraphicsSvgItem'      # noqa: E501
         self.messageBox = 'pkgs.ui.controllers.joystickCtrlr.joystickCtrlr.QMessageBox'             # noqa: E501
         self.transform = 'pkgs.ui.controllers.joystickCtrlr.joystickCtrlr.QTransform'               # noqa: E501
+        self.loggingMod = 'pkgs.ui.controllers.joystickCtrlr.joystickCtrlr.logging'                 # noqa: E501
         self.mockedLogger = Mock()
         self.mockedJoystickModel = Mock()
         self.mockedGraphScene = Mock()
         self.mockedGraphSvgItem = Mock()
         self._setUpMockedWidgets()
-        with patch(self.joystickModelCls) as mockedJoystickMdl, \
+        with patch(self.loggingMod) as mockedLoggingMod, \
+                patch(self.joystickModelCls) as mockedJoystickMdl, \
                 patch(self.qObject), \
                 patch.object(JoystickCtrlr, '_initWidgets'):
+            mockedLoggingMod.getLogger.return_value = self.mockedLogger
             mockedJoystickMdl.return_value = self.mockedJoystickModel
-            self.joystickCtrlr = JoystickCtrlr(self.mockedLogger,
-                                               self.mockedCalBtn,
+            self.joystickCtrlr = JoystickCtrlr(self.mockedCalBtn,
                                                self.mockedJoystickSelect,
                                                self.mockedWheelView,
                                                self.mockedThrtlBar,
@@ -50,19 +52,34 @@ class TestJoystickCtrlr(TestCase):
         self.mockedThrtlBar = Mock()
         self.mockedBrkBar = Mock()
 
+    def test_constructorGetLogger(self) -> None:
+        """
+        The constructor must get the logger.
+        """
+        with patch(self.loggingMod) as mockedLoggingMod, \
+                patch(self.joystickModelCls), \
+                patch(self.qObject), \
+                patch.object(JoystickCtrlr, '_initWidgets'):
+            JoystickCtrlr(self.mockedCalBtn, self.mockedJoystickSelect,
+                          self.mockedWheelView, self.mockedThrtlBar,
+                          self.mockedBrkBar)
+            mockedLoggingMod.getLogger \
+                .assert_called_once_with('app.windows.ctrlr')
+
     def test_constructorModel(self):
         """
         The constructor must instantiate the model.
         """
         mockedModel = Mock()
-        with patch(self.joystickModelCls) as mockedCtrlrMdl, \
+        with patch(self.loggingMod), \
+                patch(self.joystickModelCls) as mockedCtrlrMdl, \
                 patch(self.qObject), \
                 patch.object(JoystickCtrlr, '_initWidgets'):
             mockedCtrlrMdl.return_value = mockedModel
-            JoystickCtrlr(self.mockedLogger, self.mockedCalBtn,
-                          self.mockedJoystickSelect, self.mockedWheelView,
-                          self.mockedThrtlBar, self.mockedBrkBar)
-            mockedCtrlrMdl.assert_called_once_with(self.mockedLogger)
+            JoystickCtrlr(self.mockedCalBtn, self.mockedJoystickSelect,
+                          self.mockedWheelView, self.mockedThrtlBar,
+                          self.mockedBrkBar)
+            mockedCtrlrMdl.assert_called_once_with()
             mockedModel.calibration.connect.assert_called_once()
             mockedModel.axisMotion.connect.assert_called_once()
 
@@ -70,13 +87,13 @@ class TestJoystickCtrlr(TestCase):
         """
         The constructor must initialize the widgets.
         """
-        with patch(self.joystickModelCls), \
+        with patch(self.loggingMod), patch(self.joystickModelCls), \
                 patch(self.qObject), \
                 patch.object(JoystickCtrlr, '_initWidgets') \
                 as mockedInitWidgets:
-            JoystickCtrlr(self.mockedLogger, self.mockedCalBtn,
-                          self.mockedJoystickSelect, self.mockedWheelView,
-                          self.mockedThrtlBar, self.mockedBrkBar)
+            JoystickCtrlr(self.mockedCalBtn, self.mockedJoystickSelect,
+                          self.mockedWheelView, self.mockedThrtlBar,
+                          self.mockedBrkBar)
             mockedInitWidgets.assert_called_once()
 
     def test_initWidgetsCalBtn(self):

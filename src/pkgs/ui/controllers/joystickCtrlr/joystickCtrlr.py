@@ -1,3 +1,5 @@
+import logging
+
 from PySide2.QtCore import QObject, Signal, Slot
 from PySide2.QtGui import QTransform
 from PySide2.QtSvg import QGraphicsSvgItem
@@ -19,14 +21,13 @@ class JoystickCtrlr(QObject):
 
     error = Signal(QMessageBox.Icon, Exception)
 
-    def __init__(self, logger: object, calibrate: QPushButton,
-                 select: QComboBox, wheel: QGraphicsView,
-                 thrtlBar: QProgressBar, brkBar: QProgressBar) -> None:
+    def __init__(self, calibrate: QPushButton, select: QComboBox,
+                 wheel: QGraphicsView, thrtlBar: QProgressBar,
+                 brkBar: QProgressBar) -> None:
         """
         Constructor.
 
         Params:
-            logger:     The application logger.
             calibrate:  The calibration button.
             select:     The controller selection combobox.
             refresh:    The refresh controller list button.
@@ -35,18 +36,18 @@ class JoystickCtrlr(QObject):
             brkBar:     The brake position bar.
         """
         QObject.__init__(self)
-        self._logger = logger.getLogger('JOYSTICK-CTRLR')
+        self._logger = logging.getLogger('app.windows.ctrlr')
         self._logger.info('intializing...')
         self._calBtn = calibrate
         self._selectCombo = select
         self._wheelView = wheel
         self._thrtlBar = thrtlBar
         self._brakeBar = brkBar
-        self._model = JoystickModel(logger)
+        self._model = JoystickModel()
         self._model.calibration.connect(self._createCalibMsgBox)
         self._model.axisMotion.connect(self._axisMotionCallback)
         self._initWidgets()
-        self._logger.info('intialized')
+        self._logger.info('initialized')
 
     def _initWidgets(self) -> None:
         """
