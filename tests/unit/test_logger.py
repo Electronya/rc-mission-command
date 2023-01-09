@@ -20,7 +20,8 @@ class TestLogger(TestCase):
         self.loggingConfig = 'logger.logging.config'
         self.argparsePkg = 'logger.argparse'
         self.loggingMod = 'logger.logging'
-        self.appCmpts = ['app', 'app.composer', 'app.page.main']
+        self.appCmpts = ['app', 'app.composer', 'app.windows.main',
+                         'app.windows.ctrlr', 'app.windows.ctrlr.model']
         self.testArg = Namespace()
         self.testArg.app = None
 
@@ -41,7 +42,10 @@ class TestLogger(TestCase):
         """
         options = [{'short': '-a', 'long': '--app',
                     'help': f"Set debug level for application components."
-                    f"\nUse the following component names : {self.appCmpts}."}]
+                    f"\nUse the following component names : {self.appCmpts}."},
+                   {'short': '-j', 'long': '--joy',
+                    'help': 'Set debug level for joystick controller.'
+                    '\nUse the joystick controller ID number.'}]
         expectedCalls = []
         for option in options:
             expectedCalls.append(call(option['short'], option['long'],

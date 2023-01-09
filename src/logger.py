@@ -46,6 +46,10 @@ _loggingSettings = {
             'level': 'INFO',
             'handlers': ['console', 'file']
         },
+        'joysticks': {
+            'level': 'INFO',
+            'handlers': ['console', 'file']
+        },
     }
 }
 
@@ -69,6 +73,9 @@ def _parseArguments() -> argparse.Namespace:
                            help=f"Set debug level for application components."
                            f"\nUse the following component names : "
                            f"{_getAppCmptNames()}.")
+    argParser.add_argument('-j', '--joy', type=str, default=None,
+                           help='Set debug level for joystick controller.'
+                           '\nUse the joystick controller ID number.')
     return argParser.parse_args()
 
 
