@@ -3,7 +3,6 @@ import logging
 import os
 
 from PySide2.QtCore import QObject, QThreadPool, QTimer, Signal, Slot
-#test with Q3dAnalogInput
 
 import pygame as pg
 from pygame import joystick
@@ -133,8 +132,9 @@ class Joystick(QObject):
         """
         modifier = 0.0
         middle = limits['min'] + ((limits['max'] - limits['min']) / 2)
-        self._logger.debug(f"calculating modifier with: val={val}, min={limits['min']}, "
-                           f"max={limits['max']} and middle={middle}")
+        self._logger.debug(f"calculating modifier with: val={val}, "
+                           f"min={limits['min']}, max={limits['max']} "
+                           f"and middle={middle}")
         if val < middle:
             self._logger.debug('val < middle')
             modifier = -1 * (abs(val) / abs(middle - limits['min']))
@@ -174,7 +174,9 @@ class Joystick(QObject):
                        'brake': self._calculateFullRangeInvertMod}
         print(f"processing axis {idx}")
         if self._isCalibrated:
-            modifier = calculators[self._config[self.AXES_KEY][idx]](self._axes[idx], position)     # noqa: E501
+            modifier = \
+                calculators[self._config[self.AXES_KEY][idx]](self._axes[idx],
+                                                              position)
             self._logger.debug(f"new axis{idx} modifier: {modifier}")
             self.axisMotion.emit(self._config[self.TYPE_KEY], idx,
                                  round(modifier, self._ndigit))
@@ -280,7 +282,7 @@ class Joystick(QObject):
         """
         if not self._isCalibrated:
             self._logger.debug(f"joystick {self.getName()} "
-                               f"calibartion sequence {self._calibSeq}")
+                               f"calibration sequence {self._calibSeq}")
             self._calibSeq += 1
             seq = self._config[self.CALIB_KEY][self._calibSeq - 1]
             if 'axis' in seq:
@@ -306,5 +308,5 @@ class Joystick(QObject):
         """
         Uninitialized the joystick.
         """
-        self._logger.info('unitializing joystick')
+        self._logger.info('uninitializing joystick')
         self._joystick.quit()
