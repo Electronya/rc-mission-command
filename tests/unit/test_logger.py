@@ -45,7 +45,7 @@ class TestLogger(TestCase):
                     f"\nUse the following component names : {self.appCmpts}."},
                    {'short': '-j', 'long': '--joy',
                     'help': 'Set debug level for joystick controller.'
-                    '\nUse the joystick controller ID number.'}]
+                    '\nUse <joysticks.[index number]>.'}]
         expectedCalls = []
         for option in options:
             expectedCalls.append(call(option['short'], option['long'],

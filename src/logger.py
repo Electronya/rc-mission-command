@@ -75,7 +75,7 @@ def _parseArguments() -> argparse.Namespace:
                            f"{_getAppCmptNames()}.")
     argParser.add_argument('-j', '--joy', type=str, default=None,
                            help='Set debug level for joystick controller.'
-                           '\nUse the joystick controller ID number.')
+                           '\nUse <joysticks.[index number]>.')
     return argParser.parse_args()
 
 
