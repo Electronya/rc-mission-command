@@ -37,7 +37,7 @@ class JoystickCtrlr(QObject):
         """
         QObject.__init__(self)
         self._logger = logging.getLogger('app.windows.ctrlr')
-        self._logger.info('intializing...')
+        self._logger.info('initializing...')
         self._calBtn = calibrate
         self._selectCombo = select
         self._wheelView = wheel

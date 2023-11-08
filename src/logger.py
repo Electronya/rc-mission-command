@@ -28,27 +28,33 @@ _loggingSettings = {
     'loggers': {
         'app': {
             'level': 'INFO',
-            'handlers': ['console']
+            'handlers': ['console'],
+            'propagate': False
         },
         'app.composer': {
             'level': 'INFO',
-            'handlers': ['console']
+            'handlers': ['console'],
+            'propagate': False
         },
         'app.windows.main': {
             'level': 'INFO',
-            'handlers': ['console']
+            'handlers': ['console'],
+            'propagate': False
         },
         'app.windows.ctrlr': {
             'level': 'INFO',
-            'handlers': ['console']
+            'handlers': ['console'],
+            'propagate': False
         },
         'app.windows.ctrlr.model': {
             'level': 'INFO',
-            'handlers': ['console']
+            'handlers': ['console'],
+            'propagate': False
         },
         'joysticks': {
             'level': 'INFO',
-            'handlers': ['console']
+            'handlers': ['console'],
+            'propagate': False
         },
     }
 }
@@ -92,8 +98,9 @@ def _setInDebugMode(loggerList: str) -> None:
             if logger in _loggingSettings['loggers']:
                 _loggingSettings['loggers'][logger]['level'] = 'DEBUG'
             else:
-                _loggingSettings['loggers'][logger] = \
-                    {'level': 'DEBUG', 'handlers': ['console', 'file']}
+                _loggingSettings['loggers'][logger] = {'level': 'DEBUG',
+                                                       'handlers': ['console'],
+                                                       'propagate': False}
 
 
 def _updateSettings(args: argparse.Namespace) -> None:
